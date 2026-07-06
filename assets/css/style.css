@@ -1,0 +1,305 @@
+/* ============================================================
+   CSU-Piat Dormitory & Cottage Finder — Shared Theme
+   Modern University Theme: Blue / White / Gray
+   ============================================================ */
+
+:root {
+  --uni-blue: #1d4ed8;
+  --uni-blue-dark: #1e3a8a;
+  --uni-blue-light: #3b82f6;
+  --uni-gray: #64748b;
+  --uni-gray-light: #f1f5f9;
+  --uni-border: #e2e8f0;
+  --sidebar-width: 260px;
+  --topbar-height: 64px;
+}
+
+body {
+  background-color: var(--uni-gray-light);
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  color: #1e293b;
+}
+
+a { text-decoration: none; }
+
+/* ---------------- Auth Pages ---------------- */
+.auth-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--uni-blue-dark), var(--uni-blue));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  max-width: 960px;
+  width: 100%;
+}
+
+.auth-card .brand-panel {
+  background: linear-gradient(160deg, var(--uni-blue), var(--uni-blue-dark));
+  color: #fff;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-card .brand-panel i.fa-building-columns {
+  font-size: 2.75rem;
+  margin-bottom: 1rem;
+}
+
+.auth-form-panel {
+  padding: 3rem 2.5rem;
+}
+
+.role-toggle .btn {
+  flex: 1;
+}
+
+/* ---------------- Layout: Sidebar + Topbar ---------------- */
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--uni-blue-dark);
+  color: #fff;
+  overflow-y: auto;
+  z-index: 1030;
+  transition: transform 0.25s ease;
+}
+
+.app-sidebar .sidebar-brand {
+  padding: 1.25rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.app-sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.75);
+  padding: 0.7rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-left: 3px solid transparent;
+  font-size: 0.93rem;
+}
+
+.app-sidebar .nav-link i { width: 20px; text-align: center; }
+
+.app-sidebar .nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.app-sidebar .nav-link.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-left-color: #facc15;
+  font-weight: 600;
+}
+
+.app-sidebar .nav-section-title {
+  padding: 1rem 1.25rem 0.4rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.app-topbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: var(--sidebar-width);
+  height: var(--topbar-height);
+  background: #fff;
+  border-bottom: 1px solid var(--uni-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  z-index: 1020;
+}
+
+.app-main {
+  margin-left: var(--sidebar-width);
+  margin-top: var(--topbar-height);
+  padding: 1.75rem;
+  min-height: calc(100vh - var(--topbar-height));
+}
+
+#sidebar-toggle-btn { display: none; }
+
+@media (max-width: 991.98px) {
+  .app-sidebar { transform: translateX(-100%); }
+  .app-sidebar.show { transform: translateX(0); }
+  .app-topbar { left: 0; }
+  .app-main { margin-left: 0; }
+  #sidebar-toggle-btn { display: inline-flex; }
+}
+
+/* ---------------- Cards ---------------- */
+.stat-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--uni-border);
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 100%;
+}
+
+.stat-card .stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.stat-card .stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
+.stat-card .stat-label { color: var(--uni-gray); font-size: 0.85rem; }
+
+.section-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--uni-border);
+  padding: 1.5rem;
+}
+
+.room-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--uni-border);
+  overflow: hidden;
+  height: 100%;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.room-card:hover {
+  box-shadow: 0 10px 25px rgba(29, 78, 216, 0.12);
+  transform: translateY(-2px);
+}
+
+.room-card img { width: 100%; height: 170px; object-fit: cover; }
+.room-card .room-body { padding: 1rem 1.1rem; }
+
+/* ---------------- Wizard ---------------- */
+.wizard-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  list-style: none;
+  padding: 0;
+}
+
+.wizard-steps li {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  color: var(--uni-gray);
+  font-size: 0.85rem;
+}
+
+.wizard-steps li .step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--uni-gray-light);
+  border: 2px solid var(--uni-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.4rem;
+  font-weight: 700;
+  color: var(--uni-gray);
+}
+
+.wizard-steps li.active .step-circle,
+.wizard-steps li.done .step-circle {
+  background: var(--uni-blue);
+  border-color: var(--uni-blue);
+  color: #fff;
+}
+
+.wizard-steps li.active { color: var(--uni-blue); font-weight: 600; }
+.wizard-steps li.done { color: var(--uni-blue-dark); }
+
+.wizard-steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--uni-border);
+  z-index: -1;
+}
+
+.wizard-steps li.done:not(:last-child)::after { background: var(--uni-blue); }
+
+/* ---------------- Loading Overlay ---------------- */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+/* ---------------- Toasts ---------------- */
+.toast-success .toast-body { background: #16a34a; color: #fff; border-radius: 0.4rem; }
+.toast-error .toast-body { background: #dc2626; color: #fff; border-radius: 0.4rem; }
+.toast-warning .toast-body { background: #d97706; color: #fff; border-radius: 0.4rem; }
+.toast-info .toast-body { background: #0284c7; color: #fff; border-radius: 0.4rem; }
+
+/* ---------------- Misc ---------------- */
+.badge-soft { background: rgba(29, 78, 216, 0.1); color: var(--uni-blue); }
+.qr-placeholder {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  background: repeating-linear-gradient(45deg, #cbd5e1, #cbd5e1 10px, #e2e8f0 10px, #e2e8f0 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 2px dashed var(--uni-gray);
+  color: var(--uni-gray-dark, #334155);
+  font-weight: 600;
+  text-align: center;
+  padding: 1rem;
+}
+
+.table-responsive-card thead { background: var(--uni-gray-light); }
+
+.avatar-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.clickable { cursor: pointer; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--uni-gray); }
+.empty-state i { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
