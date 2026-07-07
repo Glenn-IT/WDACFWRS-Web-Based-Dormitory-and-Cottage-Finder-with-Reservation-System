@@ -66,19 +66,19 @@ time with `git checkout vX.XX` or browse it directly on GitHub under
 
 | Version | Tag | Commit Hash |
 |---------|-----|--------------|
-| v1.00 | `v1.00` | _(filled in after all versions are pushed)_ |
-| v1.01 | `v1.01` | _(filled in after all versions are pushed)_ |
-| v1.02 | `v1.02` | _(filled in after all versions are pushed)_ |
-| v1.03 | `v1.03` | _(filled in after all versions are pushed)_ |
-| v1.04 | `v1.04` | _(filled in after all versions are pushed)_ |
-| v1.05 | `v1.05` | _(filled in after all versions are pushed)_ |
-| v1.06 | `v1.06` | _(filled in after all versions are pushed)_ |
-| v1.07 | `v1.07` | _(filled in after all versions are pushed)_ |
-| v1.08 | `v1.08` | _(filled in after all versions are pushed)_ |
-| v1.09 | `v1.09` | _(filled in after all versions are pushed)_ |
-| v1.10 | `v1.10` | _(filled in after all versions are pushed)_ |
-| v1.11 | `v1.11` | _(filled in after all versions are pushed)_ |
-| v1.12 | `v1.12` | _(filled in after all versions are pushed)_ |
+| v1.00 | `v1.00` | `a51f4008a709422336b5d77e3bd3c73f58c236e7` |
+| v1.01 | `v1.01` | `a488e879b1919047a525819598e9df675fa13e40` |
+| v1.02 | `v1.02` | `bc512b5585e333423c30676d63a1439252effef6` |
+| v1.03 | `v1.03` | `7a40f19b2b29a64e8a8d331816b3e1e16c3b774d` |
+| v1.04 | `v1.04` | `9c823c760eaf7f87a9810c259b31dd7ac7d1e3d7` |
+| v1.05 | `v1.05` | `f713141cb8397450ea5792b2d7ead442cdd04d87` |
+| v1.06 | `v1.06` | `43e6ae6a4b3ecd953d4a8c8b98e192c2a3ef86e8` |
+| v1.07 | `v1.07` | `cea98304fcc96378b92d6cdcf165dbae24eb3959` |
+| v1.08 | `v1.08` | `6a3e73678f3a087c2a3f94202fb4dafa86c049cc` |
+| v1.09 | `v1.09` | `912e99ca2c40b022ff6aa166933d091f97efcffb` |
+| v1.10 | `v1.10` | `bf350bad57189a748b43f0216756e8800547c2cd` |
+| v1.11 | `v1.11` | `a8c79be126b6f61f1ef658e4e962b75448ee32db` |
+| v1.12 | `v1.12` | `700230cb5f453ae54a3985e07baf8fabc7e095a7` |
 
 ## When a Prof or Client Requests Changes After a Presentation
 
