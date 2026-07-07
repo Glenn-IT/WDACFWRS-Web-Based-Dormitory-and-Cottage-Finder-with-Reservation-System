@@ -15,11 +15,16 @@ $securityAnswer = trim((string)($in['securityAnswer'] ?? ''));
 if ($firstName === '' || $lastName === '' || $email === '' || $password === '' || $securityQuestion === '' || $securityAnswer === '') {
     fail('Please fill in all required fields.');
 }
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    fail('Please enter a valid email address.');
+if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-zA-Z0-9._%+-]+@gmail\.com$/i', $email)) {
+    fail('Please use a Gmail address (e.g. name@gmail.com).');
 }
 if (strlen($password) < 6) {
     fail('Password must be at least 6 characters.');
+}
+
+$phone = trim((string)($in['phone'] ?? ''));
+if ($phone !== '' && !preg_match('/^(09\d{9}|\+639\d{9})$/', $phone)) {
+    fail('Please enter a valid PH mobile number (e.g. 09123456789).');
 }
 
 $pdo = get_db();
@@ -50,7 +55,7 @@ $stmt->execute([
     trim((string)($in['nationality'] ?? 'Filipino')),
     trim((string)($in['address'] ?? '')),
     ($in['birthday'] ?? '') !== '' ? $in['birthday'] : null,
-    trim((string)($in['phone'] ?? '')),
+    $phone,
 ]);
 
 $id = (int)$pdo->lastInsertId();

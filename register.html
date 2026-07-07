@@ -30,11 +30,11 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Email Address</label>
-            <input type="email" class="form-control" id="reg-email" required>
+            <input type="email" class="form-control" id="reg-email" placeholder="name@gmail.com" pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$" title="Please use a Gmail address (e.g. name@gmail.com)" required>
           </div>
           <div class="col-md-6">
             <label class="form-label">Phone Number</label>
-            <input type="text" class="form-control" id="reg-phone" placeholder="09XXXXXXXXX">
+            <input type="text" class="form-control" id="reg-phone" placeholder="09XXXXXXXXX" pattern="^(09\d{9}|\+639\d{9})$" title="Enter a valid PH mobile number (e.g. 09123456789)">
           </div>
           <div class="col-md-6">
             <label class="form-label">Password</label>
@@ -52,9 +52,6 @@
               <option>BS Agriculture</option>
               <option>BS Education</option>
               <option>BS Criminology</option>
-              <option>BS Business Administration</option>
-              <option>BS Hospitality Management</option>
-              <option>BS Fisheries</option>
             </select>
           </div>
           <div class="col-md-3">
@@ -126,11 +123,25 @@
         return;
       }
 
+      const email = document.getElementById("reg-email").value.trim();
+      if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(email)) {
+        errorEl.textContent = "Please use a Gmail address (e.g. name@gmail.com).";
+        errorEl.classList.remove("d-none");
+        return;
+      }
+
+      const phone = document.getElementById("reg-phone").value.trim();
+      if (phone && !/^(09\d{9}|\+639\d{9})$/.test(phone)) {
+        errorEl.textContent = "Please enter a valid PH mobile number (e.g. 09123456789).";
+        errorEl.classList.remove("d-none");
+        return;
+      }
+
       const data = {
         firstName: document.getElementById("reg-first-name").value.trim(),
         lastName: document.getElementById("reg-last-name").value.trim(),
-        email: document.getElementById("reg-email").value.trim(),
-        phone: document.getElementById("reg-phone").value.trim(),
+        email,
+        phone,
         password,
         course: document.getElementById("reg-course").value,
         yearLevel: document.getElementById("reg-year-level").value,
