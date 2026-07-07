@@ -1,0 +1,7 @@
+# Allow PHP gate includes (require_once) to run inside .html pages,
+# so the under-construction gate works without renaming any file or link.
+<FilesMatch "\.html$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+DirectoryIndex index.html index.php
