@@ -2,16 +2,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.getElementById("cottages-table-body");
   const cottageModal = new bootstrap.Modal(document.getElementById("cottage-modal"));
   const cottageViewModal = new bootstrap.Modal(document.getElementById("cottage-view-modal"));
-  let uploadedImage = null;
+  let uploadedFile = null;
+  let cottages = [];
 
-  function render() {
-    const cottages = DataAPI.getCottages();
+  async function render() {
+    const data = await DataAPI.getCottages();
+    cottages = data.cottages || [];
     tbody.innerHTML = cottages.length
       ? cottages
           .map(
             (c) => `
       <tr>
-        <td><img src="${c.image}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
+        <td><img src="${resolveAsset(c.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
         <td>${escapeHtml(c.owner)}</td>
         <td>${escapeHtml(c.name)}</td>
         <td>${c.rooms}</td>
@@ -36,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cottage-form").reset();
     document.getElementById("cottage-id").value = "";
     document.getElementById("cottage-image-preview").style.display = "none";
-    uploadedImage = null;
+    uploadedFile = null;
   }
 
   document.getElementById("add-cottage-btn").addEventListener("click", () => {
@@ -48,18 +50,18 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("cottage-image-input").addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    uploadedFile = file;
     const reader = new FileReader();
     reader.onload = () => {
-      uploadedImage = reader.result;
       const preview = document.getElementById("cottage-image-preview");
-      preview.src = uploadedImage;
+      preview.src = reader.result;
       preview.style.display = "block";
     };
     reader.readAsDataURL(file);
   });
 
   function editCottage(id) {
-    const c = DataAPI.getCottages().find((x) => x.id === id);
+    const c = cottages.find((x) => String(x.id) === String(id));
     if (!c) return;
     resetForm();
     document.getElementById("cottage-modal-title").textContent = "Edit Cottage";
@@ -70,18 +72,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cottage-price").value = c.price;
     document.getElementById("cottage-availability").value = c.availability;
     document.getElementById("cottage-description").value = c.description;
-    uploadedImage = c.image;
     const preview = document.getElementById("cottage-image-preview");
-    preview.src = c.image;
+    preview.src = resolveAsset(c.image);
     preview.style.display = "block";
     cottageModal.show();
   }
 
   function viewCottage(id) {
-    const c = DataAPI.getCottages().find((x) => x.id === id);
+    const c = cottages.find((x) => String(x.id) === String(id));
     if (!c) return;
     document.getElementById("cottage-view-body").innerHTML = `
-      <img src="${c.image}" class="w-100 rounded mb-3" style="max-height:220px;object-fit:cover;">
+      <img src="${resolveAsset(c.image)}" class="w-100 rounded mb-3" style="max-height:220px;object-fit:cover;">
       <h5 class="fw-bold">${escapeHtml(c.name)} <span class="badge ${badgeClass(c.availability)}">${c.availability}</span></h5>
       <p class="text-muted">Owner: ${escapeHtml(c.owner)} · ${c.rooms} rooms · ₱${c.price.toLocaleString()}/day</p>
       <p>${escapeHtml(c.description)}</p>`;
@@ -91,39 +92,44 @@ document.addEventListener("DOMContentLoaded", () => {
   async function deleteCottage(id) {
     const ok = await confirmDialog({ title: "Delete Cottage", message: "Are you sure you want to delete this cottage record?", confirmText: "Delete" });
     if (!ok) return;
-    withLoading(() => {
-      const cottages = DataAPI.getCottages().filter((x) => x.id !== id);
-      DataAPI.saveCottages(cottages);
-      render();
-      showToast("Cottage deleted.", "warning");
+    await withLoading(async () => {
+      try {
+        await DataAPI.deleteCottage(id);
+        await render();
+        showToast("Cottage deleted.", "warning");
+      } catch (e) {
+        showToast(e.message, "error");
+      }
     });
   }
 
   document.getElementById("cottage-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const id = document.getElementById("cottage-id").value;
-    const cottages = DataAPI.getCottages();
-    const payload = {
-      name: document.getElementById("cottage-name").value.trim(),
-      owner: document.getElementById("cottage-owner").value.trim(),
-      rooms: parseInt(document.getElementById("cottage-rooms").value, 10),
-      price: parseInt(document.getElementById("cottage-price").value, 10),
-      availability: document.getElementById("cottage-availability").value,
-      description: document.getElementById("cottage-description").value.trim(),
-      image: uploadedImage || `https://placehold.co/400x260/16a34a/ffffff?text=Cottage`,
-    };
 
-    withLoading(() => {
-      if (id) {
-        const existing = cottages.find((x) => x.id === id);
-        Object.assign(existing, payload);
-      } else {
-        cottages.push({ id: DB.nextId(cottages, "CT"), ...payload });
+    const formData = new FormData();
+    if (id) formData.append("id", id);
+    formData.append("name", document.getElementById("cottage-name").value.trim());
+    formData.append("owner", document.getElementById("cottage-owner").value.trim());
+    formData.append("rooms", document.getElementById("cottage-rooms").value);
+    formData.append("price", document.getElementById("cottage-price").value);
+    formData.append("availability", document.getElementById("cottage-availability").value);
+    formData.append("description", document.getElementById("cottage-description").value.trim());
+    if (uploadedFile) formData.append("image", uploadedFile);
+
+    withLoading(async () => {
+      try {
+        if (id) {
+          await DataAPI.updateCottage(formData);
+        } else {
+          await DataAPI.createCottage(formData);
+        }
+        cottageModal.hide();
+        await render();
+        showToast(id ? "Cottage updated." : "Cottage added.", "success");
+      } catch (err) {
+        showToast(err.message, "error");
       }
-      DataAPI.saveCottages(cottages);
-      cottageModal.hide();
-      render();
-      showToast(id ? "Cottage updated." : "Cottage added.", "success");
     });
   });
 

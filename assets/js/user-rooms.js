@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const dormFilters = document.getElementById("dorm-filters");
   const grid = document.getElementById("rooms-grid");
 
+  let dormsCache = [];
+  let cottagesCache = [];
+
   function setType(type) {
     currentType = type;
     tabDorm.classList.toggle("active", type === "dorm");
@@ -22,23 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(id).addEventListener("input", render);
   });
 
-  function render() {
-    if (currentType === "dorm") renderDorms();
-    else renderCottages();
+  async function render() {
+    if (currentType === "dorm") await renderDorms();
+    else await renderCottages();
   }
 
-  function renderDorms() {
+  async function renderDorms() {
     const gender = document.getElementById("filter-gender").value;
     const status = document.getElementById("filter-status").value;
-    const search = document.getElementById("filter-search").value.trim().toLowerCase();
+    const search = document.getElementById("filter-search").value.trim();
 
-    let dorms = DataAPI.getDorms();
-    if (gender) dorms = dorms.filter((d) => d.gender === gender);
-    if (status) dorms = dorms.filter((d) => d.status === status);
-    if (search) dorms = dorms.filter((d) => d.roomNumber.toLowerCase().includes(search));
+    const data = await DataAPI.getDorms({ gender, status, search });
+    dormsCache = data.dorms || [];
 
-    grid.innerHTML = dorms.length
-      ? dorms.map((d) => dormCard(d)).join("")
+    grid.innerHTML = dormsCache.length
+      ? dormsCache.map((d) => dormCard(d)).join("")
       : `<div class="col-12 empty-state"><i class="fa-solid fa-door-closed"></i>No rooms match your filters.</div>`;
 
     grid.querySelectorAll("[data-reserve-dorm]").forEach((btn) => {
@@ -49,13 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function renderCottages() {
-    const search = document.getElementById("filter-search")?.value.trim().toLowerCase() || "";
-    let cottages = DataAPI.getCottages();
-    if (search) cottages = cottages.filter((c) => c.name.toLowerCase().includes(search) || c.owner.toLowerCase().includes(search));
+  async function renderCottages() {
+    const search = document.getElementById("filter-search")?.value.trim() || "";
+    const data = await DataAPI.getCottages({ search });
+    cottagesCache = data.cottages || [];
 
-    grid.innerHTML = cottages.length
-      ? cottages.map((c) => cottageCard(c)).join("")
+    grid.innerHTML = cottagesCache.length
+      ? cottagesCache.map((c) => cottageCard(c)).join("")
       : `<div class="col-12 empty-state"><i class="fa-solid fa-house"></i>No cottages match your filters.</div>`;
 
     grid.querySelectorAll("[data-reserve-cottage]").forEach((btn) => {
@@ -71,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="col-sm-6 col-lg-4 col-xl-3">
         <div class="room-card">
-          <img src="${d.image}" alt="Room ${d.roomNumber}">
+          <img src="${resolveAsset(d.image)}" alt="Room ${d.roomNumber}">
           <div class="room-body">
             <div class="d-flex justify-content-between align-items-start">
               <h6 class="fw-bold mb-1">Room ${d.roomNumber}</h6>
@@ -94,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="col-sm-6 col-lg-4 col-xl-3">
         <div class="room-card">
-          <img src="${c.image}" alt="${escapeHtml(c.name)}">
+          <img src="${resolveAsset(c.image)}" alt="${escapeHtml(c.name)}">
           <div class="room-body">
             <div class="d-flex justify-content-between align-items-start">
               <h6 class="fw-bold mb-1">${escapeHtml(c.name)}</h6>
@@ -117,10 +118,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function viewDorm(id) {
-    const d = DataAPI.getDorms().find((x) => x.id === id);
+    const d = dormsCache.find((x) => String(x.id) === String(id));
     if (!d) return;
     document.getElementById("room-detail-body").innerHTML = `
-      <img src="${d.image}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
+      <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
       <h5 class="fw-bold">Room ${d.roomNumber} <span class="badge ${badgeClass(d.status)}">${d.status}</span></h5>
       <p class="text-muted mb-2">${d.gender} Dormitory · Capacity: ${d.capacity} pax</p>
       <p>${escapeHtml(d.description)}</p>
@@ -132,10 +133,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function viewCottage(id) {
-    const c = DataAPI.getCottages().find((x) => x.id === id);
+    const c = cottagesCache.find((x) => String(x.id) === String(id));
     if (!c) return;
     document.getElementById("room-detail-body").innerHTML = `
-      <img src="${c.image}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
+      <img src="${resolveAsset(c.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
       <h5 class="fw-bold">${escapeHtml(c.name)} <span class="badge ${badgeClass(c.availability)}">${c.availability}</span></h5>
       <p class="text-muted mb-2">Owner: ${escapeHtml(c.owner)} · ${c.rooms} rooms</p>
       <p>${escapeHtml(c.description)}</p>

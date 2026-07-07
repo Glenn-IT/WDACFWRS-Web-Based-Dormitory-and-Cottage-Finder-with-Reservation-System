@@ -1,24 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.getElementById("reservations-table-body");
   const viewModal = new bootstrap.Modal(document.getElementById("reservation-view-modal"));
+  let reservations = [];
 
   ["filter-type", "filter-approval", "filter-payment", "filter-search"].forEach((id) => {
     document.getElementById(id).addEventListener("input", render);
   });
 
-  function render() {
+  async function render() {
     const type = document.getElementById("filter-type").value;
-    const approval = document.getElementById("filter-approval").value;
-    const payment = document.getElementById("filter-payment").value;
-    const search = document.getElementById("filter-search").value.trim().toLowerCase();
+    const approvalStatus = document.getElementById("filter-approval").value;
+    const paymentStatus = document.getElementById("filter-payment").value;
+    const search = document.getElementById("filter-search").value.trim();
 
-    let reservations = DataAPI.getReservations();
-    if (type) reservations = reservations.filter((r) => r.type === type);
-    if (approval) reservations = reservations.filter((r) => r.approvalStatus === approval);
-    if (payment) reservations = reservations.filter((r) => r.paymentStatus === payment);
-    if (search) reservations = reservations.filter((r) => r.studentName.toLowerCase().includes(search));
-
-    reservations = [...reservations].sort((a, b) => new Date(b.reservationDate) - new Date(a.reservationDate));
+    const data = await DataAPI.getReservations({ type, approvalStatus, paymentStatus, search });
+    reservations = data.reservations || [];
 
     tbody.innerHTML = reservations.length
       ? reservations
@@ -49,11 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function viewReservation(id) {
-    const r = DataAPI.getReservations().find((x) => x.id === id);
+    const r = reservations.find((x) => String(x.id) === String(id));
     if (!r) return;
     document.getElementById("reservation-view-body").innerHTML = `
       <div class="row g-3 mb-3">
-        <div class="col-md-5"><img src="${r.image}" class="w-100 rounded" style="max-height:200px;object-fit:cover;"></div>
+        <div class="col-md-5"><img src="${resolveAsset(r.image)}" class="w-100 rounded" style="max-height:200px;object-fit:cover;"></div>
         <div class="col-md-7">
           <h5 class="fw-bold">${escapeHtml(r.assetLabel)} <span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></h5>
           <p class="mb-1"><strong>Reservation #:</strong> ${r.id}</p>
@@ -99,24 +95,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     if (!ok) return;
 
-    withLoading(() => {
-      const reservations = DataAPI.getReservations();
-      const r = reservations.find((x) => x.id === id);
-      if (r) r.approvalStatus = status;
-      DataAPI.saveReservations(reservations);
-
-      const notifications = DataAPI.getNotifications();
-      notifications.push({
-        id: DB.nextId(notifications, "NTF"),
-        studentId: r.studentId,
-        message: `Your reservation ${r.id} has been ${status.toLowerCase()}.`,
-        date: new Date().toISOString().slice(0, 10),
-        read: false,
-      });
-      DataAPI.saveNotifications(notifications);
-
-      render();
-      showToast(`Reservation ${status.toLowerCase()}.`, status === "Approved" ? "success" : "warning");
+    await withLoading(async () => {
+      try {
+        if (status === "Approved") {
+          await DataAPI.approveReservation(id);
+        } else {
+          await DataAPI.declineReservation(id);
+        }
+        await render();
+        showToast(`Reservation ${status.toLowerCase()}.`, status === "Approved" ? "success" : "warning");
+      } catch (e) {
+        showToast(e.message, "error");
+      }
     });
   }
 

@@ -13,14 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("PDF export is simulated in this prototype (UI only).", "info");
   });
 
-  function inRange(dateStr, from, to) {
-    const d = new Date(dateStr);
-    if (from && d < new Date(from)) return false;
-    if (to && d > new Date(to)) return false;
-    return true;
-  }
-
-  function generateReport() {
+  async function generateReport() {
     const type = document.getElementById("report-type").value;
     const from = document.getElementById("report-date-from").value;
     const to = document.getElementById("report-date-to").value;
@@ -31,12 +24,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const summaryEl = document.getElementById("report-summary");
     const tableEl = document.getElementById("report-table-container");
 
-    if (type === "reservations") {
-      let rows = DataAPI.getReservations().filter((r) => inRange(r.reservationDate, from, to));
-      if (resType) rows = rows.filter((r) => r.type === resType);
-      if (status) rows = rows.filter((r) => r.approvalStatus === status);
+    const data = await withLoading(() => DataAPI.getReport({ type, from, to, resType, status }));
 
-      summaryEl.innerHTML = summaryCard("Total Reservations", rows.length, "#1d4ed8", "fa-clipboard-list");
+    if (type === "reservations") {
+      const rows = data.rows;
+      summaryEl.innerHTML = summaryCard("Total Reservations", data.total, "#1d4ed8", "fa-clipboard-list");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
         <thead><tr><th>Reservation #</th><th>Student</th><th>Type</th><th>Asset</th><th>Date</th><th>Status</th></tr></thead>
         <tbody>${rows.map((r) => `<tr><td>${r.id}</td><td>${escapeHtml(r.studentName)}</td><td>${r.type}</td><td>${escapeHtml(r.assetLabel)}</td><td>${r.reservationDate}</td><td><span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></td></tr>`).join("") || emptyRow(6)}</tbody>
@@ -44,53 +36,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (type === "dorm-occupancy") {
-      const dorms = DataAPI.getDorms();
-      const available = dorms.filter((d) => d.status === "Available").length;
-      const occupied = dorms.filter((d) => d.status !== "Available").length;
+      const rows = data.rows;
       summaryEl.innerHTML =
-        summaryCard("Total Rooms", dorms.length, "#1d4ed8", "fa-door-open") +
-        summaryCard("Available", available, "#16a34a", "fa-circle-check") +
-        summaryCard("Occupied/Full", occupied, "#d97706", "fa-bed");
+        summaryCard("Total Rooms", data.total, "#1d4ed8", "fa-door-open") +
+        summaryCard("Available", data.available, "#16a34a", "fa-circle-check") +
+        summaryCard("Occupied/Full", data.occupiedOrFull, "#d97706", "fa-bed");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
         <thead><tr><th>Room #</th><th>Gender</th><th>Capacity</th><th>Price</th><th>Status</th></tr></thead>
-        <tbody>${dorms.map((d) => `<tr><td>${escapeHtml(d.roomNumber)}</td><td>${d.gender}</td><td>${d.capacity}</td><td>₱${d.price.toLocaleString()}</td><td><span class="badge ${badgeClass(d.status)}">${d.status}</span></td></tr>`).join("")}</tbody>
+        <tbody>${rows.map((d) => `<tr><td>${escapeHtml(d.roomNumber)}</td><td>${d.gender}</td><td>${d.capacity}</td><td>₱${d.price.toLocaleString()}</td><td><span class="badge ${badgeClass(d.status)}">${d.status}</span></td></tr>`).join("")}</tbody>
       </table>`;
     }
 
     if (type === "cottage-occupancy") {
-      const cottages = DataAPI.getCottages();
-      const available = cottages.filter((c) => c.availability === "Available").length;
-      const booked = cottages.filter((c) => c.availability === "Booked").length;
+      const rows = data.rows;
       summaryEl.innerHTML =
-        summaryCard("Total Cottages", cottages.length, "#1d4ed8", "fa-house-chimney") +
-        summaryCard("Available", available, "#16a34a", "fa-circle-check") +
-        summaryCard("Booked", booked, "#d97706", "fa-lock");
+        summaryCard("Total Cottages", data.total, "#1d4ed8", "fa-house-chimney") +
+        summaryCard("Available", data.available, "#16a34a", "fa-circle-check") +
+        summaryCard("Booked", data.booked, "#d97706", "fa-lock");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
         <thead><tr><th>Cottage</th><th>Owner</th><th>Rooms</th><th>Price</th><th>Availability</th></tr></thead>
-        <tbody>${cottages.map((c) => `<tr><td>${escapeHtml(c.name)}</td><td>${escapeHtml(c.owner)}</td><td>${c.rooms}</td><td>₱${c.price.toLocaleString()}</td><td><span class="badge ${badgeClass(c.availability)}">${c.availability}</span></td></tr>`).join("")}</tbody>
+        <tbody>${rows.map((c) => `<tr><td>${escapeHtml(c.name)}</td><td>${escapeHtml(c.owner)}</td><td>${c.rooms}</td><td>₱${c.price.toLocaleString()}</td><td><span class="badge ${badgeClass(c.availability)}">${c.availability}</span></td></tr>`).join("")}</tbody>
       </table>`;
     }
 
     if (type === "revenue") {
-      let payments = DataAPI.getPayments().filter((p) => inRange(p.date, from, to));
-      const total = payments.filter((p) => p.status === "Paid").reduce((s, p) => s + p.amount, 0);
-      const pending = payments.filter((p) => p.status === "Pending").reduce((s, p) => s + p.amount, 0);
+      const rows = data.rows;
       summaryEl.innerHTML =
-        summaryCard("Total Revenue", `₱${total.toLocaleString()}`, "#16a34a", "fa-sack-dollar") +
-        summaryCard("Pending Payments", `₱${pending.toLocaleString()}`, "#d97706", "fa-hourglass-half") +
-        summaryCard("Transactions", payments.length, "#1d4ed8", "fa-receipt");
+        summaryCard("Total Revenue", `₱${data.total.toLocaleString()}`, "#16a34a", "fa-sack-dollar") +
+        summaryCard("Pending Payments", `₱${data.pending.toLocaleString()}`, "#d97706", "fa-hourglass-half") +
+        summaryCard("Transactions", data.transactions, "#1d4ed8", "fa-receipt");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
         <thead><tr><th>Payment #</th><th>Reservation #</th><th>Method</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
-        <tbody>${payments.map((p) => `<tr><td>${p.id}</td><td>${p.reservationId}</td><td>${p.method}</td><td>₱${p.amount.toLocaleString()}</td><td>${p.date}</td><td><span class="badge ${badgeClass(p.status)}">${p.status}</span></td></tr>`).join("") || emptyRow(6)}</tbody>
+        <tbody>${rows.map((p) => `<tr><td>${p.id}</td><td>${p.reservationId}</td><td>${p.method}</td><td>₱${p.amount.toLocaleString()}</td><td>${p.date}</td><td><span class="badge ${badgeClass(p.status)}">${p.status}</span></td></tr>`).join("") || emptyRow(6)}</tbody>
       </table>`;
     }
 
     if (type === "registrations") {
-      let users = DataAPI.getUsers().filter((u) => inRange(u.dateRegistered, from, to));
-      summaryEl.innerHTML = summaryCard("New Registrations", users.length, "#1d4ed8", "fa-user-plus");
+      const rows = data.rows;
+      summaryEl.innerHTML = summaryCard("New Registrations", data.total, "#1d4ed8", "fa-user-plus");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
         <thead><tr><th>Name</th><th>Email</th><th>Course</th><th>Date Registered</th><th>Status</th></tr></thead>
-        <tbody>${users.map((u) => `<tr><td>${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</td><td>${escapeHtml(u.email)}</td><td>${escapeHtml(u.course || "-")}</td><td>${u.dateRegistered}</td><td><span class="badge ${badgeClass(u.status)}">${u.status}</span></td></tr>`).join("") || emptyRow(5)}</tbody>
+        <tbody>${rows.map((u) => `<tr><td>${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</td><td>${escapeHtml(u.email)}</td><td>${escapeHtml(u.course || "-")}</td><td>${u.dateRegistered}</td><td><span class="badge ${badgeClass(u.status)}">${u.status}</span></td></tr>`).join("") || emptyRow(5)}</tbody>
       </table>`;
     }
   }

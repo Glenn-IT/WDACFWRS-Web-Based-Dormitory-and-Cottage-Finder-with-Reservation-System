@@ -52,7 +52,7 @@
 
         <p class="text-center mt-4 mb-0" id="register-hint">Don't have an account? <a href="register.html">Register here</a></p>
         <div class="text-center mt-2">
-          <small class="text-muted">Demo admin: admin@csupiat.edu.ph / admin123</small>
+          <small class="text-muted">Default admin: admin@csupiat.edu.ph / Admin@123</small>
         </div>
       </div>
     </div>
@@ -87,8 +87,8 @@
     });
 
     // Redirect if already logged in
-    (function () {
-      const session = Auth.getSession();
+    (async function () {
+      const session = await Auth.getSession();
       if (session) {
         window.location.href = session.role === "admin" ? "admin/dashboard.html" : "user/dashboard.html";
       }
@@ -101,8 +101,8 @@
       const errorEl = document.getElementById("login-error");
       errorEl.classList.add("d-none");
 
-      withLoading(() => {
-        const result = currentRole === "admin" ? Auth.loginAdmin(email, password) : Auth.loginStudent(email, password);
+      withLoading(async () => {
+        const result = currentRole === "admin" ? await Auth.loginAdmin(email, password) : await Auth.loginStudent(email, password);
         if (!result.ok) {
           errorEl.textContent = result.message;
           errorEl.classList.remove("d-none");

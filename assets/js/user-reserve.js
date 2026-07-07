@@ -1,14 +1,18 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const session = Auth.getSession();
+document.addEventListener("DOMContentLoaded", async () => {
+  const session = await Auth.getSession();
   if (!session) return;
 
   const params = new URLSearchParams(window.location.search);
   const type = params.get("type") === "cottage" ? "cottage" : "dorm";
   const assetId = params.get("id");
 
-  const asset = type === "dorm"
-    ? DataAPI.getDorms().find((d) => d.id === assetId)
-    : DataAPI.getCottages().find((c) => c.id === assetId);
+  let asset = null;
+  try {
+    const data = type === "dorm" ? await DataAPI.getDorm(assetId) : await DataAPI.getCottage(assetId);
+    asset = data.dorm || data.cottage || null;
+  } catch (e) {
+    asset = null;
+  }
 
   if (!asset) {
     document.querySelector("main.app-main").innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>Room or cottage not found.<br><a href="rooms.html" class="btn btn-primary mt-2">Back to Rooms</a></div>`;
@@ -36,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const label = type === "dorm" ? `Room ${asset.roomNumber}` : asset.name;
   document.getElementById("selected-asset-card").innerHTML = `
     <div class="row g-3 align-items-center">
-      <div class="col-md-4"><img src="${asset.image}" class="w-100 rounded" style="height:160px;object-fit:cover;"></div>
+      <div class="col-md-4"><img src="${resolveAsset(asset.image)}" class="w-100 rounded" style="height:160px;object-fit:cover;"></div>
       <div class="col-md-8">
         <h5 class="fw-bold mb-1">${escapeHtml(label)}</h5>
         <p class="text-muted mb-1">${type === "dorm" ? `${asset.gender} Dormitory · Capacity ${asset.capacity} pax` : `Owner: ${escapeHtml(asset.owner)} · ${asset.rooms} rooms`}</p>
@@ -108,53 +112,25 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---- Step 5 ----
-  let reservationRecord = null;
-
   function buildReceipt() {
-    const reservations = DataAPI.getReservations();
-    const users = DataAPI.getUsers();
-    const user = users.find((u) => u.id === session.id);
-    const reservationId = DB.nextId(reservations, "RSV");
     const today = new Date().toISOString().slice(0, 10);
-
-    reservationRecord = {
-      id: reservationId,
-      studentId: session.id,
-      studentName: user ? `${user.firstName} ${user.lastName}` : session.name,
-      type: type === "dorm" ? "Dormitory" : "Cottage",
-      assetId: asset.id,
-      assetLabel: label,
-      image: asset.image,
-      paymentMethod: wizardState.paymentMethod,
-      amount: price,
-      reservationDate: today,
-      paymentStatus: wizardState.paymentMethod === "Cash" ? "Pending" : "Paid",
-      approvalStatus: "Pending",
-      parentInfo: wizardState.parent,
-      studentBackground: wizardState.background,
-    };
+    const paymentStatus = wizardState.paymentMethod === "Cash" ? "Pending" : "Paid";
 
     document.getElementById("receipt-card").innerHTML = `
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-        <span class="text-muted">Reservation No.</span><strong>${reservationRecord.id}</strong>
+        <span class="text-muted">${type === "dorm" ? "Room" : "Cottage"}</span><strong>${escapeHtml(label)}</strong>
       </div>
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-        <span class="text-muted">Student Name</span><strong>${escapeHtml(reservationRecord.studentName)}</strong>
+        <span class="text-muted">Payment Method</span><strong>${wizardState.paymentMethod}</strong>
       </div>
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-        <span class="text-muted">${reservationRecord.type}</span><strong>${escapeHtml(reservationRecord.assetLabel)}</strong>
+        <span class="text-muted">Amount</span><strong>₱${price.toLocaleString()}</strong>
       </div>
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-        <span class="text-muted">Payment Method</span><strong>${reservationRecord.paymentMethod}</strong>
-      </div>
-      <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-        <span class="text-muted">Amount</span><strong>₱${reservationRecord.amount.toLocaleString()}</strong>
-      </div>
-      <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-        <span class="text-muted">Reservation Date</span><strong>${reservationRecord.reservationDate}</strong>
+        <span class="text-muted">Reservation Date</span><strong>${today}</strong>
       </div>
       <div class="d-flex justify-content-between">
-        <span class="text-muted">Status</span><span class="badge ${badgeClass(reservationRecord.approvalStatus)}">${reservationRecord.approvalStatus}</span>
+        <span class="text-muted">Status</span><span class="badge ${badgeClass(paymentStatus)}">${paymentStatus}</span>
       </div>`;
   }
 
@@ -167,47 +143,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("submit-reservation-btn").addEventListener("click", () => {
-    withLoading(() => {
-      const reservations = DataAPI.getReservations();
-      reservations.push(reservationRecord);
-      DataAPI.saveReservations(reservations);
-
-      const payments = DataAPI.getPayments();
-      payments.push({
-        id: DB.nextId(payments, "PAY"),
-        reservationId: reservationRecord.id,
-        method: reservationRecord.paymentMethod,
-        amount: reservationRecord.amount,
-        status: reservationRecord.paymentStatus,
-        date: reservationRecord.reservationDate,
-      });
-      DataAPI.savePayments(payments);
-
-      // mark asset as occupied/booked
-      if (type === "dorm") {
-        const dorms = DataAPI.getDorms();
-        const d = dorms.find((x) => x.id === asset.id);
-        if (d) d.status = "Occupied";
-        DataAPI.saveDorms(dorms);
-      } else {
-        const cottages = DataAPI.getCottages();
-        const c = cottages.find((x) => x.id === asset.id);
-        if (c) c.availability = "Booked";
-        DataAPI.saveCottages(cottages);
+    withLoading(async () => {
+      try {
+        await DataAPI.createReservation({
+          type: type === "dorm" ? "Dormitory" : "Cottage",
+          assetId: asset.id,
+          paymentMethod: wizardState.paymentMethod,
+          parentInfo: wizardState.parent,
+          background: wizardState.background,
+        });
+        showToast("Reservation submitted successfully!", "success");
+        setTimeout(() => (window.location.href = "my-reservations.html"), 900);
+      } catch (err) {
+        showToast(err.message, "error");
       }
-
-      const notifications = DataAPI.getNotifications();
-      notifications.push({
-        id: DB.nextId(notifications, "NTF"),
-        studentId: session.id,
-        message: `Your reservation ${reservationRecord.id} has been submitted and is pending approval.`,
-        date: reservationRecord.reservationDate,
-        read: false,
-      });
-      DataAPI.saveNotifications(notifications);
-
-      showToast("Reservation submitted successfully!", "success");
-      setTimeout(() => (window.location.href = "my-reservations.html"), 900);
     });
   });
 

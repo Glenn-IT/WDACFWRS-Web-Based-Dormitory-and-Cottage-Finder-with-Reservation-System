@@ -139,8 +139,8 @@
         securityAnswer: document.getElementById("reg-security-answer").value.trim(),
       };
 
-      withLoading(() => {
-        const result = Auth.register(data);
+      withLoading(async () => {
+        const result = await Auth.register(data);
         if (!result.ok) {
           errorEl.textContent = result.message;
           errorEl.classList.remove("d-none");

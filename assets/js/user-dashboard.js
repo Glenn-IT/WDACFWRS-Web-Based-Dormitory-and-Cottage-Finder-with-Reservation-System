@@ -1,22 +1,36 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const session = Auth.getSession();
+document.addEventListener("DOMContentLoaded", async () => {
+  const session = await Auth.getSession();
   if (!session) return;
 
-  const users = DataAPI.getUsers();
-  const user = users.find((u) => u.id === session.id);
-  document.getElementById("welcome-name").textContent = `Welcome back, ${user ? user.firstName : session.name}!`;
+  document.getElementById("welcome-name").textContent = `Welcome back, ${session.name}!`;
 
-  const reservations = DataAPI.getReservations().filter((r) => r.studentId === session.id);
+  let reservations = [];
+  try {
+    const data = await DataAPI.getReservations({ mine: 1 });
+    reservations = data.reservations || [];
+  } catch (e) {
+    /* reservations endpoint lands in Phase 3 */
+  }
   document.getElementById("stat-total-reservations").textContent = reservations.length;
   document.getElementById("stat-pending-reservations").textContent = reservations.filter((r) => r.approvalStatus === "Pending").length;
   document.getElementById("stat-approved-reservations").textContent = reservations.filter((r) => r.approvalStatus === "Approved").length;
 
-  const notifications = DataAPI.getNotifications().filter((n) => n.studentId === session.id);
+  let notifications = [];
+  try {
+    const data = await DataAPI.getNotifications();
+    notifications = data.notifications || [];
+  } catch (e) {
+    /* notifications endpoint lands in Phase 4 */
+  }
   document.getElementById("stat-notifications").textContent = notifications.length;
 
   // Available rooms preview (mix of dorms + cottages, available only)
-  const dorms = DataAPI.getDorms().filter((d) => d.status === "Available").slice(0, 2);
-  const cottages = DataAPI.getCottages().filter((c) => c.availability === "Available").slice(0, 1);
+  const [dormsData, cottagesData] = await Promise.all([
+    DataAPI.getDorms({ status: "Available" }),
+    DataAPI.getCottages({ availability: "Available" }),
+  ]);
+  const dorms = (dormsData.dorms || []).slice(0, 2);
+  const cottages = (cottagesData.cottages || []).slice(0, 1);
   const previewHost = document.getElementById("available-rooms-preview");
 
   const previewItems = [
@@ -44,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
           (item) => `
       <div class="col-md-4">
         <div class="room-card">
-          <img src="${item.image}" alt="${escapeHtml(item.title)}">
+          <img src="${resolveAsset(item.image)}" alt="${escapeHtml(item.title)}">
           <div class="room-body">
             <div class="d-flex justify-content-between align-items-start">
               <h6 class="fw-bold mb-1">${escapeHtml(item.title)}</h6>

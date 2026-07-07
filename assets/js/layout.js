@@ -8,7 +8,7 @@ async function initLayout() {
   const page = document.body.dataset.page;
   const isAdmin = role === "admin";
 
-  const session = Auth.requireRole(isAdmin ? "admin" : "student");
+  const session = await Auth.requireRole(isAdmin ? "admin" : "student");
   if (!session) return;
 
   const sidebarHost = document.getElementById("app-sidebar");
@@ -33,32 +33,46 @@ async function initLayout() {
   if (usernameEl) usernameEl.textContent = session.name;
 
   if (!isAdmin) {
-    const users = DataAPI.getUsers();
-    const user = users.find((u) => u.id === session.id);
-    const avatarEl = document.getElementById("topbar-avatar");
-    if (avatarEl && user?.profilePic) avatarEl.src = user.profilePic;
-
-    const notifications = DataAPI.getNotifications().filter((n) => n.studentId === session.id);
-    const unread = notifications.filter((n) => !n.read).length;
-    const countEl = document.getElementById("notif-count");
-    if (countEl) {
-      countEl.textContent = unread;
-      countEl.style.display = unread > 0 ? "" : "none";
+    try {
+      const profile = await DataAPI.getProfile();
+      const avatarEl = document.getElementById("topbar-avatar");
+      if (avatarEl && profile?.user?.profilePic) avatarEl.src = resolveAsset(profile.user.profilePic);
+    } catch (e) {
+      /* profile endpoint not available yet */
     }
-    const dropdown = document.getElementById("notif-dropdown");
-    if (dropdown) {
-      dropdown.innerHTML = notifications.length
-        ? notifications
-            .slice(0, 6)
-            .map(
-              (n) => `
-          <div class="dropdown-item-text small border-bottom py-2 ${n.read ? "" : "fw-semibold"}">
-            <div>${escapeHtml(n.message)}</div>
-            <div class="text-muted" style="font-size: 0.75rem;">${n.date}</div>
-          </div>`
-            )
-            .join("")
-        : `<div class="text-center text-muted small py-3">No notifications</div>`;
+
+    try {
+      const notifData = await DataAPI.getNotifications();
+      const list = notifData.notifications || [];
+      const unread = list.filter((n) => !n.read).length;
+      const countEl = document.getElementById("notif-count");
+      if (countEl) {
+        countEl.textContent = unread;
+        countEl.style.display = unread > 0 ? "" : "none";
+      }
+      const dropdown = document.getElementById("notif-dropdown");
+      if (dropdown) {
+        dropdown.innerHTML = list.length
+          ? list
+              .slice(0, 6)
+              .map(
+                (n) => `
+            <div class="dropdown-item-text small border-bottom py-2 ${n.read ? "" : "fw-semibold"}" data-notif-id="${n.id}" style="cursor:pointer;">
+              <div>${escapeHtml(n.message)}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">${n.date}</div>
+            </div>`
+              )
+              .join("")
+          : `<div class="text-center text-muted small py-3">No notifications</div>`;
+        dropdown.querySelectorAll("[data-notif-id]").forEach((el) => {
+          el.addEventListener("click", async () => {
+            await DataAPI.markNotificationRead(el.dataset.notifId);
+            el.classList.remove("fw-semibold");
+          });
+        });
+      }
+    } catch (e) {
+      /* notifications endpoint not available yet */
     }
   }
 

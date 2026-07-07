@@ -1,5 +1,5 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const session = Auth.getSession();
+document.addEventListener("DOMContentLoaded", async () => {
+  const session = await Auth.getSession();
   if (!session) return;
 
   document.querySelectorAll("#settings-tabs .nav-link").forEach((tab) => {
@@ -12,43 +12,46 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  function getAdmin() {
-    return DataAPI.getAdmins().find((a) => a.id === session.id);
-  }
-
-  function render() {
-    const admin = getAdmin();
-    if (!admin) return;
+  async function render() {
+    const data = await DataAPI.getAdminSettings();
+    const admin = data.admin;
     document.getElementById("admin-name").value = admin.name;
     document.getElementById("admin-email").value = admin.email;
     document.getElementById("admin-role").value = admin.role;
     document.getElementById("admin-security-question").value = admin.securityQuestion;
-    document.getElementById("admin-security-answer").value = admin.securityAnswer;
   }
   render();
 
   document.getElementById("profile-settings-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const admins = DataAPI.getAdmins();
-    const admin = admins.find((a) => a.id === session.id);
-    admin.name = document.getElementById("admin-name").value.trim();
-    admin.email = document.getElementById("admin-email").value.trim();
-    withLoading(() => {
-      DataAPI.saveAdmins(admins);
-      Auth.setSession({ ...session, name: admin.name, email: admin.email });
-      showToast("System profile updated.", "success");
+    const payload = {
+      name: document.getElementById("admin-name").value.trim(),
+      email: document.getElementById("admin-email").value.trim(),
+    };
+    withLoading(async () => {
+      try {
+        await DataAPI.updateAdminProfile(payload);
+        showToast("System profile updated.", "success");
+      } catch (err) {
+        showToast(err.message, "error");
+      }
     });
   });
 
   document.getElementById("security-settings-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const admins = DataAPI.getAdmins();
-    const admin = admins.find((a) => a.id === session.id);
-    admin.securityQuestion = document.getElementById("admin-security-question").value;
-    admin.securityAnswer = document.getElementById("admin-security-answer").value.trim();
-    withLoading(() => {
-      DataAPI.saveAdmins(admins);
-      showToast("Security question updated.", "success");
+    const payload = {
+      securityQuestion: document.getElementById("admin-security-question").value,
+      securityAnswer: document.getElementById("admin-security-answer").value.trim(),
+    };
+    withLoading(async () => {
+      try {
+        await DataAPI.updateAdminSecurity(payload);
+        document.getElementById("admin-security-answer").value = "";
+        showToast("Security question updated.", "success");
+      } catch (err) {
+        showToast(err.message, "error");
+      }
     });
   });
 
@@ -61,25 +64,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const next = document.getElementById("s-new-password").value;
     const confirm = document.getElementById("s-confirm-password").value;
 
-    const admins = DataAPI.getAdmins();
-    const admin = admins.find((a) => a.id === session.id);
-
-    if (!admin || admin.password !== current) {
-      errorEl.textContent = "Current password is incorrect.";
-      errorEl.classList.remove("d-none");
-      return;
-    }
-    if (next !== confirm) {
-      errorEl.textContent = "New passwords do not match.";
-      errorEl.classList.remove("d-none");
-      return;
-    }
-
-    withLoading(() => {
-      admin.password = next;
-      DataAPI.saveAdmins(admins);
-      document.getElementById("password-settings-form").reset();
-      showToast("Password updated successfully.", "success");
+    withLoading(async () => {
+      try {
+        await DataAPI.updateAdminPassword({ current, next, confirm });
+        document.getElementById("password-settings-form").reset();
+        showToast("Password updated successfully.", "success");
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.remove("d-none");
+      }
     });
   });
 });

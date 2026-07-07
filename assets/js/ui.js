@@ -94,12 +94,13 @@ function showLoading(show = true) {
   }
 }
 
-function withLoading(fn, delay = 400) {
+async function withLoading(fn) {
   showLoading(true);
-  setTimeout(() => {
-    fn();
+  try {
+    return await fn();
+  } finally {
     showLoading(false);
-  }, delay);
+  }
 }
 
 function escapeHtml(str) {
