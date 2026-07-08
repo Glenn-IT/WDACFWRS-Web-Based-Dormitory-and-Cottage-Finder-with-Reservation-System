@@ -53,10 +53,17 @@ define('CURRENT_VERSION', 'v1.12');
     <div><span class="uc-badge"><?= htmlspecialchars(CURRENT_VERSION) ?></span></div>
     <h4 class="fw-bold mb-2">Page Under Construction</h4>
     <p class="text-muted mb-4">This feature hasn't been unlocked yet in the current presentation version. Please check back in a later release.</p>
-    <a href="javascript:history.back()" class="btn btn-primary px-4">
-      <i class="fa-solid fa-arrow-left me-1"></i> Go Back
-    </a>
+    <button type="button" class="btn btn-danger px-4" id="uc-logout-btn">
+      <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+    </button>
   </div>
+  <script>
+    document.getElementById('uc-logout-btn').addEventListener('click', async function () {
+      var base = window.location.pathname.includes('/user/') || window.location.pathname.includes('/admin/') ? '../' : '';
+      try { await fetch(base + 'api/auth/logout.php', { method: 'POST' }); } catch (e) {}
+      window.location.href = base + 'index.html';
+    });
+  </script>
 </body>
 </html>
 <?php
