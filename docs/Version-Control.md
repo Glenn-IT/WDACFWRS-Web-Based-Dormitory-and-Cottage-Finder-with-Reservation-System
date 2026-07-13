@@ -66,7 +66,7 @@ time with `git checkout vX.XX` or browse it directly on GitHub under
 
 | Version | Tag | Commit Hash |
 |---------|-----|--------------|
-| v1.00 | `v1.00` | `2db984b55f4da5aeb3c0532b98a2517d0e7ab652` |
+| v1.00 | `v1.00` | `73c12a5e72b6cc87ecc622837ade56fafabbb007` |
 | v1.01 | `v1.01` | `a488e879b1919047a525819598e9df675fa13e40` |
 | v1.02 | `v1.02` | `bc512b5585e333423c30676d63a1439252effef6` |
 | v1.03 | `v1.03` | `7a40f19b2b29a64e8a8d331816b3e1e16c3b774d` |
