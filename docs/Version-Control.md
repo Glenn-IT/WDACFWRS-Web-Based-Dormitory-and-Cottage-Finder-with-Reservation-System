@@ -90,6 +90,7 @@ time with `git checkout vX.XX` or browse it directly on GitHub under
 | v1.10 | `v1.10` | `bf350bad57189a748b43f0216756e8800547c2cd` |
 | v1.11 | `v1.11` | `a8c79be126b6f61f1ef658e4e962b75448ee32db` |
 | v1.12 | `v1.12` | `700230cb5f453ae54a3985e07baf8fabc7e095a7` |
+| v2.00 | `v2.00` | `edcc943ac5754f8e775e48ae3cfbe773d28d0275` |
 
 ## When a Prof or Client Requests Changes After a Presentation
 
