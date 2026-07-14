@@ -21,6 +21,17 @@ Cottage Finder with Reservation System, using Git tags as permanent snapshots.
 | v1.11 | User: My Reservations | `user/my-reservations.html` | 1 remaining |
 | v1.12 | User: My Profile (Full System) | `user/profile.html` | none — full system unlocked |
 
+## v2.xx Rollout
+
+A second rollout cycle, starting from a re-gated baseline. `v2.00` unlocks
+the same "entry point" pages as the start of the v1.xx cycle plus both
+dashboards, and gates every other admin/user page again — the v1.xx history
+above stays intact as a permanent record; this is a fresh presentation pass.
+
+| Version | Feature | Pages Unlocked This Version | Pages Still Gated |
+|---------|---------|------------------------------|--------------------|
+| v2.00 | Login/Register + Admin Dashboard + User Dashboard | `index.html`, `register.html`, `forgot-password.html`, `admin/dashboard.html`, `user/dashboard.html` | `admin/dormitories.html`, `admin/cottages.html`, `admin/reservations.html`, `admin/users.html`, `admin/reports.html`, `admin/settings.html`, `user/rooms.html`, `user/reserve.html`, `user/my-reservations.html`, `user/profile.html` |
+
 ## Under Construction Strategy
 
 - `components/under-construction.php` defines `CURRENT_VERSION` and renders a
