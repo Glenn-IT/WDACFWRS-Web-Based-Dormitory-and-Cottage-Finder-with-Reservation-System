@@ -25,7 +25,7 @@
         </div>
 
         <h4 class="fw-bold mb-1">Welcome back</h4>
-        <p class="text-muted mb-4">Sign in to continue.</p>
+        <p class="text-muted mb-4">Log in to continue.</p>
 
         <form id="login-form" novalidate>
           <div class="mb-3">
@@ -47,7 +47,7 @@
             <a href="forgot-password.html" class="small">Forgot Password?</a>
           </div>
           <div class="alert alert-danger d-none" id="login-error"></div>
-          <button type="submit" class="btn btn-primary w-100 py-2">Sign In</button>
+          <button type="submit" class="btn btn-primary w-100 py-2">Log In</button>
         </form>
 
         <p class="text-center mt-4 mb-0" id="register-hint">Don't have an account? <a href="register.html">Register here</a></p>
@@ -91,6 +91,12 @@
       const session = await Auth.getSession();
       if (session) {
         window.location.href = session.role === "admin" ? "admin/dashboard.html" : "user/dashboard.html";
+        return;
+      }
+      const notice = sessionStorage.getItem("loginNotice");
+      if (notice) {
+        sessionStorage.removeItem("loginNotice");
+        showToast(notice, "success");
       }
     })();
 
@@ -108,7 +114,7 @@
           errorEl.classList.remove("d-none");
           return;
         }
-        showToast("Login successful! Redirecting...", "success");
+        showToast("Log in successful! Redirecting...", "success");
         setTimeout(() => {
           window.location.href = currentRole === "admin" ? "admin/dashboard.html" : "user/dashboard.html";
         }, 600);

@@ -60,11 +60,9 @@ $stmt->execute([
 
 $id = (int)$pdo->lastInsertId();
 
-$_SESSION['user'] = [
+respond(['ok' => true, 'user' => [
     'role' => 'student',
     'id' => $id,
     'email' => $email,
     'name' => "$firstName $lastName",
-];
-
-respond(['ok' => true, 'user' => $_SESSION['user']]);
+]]);

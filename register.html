@@ -100,7 +100,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Create Account</button>
-        <p class="text-center mt-3 mb-0">Already have an account? <a href="index.html">Sign in</a></p>
+        <p class="text-center mt-3 mb-0">Already have an account? <a href="index.html">Log in</a></p>
       </form>
     </div>
   </div>
@@ -157,8 +157,8 @@
           errorEl.classList.remove("d-none");
           return;
         }
-        showToast("Account created successfully! Please sign in.", "success");
-        setTimeout(() => (window.location.href = "index.html"), 900);
+        sessionStorage.setItem("loginNotice", "Account created successfully! Please log in.");
+        window.location.href = "index.html";
       });
     });
   </script>
