@@ -11,11 +11,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("stat-revenue").textContent = `₱${stats.revenue.toLocaleString()}`;
 
   const chartColors = {
-    blue: "#1d4ed8",
-    lightBlue: "#3b82f6",
+    coral: "#FF5A5A",
+    orange: "#FF8B5A",
+    amber: "#FFA95A",
+    gold: "#FFD45A",
     green: "#16a34a",
-    amber: "#d97706",
-    red: "#dc2626",
     gray: "#94a3b8",
   };
 
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       labels: Object.keys(stats.statusCounts),
       datasets: [{
         data: Object.values(stats.statusCounts),
-        backgroundColor: [chartColors.amber, chartColors.green, chartColors.red, chartColors.gray],
+        backgroundColor: [chartColors.amber, chartColors.green, chartColors.coral, chartColors.gray],
       }],
     },
     options: { plugins: { legend: { position: "bottom" } } },
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     type: "bar",
     data: {
       labels: stats.monthly.map((m) => m.label),
-      datasets: [{ label: "Reservations", data: stats.monthly.map((m) => m.count), backgroundColor: chartColors.blue, borderRadius: 6 }],
+      datasets: [{ label: "Reservations", data: stats.monthly.map((m) => m.count), backgroundColor: chartColors.coral, borderRadius: 6 }],
     },
     options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
   });

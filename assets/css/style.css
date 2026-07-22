@@ -1,18 +1,82 @@
 /* ============================================================
    CSU-Piat Dormitory & Cottage Finder — Shared Theme
-   Modern University Theme: Blue / White / Gray
+   Modern Warm Theme: Coral / Orange / Amber / Gold
    ============================================================ */
 
 :root {
-  --uni-blue: #1d4ed8;
-  --uni-blue-dark: #1e3a8a;
-  --uni-blue-light: #3b82f6;
+  --brand-1: #FF5A5A;
+  --brand-2: #FF8B5A;
+  --brand-3: #FFA95A;
+  --brand-4: #FFD45A;
+
+  --brand-primary: var(--brand-1);
+  --brand-primary-hover: #F04B4B;
+  --brand-primary-active: #E14040;
+  --brand-primary-text: #D93A3A;
+
+  --brand-gradient: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 35%, var(--brand-3) 65%, var(--brand-4) 100%);
+  --brand-gradient-panel: linear-gradient(160deg, var(--brand-1), var(--brand-2));
+
   --uni-gray: #64748b;
   --uni-gray-light: #f1f5f9;
   --uni-border: #e2e8f0;
+
+  --sidebar-bg: #1e2530;
+
   --sidebar-width: 260px;
   --topbar-height: 64px;
 }
+
+/* ---------------- Bootstrap Primary Override (brand alignment) ---------------- */
+:root {
+  --bs-primary: var(--brand-1);
+  --bs-primary-rgb: 255, 90, 90;
+  --bs-link-color: var(--brand-primary-text);
+  --bs-link-color-rgb: 217, 58, 58;
+  --bs-link-hover-color: var(--brand-primary-active);
+  --bs-link-hover-color-rgb: 225, 64, 64;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--brand-1);
+  --bs-btn-border-color: var(--brand-1);
+  --bs-btn-hover-bg: var(--brand-primary-hover);
+  --bs-btn-hover-border-color: var(--brand-primary-hover);
+  --bs-btn-active-bg: var(--brand-primary-active);
+  --bs-btn-active-border-color: var(--brand-primary-active);
+  --bs-btn-focus-shadow-rgb: 255, 90, 90;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--brand-1);
+  --bs-btn-border-color: var(--brand-1);
+  --bs-btn-hover-bg: var(--brand-1);
+  --bs-btn-hover-border-color: var(--brand-1);
+  --bs-btn-active-bg: var(--brand-primary-active);
+  --bs-btn-active-border-color: var(--brand-primary-active);
+}
+
+.bg-primary { background-color: var(--brand-1) !important; }
+.text-primary { color: var(--brand-primary-text) !important; }
+.border-primary { border-color: var(--brand-1) !important; }
+
+.form-check-input:checked {
+  background-color: var(--brand-1);
+  border-color: var(--brand-1);
+}
+.form-check-input:focus,
+.form-control:focus {
+  border-color: var(--brand-2);
+  box-shadow: 0 0 0 0.25rem rgba(255, 90, 90, 0.25);
+}
+
+/* ---------------- Stat Icon Utilities ---------------- */
+.stat-icon-brand-1   { background: var(--brand-1); }
+.stat-icon-brand-2   { background: #F2703D; }
+.stat-icon-brand-3   { background: #D98A1F; }
+.stat-icon-success   { background: #16a34a; }
+.stat-icon-neutral-1 { background: #475569; }
+.stat-icon-neutral-2 { background: #0f766e; }
 
 body {
   background-color: var(--uni-gray-light);
@@ -25,7 +89,7 @@ a { text-decoration: none; }
 /* ---------------- Auth Pages ---------------- */
 .auth-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--uni-blue-dark), var(--uni-blue));
+  background: var(--brand-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,7 +106,7 @@ a { text-decoration: none; }
 }
 
 .auth-card .brand-panel {
-  background: linear-gradient(160deg, var(--uni-blue), var(--uni-blue-dark));
+  background: var(--brand-gradient-panel);
   color: #fff;
   padding: 3rem 2rem;
   display: flex;
@@ -70,7 +134,7 @@ a { text-decoration: none; }
   left: 0;
   bottom: 0;
   width: var(--sidebar-width);
-  background: var(--uni-blue-dark);
+  background: var(--sidebar-bg);
   color: #fff;
   overflow-y: auto;
   z-index: 1030;
@@ -107,7 +171,7 @@ a { text-decoration: none; }
 .app-sidebar .nav-link.active {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  border-left-color: #facc15;
+  border-left-color: var(--brand-1);
   font-weight: 600;
 }
 
@@ -195,7 +259,7 @@ a { text-decoration: none; }
 }
 
 .room-card:hover {
-  box-shadow: 0 10px 25px rgba(29, 78, 216, 0.12);
+  box-shadow: 0 10px 25px rgba(255, 90, 90, 0.18);
   transform: translateY(-2px);
 }
 
@@ -235,13 +299,13 @@ a { text-decoration: none; }
 
 .wizard-steps li.active .step-circle,
 .wizard-steps li.done .step-circle {
-  background: var(--uni-blue);
-  border-color: var(--uni-blue);
+  background: var(--brand-1);
+  border-color: var(--brand-1);
   color: #fff;
 }
 
-.wizard-steps li.active { color: var(--uni-blue); font-weight: 600; }
-.wizard-steps li.done { color: var(--uni-blue-dark); }
+.wizard-steps li.active { color: var(--brand-primary-text); font-weight: 600; }
+.wizard-steps li.done { color: var(--brand-primary-text); }
 
 .wizard-steps li:not(:last-child)::after {
   content: "";
@@ -254,7 +318,7 @@ a { text-decoration: none; }
   z-index: -1;
 }
 
-.wizard-steps li.done:not(:last-child)::after { background: var(--uni-blue); }
+.wizard-steps li.done:not(:last-child)::after { background: var(--brand-1); }
 
 /* ---------------- Loading Overlay ---------------- */
 .loading-overlay {
@@ -274,7 +338,7 @@ a { text-decoration: none; }
 .toast-info .toast-body { background: #0284c7; color: #fff; border-radius: 0.4rem; }
 
 /* ---------------- Misc ---------------- */
-.badge-soft { background: rgba(29, 78, 216, 0.1); color: var(--uni-blue); }
+.badge-soft { background: rgba(255, 90, 90, 0.12); color: var(--brand-primary-text); }
 .qr-placeholder {
   width: 200px;
   height: 200px;

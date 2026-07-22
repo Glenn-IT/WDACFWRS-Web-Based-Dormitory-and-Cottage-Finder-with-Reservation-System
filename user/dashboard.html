@@ -13,7 +13,7 @@
   <header class="app-topbar" id="app-topbar"></header>
 
   <main class="app-main">
-    <div class="section-card mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3" style="background: linear-gradient(120deg, #1d4ed8, #1e3a8a); color:#fff; border:none;">
+    <div class="section-card mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3" style="background: var(--brand-gradient-panel); color:#fff; border:none;">
       <div>
         <h4 class="fw-bold mb-1" id="welcome-name">Welcome back!</h4>
         <p class="mb-0 opacity-75">Manage your dormitory and cottage reservations at CSU-Piat.</p>
@@ -24,7 +24,7 @@
     <div class="row g-3 mb-4">
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#1d4ed8;"><i class="fa-solid fa-clipboard-list"></i></div>
+          <div class="stat-icon stat-icon-brand-1"><i class="fa-solid fa-clipboard-list"></i></div>
           <div>
             <div class="stat-value" id="stat-total-reservations">0</div>
             <div class="stat-label">Total Reservations</div>
@@ -33,7 +33,7 @@
       </div>
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#d97706;"><i class="fa-solid fa-hourglass-half"></i></div>
+          <div class="stat-icon stat-icon-brand-3"><i class="fa-solid fa-hourglass-half"></i></div>
           <div>
             <div class="stat-value" id="stat-pending-reservations">0</div>
             <div class="stat-label">Pending</div>
@@ -42,7 +42,7 @@
       </div>
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#16a34a;"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-icon stat-icon-success"><i class="fa-solid fa-circle-check"></i></div>
           <div>
             <div class="stat-value" id="stat-approved-reservations">0</div>
             <div class="stat-label">Approved</div>
@@ -51,7 +51,7 @@
       </div>
       <div class="col-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon" style="background:#0284c7;"><i class="fa-solid fa-bell"></i></div>
+          <div class="stat-icon stat-icon-neutral-2"><i class="fa-solid fa-bell"></i></div>
           <div>
             <div class="stat-value" id="stat-notifications">0</div>
             <div class="stat-label">Notifications</div>
