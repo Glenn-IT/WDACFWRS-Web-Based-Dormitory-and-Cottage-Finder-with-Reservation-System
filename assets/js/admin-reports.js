@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (type === "reservations") {
       const rows = data.rows;
-      summaryEl.innerHTML = summaryCard("Total Reservations", data.total, "#1d4ed8", "fa-clipboard-list");
+      summaryEl.innerHTML = summaryCard("Total Reservations", data.total, "#FF5A5A", "fa-clipboard-list");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
         <thead><tr><th>Reservation #</th><th>Student</th><th>Type</th><th>Asset</th><th>Date</th><th>Status</th></tr></thead>
         <tbody>${rows.map((r) => `<tr><td>${r.id}</td><td>${escapeHtml(r.studentName)}</td><td>${r.type}</td><td>${escapeHtml(r.assetLabel)}</td><td>${r.reservationDate}</td><td><span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></td></tr>`).join("") || emptyRow(6)}</tbody>
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (type === "dorm-occupancy") {
       const rows = data.rows;
       summaryEl.innerHTML =
-        summaryCard("Total Rooms", data.total, "#1d4ed8", "fa-door-open") +
+        summaryCard("Total Rooms", data.total, "#FF5A5A", "fa-door-open") +
         summaryCard("Available", data.available, "#16a34a", "fa-circle-check") +
         summaryCard("Occupied/Full", data.occupiedOrFull, "#d97706", "fa-bed");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (type === "cottage-occupancy") {
       const rows = data.rows;
       summaryEl.innerHTML =
-        summaryCard("Total Cottages", data.total, "#1d4ed8", "fa-house-chimney") +
+        summaryCard("Total Cottages", data.total, "#FF5A5A", "fa-house-chimney") +
         summaryCard("Available", data.available, "#16a34a", "fa-circle-check") +
         summaryCard("Booked", data.booked, "#d97706", "fa-lock");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
       summaryEl.innerHTML =
         summaryCard("Total Revenue", `₱${data.total.toLocaleString()}`, "#16a34a", "fa-sack-dollar") +
         summaryCard("Pending Payments", `₱${data.pending.toLocaleString()}`, "#d97706", "fa-hourglass-half") +
-        summaryCard("Transactions", data.transactions, "#1d4ed8", "fa-receipt");
+        summaryCard("Transactions", data.transactions, "#FF5A5A", "fa-receipt");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
         <thead><tr><th>Payment #</th><th>Reservation #</th><th>Method</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
         <tbody>${rows.map((p) => `<tr><td>${p.id}</td><td>${p.reservationId}</td><td>${p.method}</td><td>₱${p.amount.toLocaleString()}</td><td>${p.date}</td><td><span class="badge ${badgeClass(p.status)}">${p.status}</span></td></tr>`).join("") || emptyRow(6)}</tbody>
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (type === "registrations") {
       const rows = data.rows;
-      summaryEl.innerHTML = summaryCard("New Registrations", data.total, "#1d4ed8", "fa-user-plus");
+      summaryEl.innerHTML = summaryCard("New Registrations", data.total, "#FF5A5A", "fa-user-plus");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
         <thead><tr><th>Name</th><th>Email</th><th>Course</th><th>Date Registered</th><th>Status</th></tr></thead>
         <tbody>${rows.map((u) => `<tr><td>${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</td><td>${escapeHtml(u.email)}</td><td>${escapeHtml(u.course || "-")}</td><td>${u.dateRegistered}</td><td><span class="badge ${badgeClass(u.status)}">${u.status}</span></td></tr>`).join("") || emptyRow(5)}</tbody>

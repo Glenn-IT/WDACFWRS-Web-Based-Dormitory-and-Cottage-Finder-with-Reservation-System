@@ -17,7 +17,7 @@ define('CURRENT_VERSION', 'v2.01');
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f1f5f9;
+      background: #fdf6f0;
       margin: 0;
     }
     .uc-card {
@@ -32,12 +32,12 @@ define('CURRENT_VERSION', 'v2.01');
     }
     .uc-icon {
       font-size: 3rem;
-      color: #f59e0b;
+      color: #FF8B5A;
       margin-bottom: 1rem;
     }
     .uc-badge {
       display: inline-block;
-      background: #0d6efd;
+      background: #FF5A5A;
       color: #fff;
       font-weight: 600;
       padding: .35rem .9rem;
