@@ -33,6 +33,24 @@ above stays intact as a permanent record; this is a fresh presentation pass.
 | v2.00 | Login/Register + Admin Dashboard + User Dashboard | `index.html`, `register.html`, `forgot-password.html`, `admin/dashboard.html`, `user/dashboard.html` | `admin/dormitories.html`, `admin/cottages.html`, `admin/reservations.html`, `admin/users.html`, `admin/reports.html`, `admin/settings.html`, `user/rooms.html`, `user/reserve.html`, `user/my-reservations.html`, `user/profile.html` |
 | v2.01 | All remaining admin/user pages | `admin/dormitories.html`, `admin/cottages.html`, `admin/reservations.html`, `admin/users.html`, `admin/reports.html`, `admin/settings.html`, `user/rooms.html`, `user/reserve.html`, `user/my-reservations.html`, `user/profile.html` | none — full system unlocked |
 
+`v2.01` is `main`'s current state (no tag), not a curated snapshot — see `v3.00` below for
+why the next *tagged* version doesn't simply continue from it.
+
+## v3.00 — Cherry-Picked Off `v2.00` (Diverges From `main`)
+
+Unlike `v2.01` above, `v3.00` is **not** built by continuing forward from `main`'s
+current fully-unlocked state. It's a true cherry-pick (see
+`docs/Cheryy-Pick-guide.md`): a temp branch was cut from the `v2.00` tag, the new
+warm-palette redesign commit was cherry-picked onto it, three pages were newly
+unlocked, `CURRENT_VERSION` was bumped to `v3.00`, and the result was tagged —
+all without touching `main`. This keeps `v3.00` a clean, curated "next reveal"
+snapshot (only 2 more admin pages + 1 more user page than `v2.00`) instead of
+accidentally showing the fully-unlocked `v2.01` state during a `v3.00` demo.
+
+| Version | Feature | Pages Unlocked This Version | Pages Still Gated |
+|---------|---------|------------------------------|--------------------|
+| v3.00 | Admin: User Management + Admin: Settings + User: Profile, plus the warm-palette redesign | `admin/users.html`, `admin/settings.html`, `user/profile.html` | `admin/dormitories.html`, `admin/cottages.html`, `admin/reservations.html`, `admin/reports.html`, `user/rooms.html`, `user/reserve.html`, `user/my-reservations.html` |
+
 ## Under Construction Strategy
 
 - `components/under-construction.php` defines `CURRENT_VERSION` and renders a
@@ -92,6 +110,7 @@ time with `git checkout vX.XX` or browse it directly on GitHub under
 | v1.11 | `v1.11` | `a8c79be126b6f61f1ef658e4e962b75448ee32db` |
 | v1.12 | `v1.12` | `700230cb5f453ae54a3985e07baf8fabc7e095a7` |
 | v2.00 | `v2.00` | `edcc943ac5754f8e775e48ae3cfbe773d28d0275` |
+| v3.00 | `v3.00` | `26af53e95a9228b5bb243716b4b2c700dfb6a07e` |
 
 ## When a Prof or Client Requests Changes After a Presentation
 
