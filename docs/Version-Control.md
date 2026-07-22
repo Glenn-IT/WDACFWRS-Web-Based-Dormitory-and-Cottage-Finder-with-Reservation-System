@@ -31,6 +31,7 @@ above stays intact as a permanent record; this is a fresh presentation pass.
 | Version | Feature | Pages Unlocked This Version | Pages Still Gated |
 |---------|---------|------------------------------|--------------------|
 | v2.00 | Login/Register + Admin Dashboard + User Dashboard | `index.html`, `register.html`, `forgot-password.html`, `admin/dashboard.html`, `user/dashboard.html` | `admin/dormitories.html`, `admin/cottages.html`, `admin/reservations.html`, `admin/users.html`, `admin/reports.html`, `admin/settings.html`, `user/rooms.html`, `user/reserve.html`, `user/my-reservations.html`, `user/profile.html` |
+| v2.01 | All remaining admin/user pages | `admin/dormitories.html`, `admin/cottages.html`, `admin/reservations.html`, `admin/users.html`, `admin/reports.html`, `admin/settings.html`, `user/rooms.html`, `user/reserve.html`, `user/my-reservations.html`, `user/profile.html` | none — full system unlocked |
 
 ## Under Construction Strategy
 

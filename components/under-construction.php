@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-define('CURRENT_VERSION', 'v2.00');
+define('CURRENT_VERSION', 'v2.01');
 ?>
 <!doctype html>
 <html lang="en">
