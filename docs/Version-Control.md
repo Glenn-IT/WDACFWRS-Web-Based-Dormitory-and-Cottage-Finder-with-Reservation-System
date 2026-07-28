@@ -51,6 +51,19 @@ accidentally showing the fully-unlocked `v2.01` state during a `v3.00` demo.
 |---------|---------|------------------------------|--------------------|
 | v3.00 | Admin: User Management + Admin: Settings + User: Profile, plus the warm-palette redesign | `admin/users.html`, `admin/settings.html`, `user/profile.html` | `admin/dormitories.html`, `admin/cottages.html`, `admin/reservations.html`, `admin/reports.html`, `user/rooms.html`, `user/reserve.html`, `user/my-reservations.html` |
 
+## v4.00 — Cherry-Picked Off `v3.00`
+
+Same pattern again, one level deeper: a temp branch was cut from the `v3.00` tag,
+the two bug-fix commits that had since landed on `main` (PH 11-digit phone
+validation across all contact-number fields + the per-student "Room/Unit
+Reserved" status, and the dashboard chart aspect-ratio fix) were cherry-picked
+onto it, two more pages were newly unlocked, `CURRENT_VERSION` was bumped to
+`v4.00`, and the result was tagged — again without touching `main`.
+
+| Version | Feature | Pages Unlocked This Version | Pages Still Gated |
+|---------|---------|------------------------------|--------------------|
+| v4.00 | Admin: Manage Dormitories + User: View Rooms, plus the phone-validation and Room/Unit Reserved fixes | `admin/dormitories.html`, `user/rooms.html` | `admin/cottages.html`, `admin/reservations.html`, `admin/reports.html`, `user/reserve.html`, `user/my-reservations.html` |
+
 ## Under Construction Strategy
 
 - `components/under-construction.php` defines `CURRENT_VERSION` and renders a
@@ -111,6 +124,7 @@ time with `git checkout vX.XX` or browse it directly on GitHub under
 | v1.12 | `v1.12` | `700230cb5f453ae54a3985e07baf8fabc7e095a7` |
 | v2.00 | `v2.00` | `edcc943ac5754f8e775e48ae3cfbe773d28d0275` |
 | v3.00 | `v3.00` | `26af53e95a9228b5bb243716b4b2c700dfb6a07e` |
+| v4.00 | `v4.00` | `6d97b4d0cfc3672cc7ea0395378ff407e487c7d6` |
 
 ## When a Prof or Client Requests Changes After a Presentation
 
