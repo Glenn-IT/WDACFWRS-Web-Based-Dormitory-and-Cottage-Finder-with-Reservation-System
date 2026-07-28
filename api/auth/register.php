@@ -23,7 +23,7 @@ if (strlen($password) < 6) {
 }
 
 $phone = trim((string)($in['phone'] ?? ''));
-if ($phone !== '' && !preg_match('/^(09\d{9}|\+639\d{9})$/', $phone)) {
+if ($phone !== '' && !is_valid_ph_phone($phone)) {
     fail('Please enter a valid PH mobile number (e.g. 09123456789).');
 }
 

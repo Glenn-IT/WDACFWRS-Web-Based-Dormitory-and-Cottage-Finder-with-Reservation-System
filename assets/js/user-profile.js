@@ -47,6 +47,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("profile-form").addEventListener("submit", (e) => {
     e.preventDefault();
 
+    const phone = document.getElementById("pf-phone").value.trim();
+    if (phone && !isValidPhone(phone)) {
+      showToast("Please enter a valid PH mobile number (e.g. 09123456789).", "error");
+      return;
+    }
+
     const payload = {
       firstName: document.getElementById("pf-first-name").value.trim(),
       lastName: document.getElementById("pf-last-name").value.trim(),
@@ -55,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       semester: document.getElementById("pf-semester").value.trim(),
       nationality: document.getElementById("pf-nationality").value.trim(),
       birthday: document.getElementById("pf-birthday").value,
-      phone: document.getElementById("pf-phone").value.trim(),
+      phone,
       address: document.getElementById("pf-address").value.trim(),
     };
 

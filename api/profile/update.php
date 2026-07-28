@@ -13,6 +13,11 @@ if ($firstName === '' || $lastName === '') {
     fail('First and last name are required.');
 }
 
+$phone = trim((string)($in['phone'] ?? ''));
+if ($phone !== '' && !is_valid_ph_phone($phone)) {
+    fail('Please enter a valid PH mobile number (e.g. 09123456789).');
+}
+
 $pdo = get_db();
 $stmt = $pdo->prepare('UPDATE students SET first_name=?, last_name=?, course=?, year_level=?, semester=?, nationality=?, birthday=?, phone=?, address=? WHERE id=?');
 $stmt->execute([
@@ -23,7 +28,7 @@ $stmt->execute([
     trim((string)($in['semester'] ?? '')),
     trim((string)($in['nationality'] ?? '')),
     ($in['birthday'] ?? '') !== '' ? $in['birthday'] : null,
-    trim((string)($in['phone'] ?? '')),
+    $phone,
     trim((string)($in['address'] ?? '')),
     $session['id'],
 ]);

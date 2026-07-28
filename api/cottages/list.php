@@ -2,8 +2,10 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../_bootstrap.php';
 require_once __DIR__ . '/_helpers.php';
+require_once __DIR__ . '/../reservations/_helpers.php';
 
-if (!current_session()) {
+$session = current_session();
+if (!$session) {
     fail('Not authenticated.', 401);
 }
 
@@ -32,4 +34,11 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll();
 
-respond(['ok' => true, 'cottages' => array_map('map_cottage', $rows)]);
+$reservedIds = $session['role'] === 'student'
+    ? student_reserved_ids($pdo, (int)$session['id'], 'Cottage')
+    : [];
+
+respond(['ok' => true, 'cottages' => array_map(
+    fn($r) => map_cottage($r, in_array((int)$r['id'], $reservedIds, true)),
+    $rows
+)]);

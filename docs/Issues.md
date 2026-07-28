@@ -1,3 +1,3 @@
-1. after creating account it must directly go to log in form. should show a message for success/ change also the sign in -> log in ok
-
-3. add view password icon for forgot password.
+1. All number or contact should accept 11 digit number only PH base ok
+2. Student - View room if the student already reserved on that unit it should show Room/Unit Reserved
+3. 

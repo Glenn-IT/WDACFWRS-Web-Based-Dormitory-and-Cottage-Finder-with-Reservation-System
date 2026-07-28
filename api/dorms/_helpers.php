@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../_uploads.php';
 
-function map_dorm(array $r): array {
+function map_dorm(array $r, bool $reservedByMe = false): array {
     return [
         'id' => (int)$r['id'],
         'roomNumber' => $r['room_no'],
@@ -12,5 +12,6 @@ function map_dorm(array $r): array {
         'status' => $r['status'],
         'description' => $r['description'],
         'image' => $r['image_path'] ?: '',
+        'reservedByMe' => $reservedByMe,
     ];
 }

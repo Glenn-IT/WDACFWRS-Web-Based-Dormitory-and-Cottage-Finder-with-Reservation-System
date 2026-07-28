@@ -54,16 +54,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ---- Step 2 ----
   document.getElementById("parent-form").addEventListener("submit", (e) => {
     e.preventDefault();
+
+    const phone = val("p-phone");
+    const emergencyNumber = val("p-emergency-number");
+    if (!isValidPhone(phone) || !isValidPhone(emergencyNumber)) {
+      showToast("Please enter valid PH mobile numbers (e.g. 09123456789).", "error");
+      return;
+    }
+
     wizardState.parent = {
       fatherName: val("p-father-name"),
       motherName: val("p-mother-name"),
       occupation: val("p-occupation"),
       education: val("p-education"),
       address: val("p-address"),
-      phone: val("p-phone"),
+      phone,
       emergencyContact: val("p-emergency-contact"),
       relationship: val("p-relationship"),
-      emergencyNumber: val("p-emergency-number"),
+      emergencyNumber,
     };
     goToStep(3);
   });
