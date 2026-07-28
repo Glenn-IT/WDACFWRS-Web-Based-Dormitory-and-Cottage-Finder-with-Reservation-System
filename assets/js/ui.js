@@ -122,6 +122,13 @@ function badgeClass(status) {
     Active: "bg-success",
     Inactive: "bg-secondary",
     Cancelled: "bg-danger",
+    "Room/Unit Reserved": "bg-info text-dark",
   };
   return map[status] || "bg-secondary";
+}
+
+const PH_PHONE_PATTERN = /^(09\d{9}|\+639\d{9})$/;
+
+function isValidPhone(value) {
+  return PH_PHONE_PATTERN.test((value ?? "").trim());
 }

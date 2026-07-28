@@ -17,6 +17,12 @@ if (!$assetId || $paymentMethod === '') {
     fail('Missing required reservation details.');
 }
 
+$parentPhone = trim((string)($parent['phone'] ?? ''));
+$emergencyNumber = trim((string)($parent['emergencyNumber'] ?? ''));
+if (!is_valid_ph_phone($parentPhone) || !is_valid_ph_phone($emergencyNumber)) {
+    fail('Please enter valid PH mobile numbers (e.g. 09123456789).');
+}
+
 $pdo = get_db();
 $pdo->beginTransaction();
 
@@ -72,10 +78,10 @@ try {
         trim((string)($parent['occupation'] ?? '')),
         trim((string)($parent['education'] ?? '')),
         trim((string)($parent['address'] ?? '')),
-        trim((string)($parent['phone'] ?? '')),
+        $parentPhone,
         trim((string)($parent['emergencyContact'] ?? '')),
         trim((string)($parent['relationship'] ?? '')),
-        trim((string)($parent['emergencyNumber'] ?? '')),
+        $emergencyNumber,
     ]);
 
     $stmt = $pdo->prepare('INSERT INTO reservation_backgrounds

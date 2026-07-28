@@ -61,6 +61,11 @@ function require_post(): void {
     }
 }
 
+/** Validate a PH mobile number: 09XXXXXXXXX or +639XXXXXXXXX (11 digits after the prefix). */
+function is_valid_ph_phone(string $v): bool {
+    return (bool)preg_match('/^(09\d{9}|\+639\d{9})$/', trim($v));
+}
+
 /** Generate the next sequential display code, e.g. next_code($pdo, 'students', 'student_no', 'STU'). */
 function next_code(PDO $pdo, string $table, string $column, string $prefix): string {
     $stmt = $pdo->query("SELECT $column FROM $table ORDER BY id DESC LIMIT 1");

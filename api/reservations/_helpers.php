@@ -70,3 +70,13 @@ function fetch_reservation(PDO $pdo, int $id): ?array {
     $row = $stmt->fetch();
     return $row ? map_reservation($row) : null;
 }
+
+/** Dorm/cottage ids the given student currently has a live (Pending/Approved) reservation on. */
+function student_reserved_ids(PDO $pdo, int $studentId, string $type): array {
+    $col = $type === 'Dormitory' ? 'dorm_id' : 'cottage_id';
+    $stmt = $pdo->prepare(
+        "SELECT $col FROM reservations WHERE student_id = ? AND type = ? AND approval_status IN ('Pending','Approved')"
+    );
+    $stmt->execute([$studentId, $type]);
+    return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+}

@@ -68,7 +68,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function dormCard(d) {
-    const disabled = d.status !== "Available" ? "disabled" : "";
+    const disabled = (d.reservedByMe || d.status !== "Available") ? "disabled" : "";
+    const badgeLabel = d.reservedByMe ? "Room/Unit Reserved" : d.status;
+    const btnLabel = d.reservedByMe ? "Room/Unit Reserved" : "Reserve Now";
     return `
       <div class="col-sm-6 col-lg-4 col-xl-3">
         <div class="room-card">
@@ -76,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="room-body">
             <div class="d-flex justify-content-between align-items-start">
               <h6 class="fw-bold mb-1">Room ${d.roomNumber}</h6>
-              <span class="badge ${badgeClass(d.status)}">${d.status}</span>
+              <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span>
             </div>
             <p class="text-muted small mb-1"><i class="fa-solid fa-venus-mars me-1"></i>${d.gender} · <i class="fa-solid fa-users me-1"></i>${d.capacity} pax</p>
             <p class="small text-muted mb-2" style="min-height:40px;">${escapeHtml(d.description).slice(0, 70)}...</p>
@@ -84,14 +86,16 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="fw-bold text-primary">₱${d.price.toLocaleString()}/mo</span>
               <button class="btn btn-sm btn-outline-secondary" data-view-dorm="${d.id}"><i class="fa-solid fa-eye"></i></button>
             </div>
-            <button class="btn btn-primary w-100" data-reserve-dorm="${d.id}" ${disabled}>Reserve Now</button>
+            <button class="btn btn-primary w-100" data-reserve-dorm="${d.id}" ${disabled}>${btnLabel}</button>
           </div>
         </div>
       </div>`;
   }
 
   function cottageCard(c) {
-    const disabled = c.availability !== "Available" ? "disabled" : "";
+    const disabled = (c.reservedByMe || c.availability !== "Available") ? "disabled" : "";
+    const badgeLabel = c.reservedByMe ? "Room/Unit Reserved" : c.availability;
+    const btnLabel = c.reservedByMe ? "Room/Unit Reserved" : "Reserve Cottage";
     return `
       <div class="col-sm-6 col-lg-4 col-xl-3">
         <div class="room-card">
@@ -99,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="room-body">
             <div class="d-flex justify-content-between align-items-start">
               <h6 class="fw-bold mb-1">${escapeHtml(c.name)}</h6>
-              <span class="badge ${badgeClass(c.availability)}">${c.availability}</span>
+              <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span>
             </div>
             <p class="text-muted small mb-1"><i class="fa-solid fa-user me-1"></i>${escapeHtml(c.owner)} · <i class="fa-solid fa-door-open me-1"></i>${c.rooms} rooms</p>
             <p class="small text-muted mb-2" style="min-height:40px;">${escapeHtml(c.description).slice(0, 70)}...</p>
@@ -107,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="fw-bold text-primary">₱${c.price.toLocaleString()}/day</span>
               <button class="btn btn-sm btn-outline-secondary" data-view-cottage="${c.id}"><i class="fa-solid fa-eye"></i></button>
             </div>
-            <button class="btn btn-primary w-100" data-reserve-cottage="${c.id}" ${disabled}>Reserve Cottage</button>
+            <button class="btn btn-primary w-100" data-reserve-cottage="${c.id}" ${disabled}>${btnLabel}</button>
           </div>
         </div>
       </div>`;
@@ -120,14 +124,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function viewDorm(id) {
     const d = dormsCache.find((x) => String(x.id) === String(id));
     if (!d) return;
+    const badgeLabel = d.reservedByMe ? "Room/Unit Reserved" : d.status;
     document.getElementById("room-detail-body").innerHTML = `
       <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
-      <h5 class="fw-bold">Room ${d.roomNumber} <span class="badge ${badgeClass(d.status)}">${d.status}</span></h5>
+      <h5 class="fw-bold">Room ${d.roomNumber} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
       <p class="text-muted mb-2">${d.gender} Dormitory · Capacity: ${d.capacity} pax</p>
       <p>${escapeHtml(d.description)}</p>
       <h5 class="text-primary fw-bold">₱${d.price.toLocaleString()} / month</h5>`;
     const reserveBtn = document.getElementById("room-detail-reserve-btn");
-    reserveBtn.disabled = d.status !== "Available";
+    reserveBtn.disabled = d.reservedByMe || d.status !== "Available";
+    reserveBtn.textContent = d.reservedByMe ? "Room/Unit Reserved" : "Reserve Now";
     reserveBtn.onclick = () => goReserve("dorm", d.id);
     new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
   }
@@ -135,14 +141,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function viewCottage(id) {
     const c = cottagesCache.find((x) => String(x.id) === String(id));
     if (!c) return;
+    const badgeLabel = c.reservedByMe ? "Room/Unit Reserved" : c.availability;
     document.getElementById("room-detail-body").innerHTML = `
       <img src="${resolveAsset(c.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
-      <h5 class="fw-bold">${escapeHtml(c.name)} <span class="badge ${badgeClass(c.availability)}">${c.availability}</span></h5>
+      <h5 class="fw-bold">${escapeHtml(c.name)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
       <p class="text-muted mb-2">Owner: ${escapeHtml(c.owner)} · ${c.rooms} rooms</p>
       <p>${escapeHtml(c.description)}</p>
       <h5 class="text-primary fw-bold">₱${c.price.toLocaleString()} / day</h5>`;
     const reserveBtn = document.getElementById("room-detail-reserve-btn");
-    reserveBtn.disabled = c.availability !== "Available";
+    reserveBtn.disabled = c.reservedByMe || c.availability !== "Available";
+    reserveBtn.textContent = c.reservedByMe ? "Room/Unit Reserved" : "Reserve Cottage";
     reserveBtn.onclick = () => goReserve("cottage", c.id);
     new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
   }

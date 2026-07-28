@@ -34,7 +34,7 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Phone Number</label>
-            <input type="text" class="form-control" id="reg-phone" placeholder="09XXXXXXXXX" pattern="^(09\d{9}|\+639\d{9})$" title="Enter a valid PH mobile number (e.g. 09123456789)">
+            <input type="text" class="form-control" id="reg-phone" placeholder="09XXXXXXXXX" pattern="^(09\d{9}|\+639\d{9})$" maxlength="13" inputmode="tel" title="Enter a valid PH mobile number (e.g. 09123456789)">
           </div>
           <div class="col-md-6">
             <label class="form-label">Password</label>
@@ -131,7 +131,7 @@
       }
 
       const phone = document.getElementById("reg-phone").value.trim();
-      if (phone && !/^(09\d{9}|\+639\d{9})$/.test(phone)) {
+      if (phone && !isValidPhone(phone)) {
         errorEl.textContent = "Please enter a valid PH mobile number (e.g. 09123456789).";
         errorEl.classList.remove("d-none");
         return;
