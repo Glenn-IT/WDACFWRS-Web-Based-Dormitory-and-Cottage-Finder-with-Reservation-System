@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         backgroundColor: [chartColors.amber, chartColors.green, chartColors.coral, chartColors.gray],
       }],
     },
-    options: { plugins: { legend: { position: "bottom" } } },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } },
   });
 
   // Dormitory Occupancy
@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       labels: Object.keys(stats.dormStatusCounts),
       datasets: [{ data: Object.values(stats.dormStatusCounts), backgroundColor: [chartColors.green, chartColors.amber, chartColors.gray] }],
     },
-    options: { plugins: { legend: { position: "bottom" } } },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } },
   });
 
   // Cottage Occupancy
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       labels: Object.keys(stats.cottageStatusCounts),
       datasets: [{ data: Object.values(stats.cottageStatusCounts), backgroundColor: [chartColors.green, chartColors.amber] }],
     },
-    options: { plugins: { legend: { position: "bottom" } } },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } },
   });
 
   // Monthly Reservations (last 6 months)
@@ -59,6 +59,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       labels: stats.monthly.map((m) => m.label),
       datasets: [{ label: "Reservations", data: stats.monthly.map((m) => m.count), backgroundColor: chartColors.coral, borderRadius: 6 }],
     },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
   });
 });
