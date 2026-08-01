@@ -109,6 +109,28 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function wireTogglePassword(buttonId, inputId) {
+  const btn = document.getElementById(buttonId);
+  const input = document.getElementById(inputId);
+  if (!btn || !input) return;
+  btn.addEventListener("click", function () {
+    const isPw = input.type === "password";
+    input.type = isPw ? "text" : "password";
+    this.querySelector("i").className = isPw ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+    this.setAttribute("aria-label", isPw ? "Hide password" : "Show password");
+  });
+}
+
+function resetTogglePassword(buttonId, inputId) {
+  const btn = document.getElementById(buttonId);
+  const input = document.getElementById(inputId);
+  if (input) input.type = "password";
+  if (btn) {
+    btn.querySelector("i").className = "fa-solid fa-eye";
+    btn.setAttribute("aria-label", "Show password");
+  }
+}
+
 function badgeClass(status) {
   const map = {
     Available: "bg-success",

@@ -2,6 +2,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const session = await Auth.getSession();
   if (!session) return;
 
+  wireTogglePassword("s-toggle-current-password", "s-current-password");
+  wireTogglePassword("s-toggle-new-password", "s-new-password");
+  wireTogglePassword("s-toggle-confirm-password", "s-confirm-password");
+
   document.querySelectorAll("#settings-tabs .nav-link").forEach((tab) => {
     tab.addEventListener("click", () => {
       document.querySelectorAll("#settings-tabs .nav-link").forEach((t) => t.classList.remove("active"));
@@ -68,6 +72,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         await DataAPI.updateAdminPassword({ current, next, confirm });
         document.getElementById("password-settings-form").reset();
+        resetTogglePassword("s-toggle-current-password", "s-current-password");
+        resetTogglePassword("s-toggle-new-password", "s-new-password");
+        resetTogglePassword("s-toggle-confirm-password", "s-confirm-password");
         showToast("Password updated successfully.", "success");
       } catch (err) {
         errorEl.textContent = err.message;

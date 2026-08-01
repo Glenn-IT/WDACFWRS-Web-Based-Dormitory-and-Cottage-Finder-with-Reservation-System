@@ -73,9 +73,27 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <div class="mb-3"><label class="form-label">Current Password</label><input type="password" class="form-control" id="cp-current" required></div>
-            <div class="mb-3"><label class="form-label">New Password</label><input type="password" class="form-control" id="cp-new" required minlength="6"></div>
-            <div class="mb-3"><label class="form-label">Confirm New Password</label><input type="password" class="form-control" id="cp-confirm" required minlength="6"></div>
+            <div class="mb-3">
+              <label class="form-label">Current Password</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="cp-current" required>
+                <button class="btn btn-outline-secondary" type="button" id="cp-toggle-current" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="cp-new" required minlength="6">
+                <button class="btn btn-outline-secondary" type="button" id="cp-toggle-new" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirm New Password</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="cp-confirm" required minlength="6">
+                <button class="btn btn-outline-secondary" type="button" id="cp-toggle-confirm" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
             <div class="alert alert-danger d-none" id="cp-error"></div>
           </div>
           <div class="modal-footer">

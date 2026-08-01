@@ -2,6 +2,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const session = await Auth.getSession();
   if (!session) return;
 
+  wireTogglePassword("cp-toggle-current", "cp-current");
+  wireTogglePassword("cp-toggle-new", "cp-new");
+  wireTogglePassword("cp-toggle-confirm", "cp-confirm");
+
   function render(user) {
     document.getElementById("profile-picture").src = resolveAsset(user.profilePic);
     document.getElementById("profile-full-name").textContent = `${user.firstName} ${user.lastName}`;
@@ -110,6 +114,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         await DataAPI.changePassword({ current, next, confirm });
         showToast("Password changed successfully.", "success");
         document.getElementById("change-password-form").reset();
+        resetTogglePassword("cp-toggle-current", "cp-current");
+        resetTogglePassword("cp-toggle-new", "cp-new");
+        resetTogglePassword("cp-toggle-confirm", "cp-confirm");
         bootstrap.Modal.getInstance(document.getElementById("change-password-modal")).hide();
       } catch (err) {
         errorEl.textContent = err.message;
