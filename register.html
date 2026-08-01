@@ -38,11 +38,17 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">Password</label>
-            <input type="password" class="form-control" id="reg-password" required minlength="6">
+            <div class="input-group">
+              <input type="password" class="form-control" id="reg-password" required minlength="6">
+              <button class="btn btn-outline-secondary" type="button" id="reg-toggle-password" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label">Confirm Password</label>
-            <input type="password" class="form-control" id="reg-confirm-password" required minlength="6">
+            <div class="input-group">
+              <input type="password" class="form-control" id="reg-confirm-password" required minlength="6">
+              <button class="btn btn-outline-secondary" type="button" id="reg-toggle-confirm-password" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label">Course</label>
@@ -110,6 +116,9 @@
   <script src="assets/js/ui.js"></script>
   <script src="assets/js/auth.js"></script>
   <script>
+    wireTogglePassword("reg-toggle-password", "reg-password");
+    wireTogglePassword("reg-toggle-confirm-password", "reg-confirm-password");
+
     document.getElementById("register-form").addEventListener("submit", function (e) {
       e.preventDefault();
       const errorEl = document.getElementById("register-error");

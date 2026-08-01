@@ -79,12 +79,7 @@
     studentBtn.addEventListener("click", () => setRole("student"));
     adminBtn.addEventListener("click", () => setRole("admin"));
 
-    document.getElementById("toggle-password").addEventListener("click", function () {
-      const input = document.getElementById("login-password");
-      const isPw = input.type === "password";
-      input.type = isPw ? "text" : "password";
-      this.querySelector("i").className = isPw ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
-    });
+    wireTogglePassword("toggle-password", "login-password");
 
     // Redirect if already logged in
     (async function () {
