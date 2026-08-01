@@ -62,7 +62,16 @@ onto it, two more pages were newly unlocked, `CURRENT_VERSION` was bumped to
 
 | Version | Feature | Pages Unlocked This Version | Pages Still Gated |
 |---------|---------|------------------------------|--------------------|
-| v4.00 | Admin: Manage Dormitories + User: View Rooms, plus the phone-validation and Room/Unit Reserved fixes | `admin/dormitories.html`, `user/rooms.html` | `admin/cottages.html`, `admin/reservations.html`, `admin/reports.html`, `user/reserve.html`, `user/my-reservations.html` |
+| v4.00 | Admin: Manage Dormitories + User: View Rooms, plus the phone-validation, Room/Unit Reserved, and show/hide password fixes | `admin/dormitories.html`, `user/rooms.html` | `admin/cottages.html`, `admin/reservations.html`, `admin/reports.html`, `user/reserve.html`, `user/my-reservations.html` |
+
+`v4.00` was later cherry-picked a second time to add the show/hide password
+toggle: a temp branch was cut from the existing `v4.00` tag, the toggle commit
+from `main` was cherry-picked onto it, and the tag was re-pointed. No page was
+unlocked and `CURRENT_VERSION` stayed at `v4.00` — the snapshot's gating is
+unchanged, it just gained the feature. The toggle now covers every password
+field in the system: login, register, forgot-password, the user profile's
+Change Password modal, and the admin Settings password tab, all driven by a
+shared `wireTogglePassword`/`resetTogglePassword` helper in `assets/js/ui.js`.
 
 ## Under Construction Strategy
 
@@ -124,7 +133,7 @@ time with `git checkout vX.XX` or browse it directly on GitHub under
 | v1.12 | `v1.12` | `700230cb5f453ae54a3985e07baf8fabc7e095a7` |
 | v2.00 | `v2.00` | `edcc943ac5754f8e775e48ae3cfbe773d28d0275` |
 | v3.00 | `v3.00` | `26af53e95a9228b5bb243716b4b2c700dfb6a07e` |
-| v4.00 | `v4.00` | `6d97b4d0cfc3672cc7ea0395378ff407e487c7d6` |
+| v4.00 | `v4.00` | `07b002551c5943ae1deb321cf37d3db36ee3940e` |
 
 ## When a Prof or Client Requests Changes After a Presentation
 
