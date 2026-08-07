@@ -37,13 +37,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ---- Step 1 ----
   const price = asset.price;
-  const label = type === "dorm" ? `Room ${asset.roomNumber}` : asset.name;
+  const label = type === "dorm" ? (asset.dormitoryName || asset.roomNumber) : asset.name;
   document.getElementById("selected-asset-card").innerHTML = `
     <div class="row g-3 align-items-center">
       <div class="col-md-4"><img src="${resolveAsset(asset.image)}" class="w-100 rounded" style="height:160px;object-fit:cover;"></div>
       <div class="col-md-8">
         <h5 class="fw-bold mb-1">${escapeHtml(label)}</h5>
-        <p class="text-muted mb-1">${type === "dorm" ? `${asset.gender} Dormitory · Capacity ${asset.capacity} pax` : `Owner: ${escapeHtml(asset.owner)} · ${asset.rooms} rooms`}</p>
+        <p class="text-muted mb-1">${type === "dorm" ? `Dormitory · Capacity ${asset.capacity} pax` : `Owner: ${escapeHtml(asset.owner)} · ${asset.rooms} rooms`}</p>
         <h5 class="text-primary fw-bold">₱${price.toLocaleString()} ${type === "dorm" ? "/ month" : "/ day"}</h5>
       </div>
     </div>`;

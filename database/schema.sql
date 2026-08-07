@@ -47,8 +47,8 @@ CREATE TABLE students (
 -- ---------------------------------------------------------------
 CREATE TABLE dormitories (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  room_no VARCHAR(30) NOT NULL UNIQUE,
-  gender ENUM('Male','Female') NOT NULL,
+  room_no VARCHAR(150) NOT NULL UNIQUE,
+  gender ENUM('Male','Female') NULL DEFAULT 'Male',
   capacity INT NOT NULL DEFAULT 1,
   price DECIMAL(10,2) NOT NULL DEFAULT 0,
   status ENUM('Available','Occupied','Full') NOT NULL DEFAULT 'Available',

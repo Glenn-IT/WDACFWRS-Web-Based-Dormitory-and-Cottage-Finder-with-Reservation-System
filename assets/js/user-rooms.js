@@ -21,8 +21,9 @@ document.addEventListener("DOMContentLoaded", () => {
   tabDorm.addEventListener("click", () => setType("dorm"));
   tabCottage.addEventListener("click", () => setType("cottage"));
 
-  ["filter-gender", "filter-status", "filter-search"].forEach((id) => {
-    document.getElementById(id).addEventListener("input", render);
+  ["filter-status", "filter-search"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", render);
   });
 
   async function render() {
@@ -31,11 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function renderDorms() {
-    const gender = document.getElementById("filter-gender").value;
     const status = document.getElementById("filter-status").value;
     const search = document.getElementById("filter-search").value.trim();
 
-    const data = await DataAPI.getDorms({ gender, status, search });
+    const data = await DataAPI.getDorms({ status, search });
     dormsCache = data.dorms || [];
 
     grid.innerHTML = dormsCache.length
@@ -74,13 +74,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="col-sm-6 col-lg-4 col-xl-3">
         <div class="room-card">
-          <img src="${resolveAsset(d.image)}" alt="Room ${d.roomNumber}">
+          <img src="${resolveAsset(d.image)}" alt="${escapeHtml(d.roomNumber)}">
           <div class="room-body">
             <div class="d-flex justify-content-between align-items-start">
-              <h6 class="fw-bold mb-1">Room ${d.roomNumber}</h6>
+              <h6 class="fw-bold mb-1">${escapeHtml(d.roomNumber)}</h6>
               <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span>
             </div>
-            <p class="text-muted small mb-1"><i class="fa-solid fa-venus-mars me-1"></i>${d.gender} · <i class="fa-solid fa-users me-1"></i>${d.capacity} pax</p>
+            <p class="text-muted small mb-1"><i class="fa-solid fa-users me-1"></i>Capacity: ${d.capacity} pax</p>
             <p class="small text-muted mb-2" style="min-height:40px;">${escapeHtml(d.description).slice(0, 70)}...</p>
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="fw-bold text-primary">₱${d.price.toLocaleString()}/mo</span>
@@ -127,8 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const badgeLabel = d.reservedByMe ? "Room/Unit Reserved" : d.status;
     document.getElementById("room-detail-body").innerHTML = `
       <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
-      <h5 class="fw-bold">Room ${d.roomNumber} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
-      <p class="text-muted mb-2">${d.gender} Dormitory · Capacity: ${d.capacity} pax</p>
+      <h5 class="fw-bold">${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
+      <p class="text-muted mb-2">Capacity: ${d.capacity} pax</p>
       <p>${escapeHtml(d.description)}</p>
       <h5 class="text-primary fw-bold">₱${d.price.toLocaleString()} / month</h5>`;
     const reserveBtn = document.getElementById("room-detail-reserve-btn");

@@ -30,7 +30,7 @@ function map_reservation(array $r): array {
         'studentName' => trim($r['first_name'] . ' ' . $r['last_name']),
         'type' => $r['type'],
         'assetId' => $isDorm ? (int)$r['dorm_id'] : (int)$r['cottage_id'],
-        'assetLabel' => $isDorm ? ('Room ' . $r['room_no']) : $r['cottage_name'],
+        'assetLabel' => $isDorm ? ($r['room_no'] ?? '') : ($r['cottage_name'] ?? ''),
         'image' => ($isDorm ? $r['dorm_image'] : $r['cottage_image']) ?: '',
         'paymentMethod' => $r['payment_method'],
         'amount' => (float)$r['amount'],

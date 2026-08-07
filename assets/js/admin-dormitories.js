@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
       <tr>
         <td><img src="${resolveAsset(d.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
         <td>${escapeHtml(d.roomNumber)}</td>
-        <td>${d.gender}</td>
         <td>${d.capacity} pax</td>
         <td>₱${d.price.toLocaleString()}</td>
         <td><span class="badge ${badgeClass(d.status)}">${d.status}</span></td>
@@ -27,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </tr>`
           )
           .join("")
-      : `<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-door-closed"></i>No dormitories added yet.</div></td></tr>`;
+      : `<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-door-closed"></i>No dormitories added yet.</div></td></tr>`;
 
     tbody.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => viewDorm(b.dataset.view)));
     tbody.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => editDorm(b.dataset.edit)));
@@ -67,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("dorm-modal-title").textContent = "Edit Dormitory";
     document.getElementById("dorm-id").value = d.id;
     document.getElementById("dorm-room-number").value = d.roomNumber;
-    document.getElementById("dorm-gender").value = d.gender;
     document.getElementById("dorm-capacity").value = d.capacity;
     document.getElementById("dorm-price").value = d.price;
     document.getElementById("dorm-status").value = d.status;
@@ -83,8 +81,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!d) return;
     document.getElementById("dorm-view-body").innerHTML = `
       <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:220px;object-fit:cover;">
-      <h5 class="fw-bold">Room ${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(d.status)}">${d.status}</span></h5>
-      <p class="text-muted">${d.gender} · ${d.capacity} pax · ₱${d.price.toLocaleString()}/month</p>
+      <h5 class="fw-bold">${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(d.status)}">${d.status}</span></h5>
+      <p class="text-muted">Capacity: ${d.capacity} pax · ₱${d.price.toLocaleString()}/month</p>
       <p>${escapeHtml(d.description)}</p>`;
     dormViewModal.show();
   }
@@ -110,7 +108,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const formData = new FormData();
     if (id) formData.append("id", id);
     formData.append("roomNumber", document.getElementById("dorm-room-number").value.trim());
-    formData.append("gender", document.getElementById("dorm-gender").value);
     formData.append("capacity", document.getElementById("dorm-capacity").value);
     formData.append("price", document.getElementById("dorm-price").value);
     formData.append("status", document.getElementById("dorm-status").value);

@@ -32,10 +32,10 @@ try {
         $stmt->execute([$assetId]);
         $asset = $stmt->fetch();
         if (!$asset) {
-            throw new RuntimeException('Room not found.');
+            throw new RuntimeException('Dormitory not found.');
         }
         if ($asset['status'] !== 'Available') {
-            throw new RuntimeException('This room is no longer available.');
+            throw new RuntimeException('This dormitory is no longer available.');
         }
     } else {
         $stmt = $pdo->prepare('SELECT id, price, availability FROM cottages WHERE id = ? FOR UPDATE');

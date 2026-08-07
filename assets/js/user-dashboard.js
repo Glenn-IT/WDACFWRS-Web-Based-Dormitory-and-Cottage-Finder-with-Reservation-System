@@ -36,8 +36,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const previewItems = [
     ...dorms.map((d) => ({
       image: d.image,
-      title: `Room ${d.roomNumber}`,
-      subtitle: `${d.gender} Dormitory · ${d.capacity} pax`,
+      title: d.dormitoryName || d.roomNumber,
+      subtitle: `Dormitory · ${d.capacity} pax`,
       price: d.price,
       status: d.status,
       link: `rooms.html?type=dorm`,

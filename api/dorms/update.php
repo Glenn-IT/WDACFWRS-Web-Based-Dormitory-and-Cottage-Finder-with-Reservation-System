@@ -11,7 +11,7 @@ if (!$id) {
     fail('Missing dormitory id.');
 }
 
-$roomNumber = trim((string)($_POST['roomNumber'] ?? ''));
+$roomNumber = trim((string)($_POST['dormitoryName'] ?? $_POST['dormName'] ?? $_POST['name'] ?? $_POST['roomNumber'] ?? ''));
 $gender = ($_POST['gender'] ?? '') === 'Female' ? 'Female' : 'Male';
 $capacity = (int)($_POST['capacity'] ?? 0);
 $price = (float)($_POST['price'] ?? 0);
@@ -27,7 +27,7 @@ $pdo = get_db();
 $stmt = $pdo->prepare('SELECT id FROM dormitories WHERE room_no = ? AND id != ?');
 $stmt->execute([$roomNumber, $id]);
 if ($stmt->fetch()) {
-    fail('A dormitory with this room number already exists.');
+    fail('A dormitory with this name already exists.');
 }
 
 $imagePath = isset($_FILES['image']) ? save_uploaded_image($_FILES['image'], 'dorms') : null;

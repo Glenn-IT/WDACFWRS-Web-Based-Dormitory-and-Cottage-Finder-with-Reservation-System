@@ -6,6 +6,8 @@ function map_dorm(array $r, bool $reservedByMe = false): array {
     return [
         'id' => (int)$r['id'],
         'roomNumber' => $r['room_no'],
+        'dormitoryName' => $r['room_no'],
+        'name' => $r['room_no'],
         'gender' => $r['gender'],
         'capacity' => (int)$r['capacity'],
         'price' => (float)$r['price'],

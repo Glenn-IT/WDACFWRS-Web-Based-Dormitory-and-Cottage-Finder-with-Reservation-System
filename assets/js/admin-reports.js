@@ -42,8 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
         summaryCard("Available", data.available, "#16a34a", "fa-circle-check") +
         summaryCard("Occupied/Full", data.occupiedOrFull, "#d97706", "fa-bed");
       tableEl.innerHTML = `<table class="table table-sm align-middle">
-        <thead><tr><th>Room #</th><th>Gender</th><th>Capacity</th><th>Price</th><th>Status</th></tr></thead>
-        <tbody>${rows.map((d) => `<tr><td>${escapeHtml(d.roomNumber)}</td><td>${d.gender}</td><td>${d.capacity}</td><td>₱${d.price.toLocaleString()}</td><td><span class="badge ${badgeClass(d.status)}">${d.status}</span></td></tr>`).join("")}</tbody>
+        <thead><tr><th>Dormitory Name</th><th>Capacity</th><th>Price</th><th>Status</th></tr></thead>
+        <tbody>${rows.map((d) => `<tr><td>${escapeHtml(d.roomNumber)}</td><td>${d.capacity}</td><td>₱${d.price.toLocaleString()}</td><td><span class="badge ${badgeClass(d.status)}">${d.status}</span></td></tr>`).join("")}</tbody>
       </table>`;
     }
 

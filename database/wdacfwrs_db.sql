@@ -71,8 +71,8 @@ CREATE TABLE `cottages` (
 
 CREATE TABLE `dormitories` (
   `id` int(11) NOT NULL,
-  `room_no` varchar(30) NOT NULL,
-  `gender` enum('Male','Female') NOT NULL,
+  `room_no` varchar(150) NOT NULL,
+  `gender` enum('Male','Female') DEFAULT 'Male',
   `capacity` int(11) NOT NULL DEFAULT 1,
   `price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `status` enum('Available','Occupied','Full') NOT NULL DEFAULT 'Available',

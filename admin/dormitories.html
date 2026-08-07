@@ -23,7 +23,7 @@
         <table class="table table-hover align-middle table-responsive-card">
           <thead>
             <tr>
-              <th>Image</th><th>Room Number</th><th>Gender</th><th>Capacity</th><th>Price</th><th>Status</th><th class="text-end">Actions</th>
+              <th>Image</th><th>Dormitory Name</th><th>Capacity</th><th>Price</th><th>Status</th><th class="text-end">Actions</th>
             </tr>
           </thead>
           <tbody id="dorms-table-body"></tbody>
@@ -44,10 +44,7 @@
           <div class="modal-body">
             <input type="hidden" id="dorm-id">
             <div class="row g-3">
-              <div class="col-md-6"><label class="form-label">Room Number</label><input class="form-control" id="dorm-room-number" required></div>
-              <div class="col-md-6"><label class="form-label">Gender</label>
-                <select class="form-select" id="dorm-gender" required><option>Male</option><option>Female</option></select>
-              </div>
+              <div class="col-12"><label class="form-label">Dormitory Name</label><input class="form-control" id="dorm-room-number" placeholder="e.g., Sampaguita Hall" required></div>
               <div class="col-md-4"><label class="form-label">Capacity</label><input type="number" min="1" class="form-control" id="dorm-capacity" required></div>
               <div class="col-md-4"><label class="form-label">Price (monthly)</label><input type="number" min="0" class="form-control" id="dorm-price" required></div>
               <div class="col-md-4"><label class="form-label">Status</label>
@@ -55,7 +52,7 @@
               </div>
               <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" id="dorm-description" rows="3" required></textarea></div>
               <div class="col-12">
-                <label class="form-label">Room Image</label>
+                <label class="form-label">Dormitory Image</label>
                 <input type="file" accept="image/*" class="form-control" id="dorm-image-input">
                 <img id="dorm-image-preview" class="mt-2 rounded" style="max-height:140px;display:none;">
               </div>
@@ -75,7 +72,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Room Details</h5>
+          <h5 class="modal-title">Dormitory Details</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" id="dorm-view-body"></div>
