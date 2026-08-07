@@ -73,6 +73,14 @@ field in the system: login, register, forgot-password, the user profile's
 Change Password modal, and the admin Settings password tab, all driven by a
 shared `wireTogglePassword`/`resetTogglePassword` helper in `assets/js/ui.js`.
 
+## v5.00 — System Update & Dormitory Name Migration
+
+Release `v5.00` includes all `v4.00` functionality plus system updates (migration of Room Number to Dormitory Name across forms, tables, details modals, reports, and API payloads; removal of Gender input/column from dormitories; enhanced toast notifications container & glassmorphism styling; database schema updates). Manage Dormitories (`admin/dormitories.html`) and View Rooms (`user/rooms.html`) are unlocked alongside dashboards, while remaining pages are gated with the Under Construction page.
+
+| Version | Feature | Pages Unlocked This Version | Pages Still Gated |
+|---------|---------|------------------------------|--------------------|
+| v5.00 | Admin: Manage Dormitories + User: View Rooms + System Update (Dormitory Name & Toast Fixes) | `index.html`, `register.html`, `forgot-password.html`, `admin/dashboard.html`, `user/dashboard.html`, `admin/dormitories.html`, `user/rooms.html` | `admin/cottages.html`, `admin/reservations.html`, `admin/users.html`, `admin/reports.html`, `admin/settings.html`, `user/reserve.html`, `user/my-reservations.html`, `user/profile.html` |
+
 ## Under Construction Strategy
 
 - `components/under-construction.php` defines `CURRENT_VERSION` and renders a
