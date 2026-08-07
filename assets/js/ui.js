@@ -7,8 +7,9 @@ function ensureToastContainer() {
   if (!el) {
     el = document.createElement("div");
     el.id = "toast-stack";
-    el.className = "toast-container position-fixed top-0 end-0 p-3";
-    el.style.zIndex = "1080";
+    el.className = "toast-container position-fixed end-0 p-3";
+    el.style.top = "70px";
+    el.style.zIndex = "9999";
     document.body.appendChild(el);
   }
   return el;
@@ -23,14 +24,17 @@ function showToast(message, type = "success") {
   };
   const container = ensureToastContainer();
   const toastEl = document.createElement("div");
-  toastEl.className = `toast align-items-center border-0 toast-${type}`;
+  toastEl.className = `toast align-items-center border-0 text-white toast-${type}`;
   toastEl.setAttribute("role", "alert");
+  toastEl.setAttribute("aria-live", "assertive");
+  toastEl.setAttribute("aria-atomic", "true");
   toastEl.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body">
-        <i class="fa-solid ${icons[type] || icons.info} me-2"></i>${message}
+    <div class="d-flex align-items-center">
+      <div class="toast-body d-flex align-items-center gap-2 flex-grow-1">
+        <i class="fa-solid ${icons[type] || icons.info} fs-5 flex-shrink-0"></i>
+        <span>${message}</span>
       </div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>`;
   container.appendChild(toastEl);
   const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
