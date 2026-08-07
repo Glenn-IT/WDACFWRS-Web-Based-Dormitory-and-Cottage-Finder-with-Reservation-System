@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("receipt-card").innerHTML = `
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-        <span class="text-muted">${type === "dorm" ? "Room" : "Cottage"}</span><strong>${escapeHtml(label)}</strong>
+        <span class="text-muted">${type === "dorm" ? "Dormitory" : "Cottage"}</span><strong>${escapeHtml(label)}</strong>
       </div>
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
         <span class="text-muted">Payment Method</span><strong>${wizardState.paymentMethod}</strong>
