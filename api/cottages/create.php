@@ -10,14 +10,20 @@ $name = trim((string)($_POST['name'] ?? ''));
 $owner = trim((string)($_POST['owner'] ?? ''));
 $rooms = (int)($_POST['rooms'] ?? 0);
 $price = (float)($_POST['price'] ?? 0);
-$availability = ($_POST['availability'] ?? '') === 'Booked' ? 'Booked' : 'Available';
 $description = trim((string)($_POST['description'] ?? ''));
-
 if ($name === '' || $rooms <= 0 || $price < 0) {
     fail('Please fill in all required fields.');
 }
 
 $pdo = get_db();
+
+$checkStmt = $pdo->prepare('SELECT COUNT(*) FROM cottages WHERE LOWER(name) = LOWER(?)');
+$checkStmt->execute([$name]);
+if ((int)$checkStmt->fetchColumn() > 0) {
+    fail('A cottage with this name already exists.');
+}
+
+$availability = 'Available';
 $imagePath = isset($_FILES['image']) ? save_uploaded_image($_FILES['image'], 'cottages') : null;
 
 $stmt = $pdo->prepare('INSERT INTO cottages (name, owner, rooms, price, availability, description, image_path)

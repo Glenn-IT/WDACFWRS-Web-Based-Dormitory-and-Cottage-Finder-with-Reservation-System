@@ -23,7 +23,7 @@
         <table class="table table-hover align-middle table-responsive-card">
           <thead>
             <tr>
-              <th>Image</th><th>Owner</th><th>Name</th><th>Rooms</th><th>Price</th><th>Availability</th><th class="text-end">Actions</th>
+              <th>Image</th><th>Owner</th><th>Name</th><th>Rooms</th><th>Price</th><th class="text-end">Actions</th>
             </tr>
           </thead>
           <tbody id="cottages-table-body"></tbody>
@@ -46,11 +46,8 @@
             <div class="row g-3">
               <div class="col-md-6"><label class="form-label">Cottage Name</label><input class="form-control" id="cottage-name" required></div>
               <div class="col-md-6"><label class="form-label">Owner</label><input class="form-control" id="cottage-owner" required></div>
-              <div class="col-md-4"><label class="form-label">Number of Rooms</label><input type="number" min="1" class="form-control" id="cottage-rooms" required></div>
-              <div class="col-md-4"><label class="form-label">Price (per day)</label><input type="number" min="0" class="form-control" id="cottage-price" required></div>
-              <div class="col-md-4"><label class="form-label">Availability</label>
-                <select class="form-select" id="cottage-availability" required><option>Available</option><option>Booked</option></select>
-              </div>
+              <div class="col-md-6"><label class="form-label">Number of Rooms</label><input type="number" min="1" class="form-control" id="cottage-rooms" required></div>
+              <div class="col-md-6"><label class="form-label">Price (per day)</label><input type="number" min="0" class="form-control" id="cottage-price" required></div>
               <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" id="cottage-description" rows="3" required></textarea></div>
               <div class="col-12">
                 <label class="form-label">Cottage Image</label>
