@@ -77,10 +77,15 @@ shared `wireTogglePassword`/`resetTogglePassword` helper in `assets/js/ui.js`.
 
 Release `v5.10` includes all `v5.00` functionality plus cottage management system updates: duplicate cottage name validation, removal of the manual Availability field from cottage forms/tables, and removal of the delete button in Manage Cottages.
 
+## v6.00 — Admin Manage Reservations & Reservation Creation System
+
+Release `v6.00` includes all `v5.10` functionality plus unlocking the **Manage Reservations** page for administrators (`admin/reservations.html`) and introducing an **Add Reservation** multi-step wizard on the admin side that mirrors the student reservation process (Student & Accommodation selection, Parent/Guardian information, Student Background, Payment Method, and Reservation Summary), along with backend API support for admin reservation creation.
+
 | Version | Feature | Pages Unlocked This Version | Pages Still Gated |
 |---------|---------|------------------------------|--------------------|
 | v5.00 | Admin: Manage Dormitories + Admin: Manage Cottages + User: View Rooms + System Update (Dormitory Name & Toast Fixes) | `index.html`, `register.html`, `forgot-password.html`, `admin/dashboard.html`, `user/dashboard.html`, `admin/dormitories.html`, `admin/cottages.html`, `user/rooms.html` | `admin/reservations.html`, `admin/users.html`, `admin/reports.html`, `admin/settings.html`, `user/reserve.html`, `user/my-reservations.html`, `user/profile.html` |
 | v5.10 | Cottage Management Enhancements (Duplicate Name Check, Remove Availability Field, Remove Delete Button) | `index.html`, `register.html`, `forgot-password.html`, `admin/dashboard.html`, `user/dashboard.html`, `admin/dormitories.html`, `admin/cottages.html`, `user/rooms.html` | `admin/reservations.html`, `admin/users.html`, `admin/reports.html`, `admin/settings.html`, `user/reserve.html`, `user/my-reservations.html`, `user/profile.html` |
+| v6.00 | Admin: Manage Reservations Unlocked + Add Reservation Multi-Step Wizard for Admin | `index.html`, `register.html`, `forgot-password.html`, `admin/dashboard.html`, `user/dashboard.html`, `admin/dormitories.html`, `admin/cottages.html`, `admin/reservations.html`, `user/rooms.html` | `admin/users.html`, `admin/reports.html`, `admin/settings.html`, `user/reserve.html`, `user/my-reservations.html`, `user/profile.html` |
 
 ## Under Construction Strategy
 
@@ -145,6 +150,7 @@ time with `git checkout vX.XX` or browse it directly on GitHub under
 | v4.00 | `v4.00` | `07b002551c5943ae1deb321cf37d3db36ee3940e` |
 | v5.00 | `v5.00` | `dce965836a9292f3f1a1506afc158c35c39e3816` |
 | v5.10 | `v5.10` | `a803d1f327e70709b3dd3a6f9ded1761d42e528c` |
+| v6.00 | `v6.00` | `6abd4bc0a663dcdd8bb1929916a7d34db45781e6` |
 
 ## When a Prof or Client Requests Changes After a Presentation
 
