@@ -3,9 +3,25 @@ declare(strict_types=1);
 require_once __DIR__ . '/../_bootstrap.php';
 require_once __DIR__ . '/_helpers.php';
 
-$session = require_role('student');
+$session = current_session();
+if (!$session) {
+    fail('Not authenticated.', 401);
+}
+if (!in_array($session['role'], ['student', 'admin'], true)) {
+    fail('Forbidden.', 403);
+}
+
 require_post();
 $in = json_input();
+
+if ($session['role'] === 'admin') {
+    $studentId = (int)($in['studentId'] ?? 0);
+    if (!$studentId) {
+        fail('Please select a student for this reservation.');
+    }
+} else {
+    $studentId = (int)$session['id'];
+}
 
 $type = ($in['type'] ?? '') === 'Cottage' ? 'Cottage' : 'Dormitory';
 $assetId = (int)($in['assetId'] ?? 0);
@@ -57,7 +73,7 @@ try {
         (student_id, type, dorm_id, cottage_id, payment_method, amount, reservation_date, payment_status, approval_status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, \'Pending\')');
     $stmt->execute([
-        $session['id'],
+        $studentId,
         $type,
         $type === 'Dormitory' ? $assetId : null,
         $type === 'Cottage' ? $assetId : null,
@@ -114,8 +130,11 @@ try {
         $stmt->execute([$assetId]);
     }
 
+    $msg = $session['role'] === 'admin' 
+        ? "A reservation (#$reservationId) has been created for you by the admin."
+        : "Your reservation #$reservationId has been submitted and is pending approval.";
     $stmt = $pdo->prepare('INSERT INTO notifications (student_id, message) VALUES (?, ?)');
-    $stmt->execute([$session['id'], "Your reservation #$reservationId has been submitted and is pending approval."]);
+    $stmt->execute([$studentId, $msg]);
 
     $pdo->commit();
 } catch (Throwable $e) {
