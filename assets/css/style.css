@@ -383,3 +383,49 @@ a { text-decoration: none; }
 .clickable { cursor: pointer; }
 .empty-state { text-align: center; padding: 3rem 1rem; color: var(--uni-gray); }
 .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
+
+/* ---------------- Print Styles for Reports & Documents ---------------- */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .app-sidebar,
+  .app-topbar,
+  .no-print,
+  .toast-container,
+  .loading-overlay {
+    display: none !important;
+  }
+
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .section-card {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .table th,
+  .table td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+    font-size: 0.85rem !important;
+  }
+
+  .badge {
+    border: 1px solid #64748b !important;
+    color: #000 !important;
+    background: transparent !important;
+  }
+}

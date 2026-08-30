@@ -3,25 +3,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/../_bootstrap.php';
 require_once __DIR__ . '/_helpers.php';
 
-$session = current_session();
-if (!$session) {
-    fail('Not authenticated.', 401);
-}
-if (!in_array($session['role'], ['student', 'admin'], true)) {
-    fail('Forbidden.', 403);
-}
+$session = require_role('student');
+$studentId = (int)$session['id'];
 
 require_post();
 $in = json_input();
-
-if ($session['role'] === 'admin') {
-    $studentId = (int)($in['studentId'] ?? 0);
-    if (!$studentId) {
-        fail('Please select a student for this reservation.');
-    }
-} else {
-    $studentId = (int)$session['id'];
-}
 
 $type = ($in['type'] ?? '') === 'Cottage' ? 'Cottage' : 'Dormitory';
 $assetId = (int)($in['assetId'] ?? 0);
