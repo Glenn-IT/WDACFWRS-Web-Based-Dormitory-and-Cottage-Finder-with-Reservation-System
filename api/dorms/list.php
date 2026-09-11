@@ -5,9 +5,8 @@ require_once __DIR__ . '/_helpers.php';
 require_once __DIR__ . '/../reservations/_helpers.php';
 
 $session = current_session();
-if (!$session) {
-    fail('Not authenticated.', 401);
-}
+session_write_close();
+// Note: Guest access is permitted for browsing dormitories.
 
 $pdo = get_db();
 
@@ -37,7 +36,7 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll();
 
-$reservedIds = $session['role'] === 'student'
+$reservedIds = ($session && ($session['role'] ?? '') === 'student')
     ? student_reserved_ids($pdo, (int)$session['id'], 'Dormitory')
     : [];
 

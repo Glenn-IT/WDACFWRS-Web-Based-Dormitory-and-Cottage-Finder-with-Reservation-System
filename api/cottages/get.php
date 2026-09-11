@@ -5,9 +5,8 @@ require_once __DIR__ . '/_helpers.php';
 require_once __DIR__ . '/../reservations/_helpers.php';
 
 $session = current_session();
-if (!$session) {
-    fail('Not authenticated.', 401);
-}
+session_write_close();
+// Note: Guest access is permitted for viewing cottage details.
 
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) {
@@ -23,7 +22,7 @@ if (!$row) {
     fail('Cottage not found.', 404);
 }
 
-$reservedByMe = $session['role'] === 'student'
+$reservedByMe = ($session && ($session['role'] ?? '') === 'student')
     && in_array($id, student_reserved_ids($pdo, (int)$session['id'], 'Cottage'), true);
 
 respond(['ok' => true, 'cottage' => map_cottage($row, $reservedByMe)]);
