@@ -37,6 +37,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   editBtn.addEventListener("click", () => {
     fieldset.disabled = false;
+    document.getElementById("pf-first-name").readOnly = true;
+    document.getElementById("pf-last-name").readOnly = true;
     saveActions.classList.remove("d-none");
     editBtn.classList.add("d-none");
   });

@@ -11,10 +11,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("stat-revenue").textContent = `₱${stats.revenue.toLocaleString()}`;
 
   const chartColors = {
-    coral: "#FF5A5A",
-    orange: "#FF8B5A",
-    amber: "#FFA95A",
-    gold: "#FFD45A",
+    coral: "#EA580C",
+    orange: "#F97316",
+    amber: "#F59E0B",
+    gold: "#FBBF24",
     green: "#16a34a",
     gray: "#94a3b8",
   };

@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <td class="text-end">
           <button class="btn btn-sm btn-outline-secondary" data-view="${d.id}"><i class="fa-solid fa-eye"></i></button>
           <button class="btn btn-sm btn-outline-primary" data-edit="${d.id}"><i class="fa-solid fa-pen"></i></button>
-          <button class="btn btn-sm btn-outline-danger" data-delete="${d.id}"><i class="fa-solid fa-trash"></i></button>
         </td>
       </tr>`
           )
@@ -30,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tbody.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => viewDorm(b.dataset.view)));
     tbody.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => editDorm(b.dataset.edit)));
-    tbody.querySelectorAll("[data-delete]").forEach((b) => b.addEventListener("click", () => deleteDorm(b.dataset.delete)));
   }
 
   function resetForm() {
@@ -85,20 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
       <p class="text-muted">Capacity: ${d.capacity} pax · ₱${d.price.toLocaleString()}/month</p>
       <p>${escapeHtml(d.description)}</p>`;
     dormViewModal.show();
-  }
-
-  async function deleteDorm(id) {
-    const ok = await confirmDialog({ title: "Delete Dormitory", message: "Are you sure you want to delete this dormitory record?", confirmText: "Delete" });
-    if (!ok) return;
-    await withLoading(async () => {
-      try {
-        await DataAPI.deleteDorm(id);
-        await render();
-        showToast("Dormitory deleted.", "warning");
-      } catch (e) {
-        showToast(e.message, "error");
-      }
-    });
   }
 
   document.getElementById("dorm-form").addEventListener("submit", (e) => {

@@ -10,6 +10,10 @@
 - **Backend Runtime**: PHP 8.2+ (ZTS Visual C++ 2019 x64) on Apache (XAMPP).
 - **Database**: MariaDB / MySQL (`wdacfwrs_db`), utf8mb4. Accessed exclusively via PDO with prepared statements.
 - **Frontend Architecture**: Bootstrap 5.3.3 + FontAwesome 6.5.2 + vanilla JavaScript ES6. No heavy build step.
+- **Unified Color & Design System**: Modern Warm Orange Gradient theme (`assets/css/style.css`).
+  - Primary Orange: `#EA580C` (Deep rich orange), `#F97316` (Bright warm orange), `#FB923C` (Soft accent), `#FBBF24` (Golden sun).
+  - Brand Gradients: `--brand-gradient`, `--brand-gradient-panel`, `--brand-gradient-btn`.
+  - All foreign blue colors (e.g. Bootstrap default `#0d6efd`, `bg-info`, blue links, blue active nav tabs/pills, blue focus rings, blue toasts) are strictly overridden to match the warm orange gradient system.
 - **API Communication**: REST-like JSON over HTTP (`/api/<module>/<action>.php`).
   - Frontend fetch client: `assets/js/data.js` (`DataAPI`) and `assets/js/auth.js` (`Auth`).
   - Request/Response format: JSON payload in request body, JSON response `{ ok: boolean, ... }`.
@@ -285,6 +289,7 @@ When any change is made, use this matrix to locate and update **every connected 
    - Admin-only endpoints MUST call `require_role('admin')`.
    - Student-only endpoints MUST call `require_role('student')`.
    - Student data endpoints MUST filter by `$_SESSION['user']['id']` server-side, never trusting client-supplied user IDs.
+   - Student registered legal names (`first_name`, `last_name`) are immutable on self-service profile editing (`user/profile.html` and `api/profile/update.php`).
 3. **Image Uploads**:
    - Always process uploads through `save_uploaded_image()` in `api/_uploads.php`.
    - Store only relative paths (`assets/uploads/...`) in the database.

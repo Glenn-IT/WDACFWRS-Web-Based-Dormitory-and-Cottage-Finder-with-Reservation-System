@@ -148,7 +148,7 @@ function badgeClass(status) {
     Active: "bg-success",
     Inactive: "bg-secondary",
     Cancelled: "bg-danger",
-    "Room/Unit Reserved": "bg-info text-dark",
+    "Room/Unit Reserved": "badge-orange text-white",
   };
   return map[status] || "bg-secondary";
 }

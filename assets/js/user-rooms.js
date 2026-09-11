@@ -4,8 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const tabDorm = document.getElementById("tab-dorm");
   const tabCottage = document.getElementById("tab-cottage");
-  const dormFilters = document.getElementById("dorm-filters");
-  const grid = document.getElementById("rooms-grid");
+  const thead = document.getElementById("rooms-table-head");
+  const tbody = document.getElementById("rooms-table-body");
+  const searchInput = document.getElementById("filter-search");
 
   let dormsCache = [];
   let cottagesCache = [];
@@ -14,7 +15,9 @@ document.addEventListener("DOMContentLoaded", () => {
     currentType = type;
     tabDorm.classList.toggle("active", type === "dorm");
     tabCottage.classList.toggle("active", type === "cottage");
-    dormFilters.style.display = type === "dorm" ? "" : "none";
+    if (searchInput) {
+      searchInput.placeholder = type === "dorm" ? "Search dormitory name..." : "Search cottage name or owner...";
+    }
     render();
   }
 
@@ -23,7 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   ["filter-status", "filter-search"].forEach((id) => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener("input", render);
+    if (el) {
+      el.addEventListener("input", render);
+      el.addEventListener("change", render);
+    }
   });
 
   async function render() {
@@ -32,89 +38,103 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function renderDorms() {
-    const status = document.getElementById("filter-status").value;
-    const search = document.getElementById("filter-search").value.trim();
+    thead.innerHTML = `
+      <tr>
+        <th>Image</th>
+        <th>Dormitory Name</th>
+        <th>Capacity</th>
+        <th>Price</th>
+        <th>Status</th>
+        <th class="text-end">Actions</th>
+      </tr>`;
+
+    const status = document.getElementById("filter-status")?.value || "";
+    const search = document.getElementById("filter-search")?.value.trim() || "";
 
     const data = await DataAPI.getDorms({ status, search });
     dormsCache = data.dorms || [];
 
-    grid.innerHTML = dormsCache.length
-      ? dormsCache.map((d) => dormCard(d)).join("")
-      : `<div class="col-12 empty-state"><i class="fa-solid fa-door-closed"></i>No rooms match your filters.</div>`;
+    tbody.innerHTML = dormsCache.length
+      ? dormsCache.map((d) => dormRow(d)).join("")
+      : `<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-door-closed"></i>No dormitory rooms match your filters.</div></td></tr>`;
 
-    grid.querySelectorAll("[data-reserve-dorm]").forEach((btn) => {
+    tbody.querySelectorAll("[data-reserve-dorm]").forEach((btn) => {
       btn.addEventListener("click", () => goReserve("dorm", btn.dataset.reserveDorm));
     });
-    grid.querySelectorAll("[data-view-dorm]").forEach((btn) => {
+    tbody.querySelectorAll("[data-view-dorm]").forEach((btn) => {
       btn.addEventListener("click", () => viewDorm(btn.dataset.viewDorm));
     });
   }
 
   async function renderCottages() {
+    thead.innerHTML = `
+      <tr>
+        <th>Image</th>
+        <th>Cottage Name</th>
+        <th>Owner</th>
+        <th>Rooms</th>
+        <th>Price</th>
+        <th>Availability</th>
+        <th class="text-end">Actions</th>
+      </tr>`;
+
+    const status = document.getElementById("filter-status")?.value || "";
     const search = document.getElementById("filter-search")?.value.trim() || "";
-    const data = await DataAPI.getCottages({ search });
+    const availability = status === "Occupied" ? "Booked" : (status === "Available" ? "Available" : "");
+
+    const data = await DataAPI.getCottages({ availability, search });
     cottagesCache = data.cottages || [];
 
-    grid.innerHTML = cottagesCache.length
-      ? cottagesCache.map((c) => cottageCard(c)).join("")
-      : `<div class="col-12 empty-state"><i class="fa-solid fa-house"></i>No cottages match your filters.</div>`;
+    tbody.innerHTML = cottagesCache.length
+      ? cottagesCache.map((c) => cottageRow(c)).join("")
+      : `<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-house"></i>No cottages match your filters.</div></td></tr>`;
 
-    grid.querySelectorAll("[data-reserve-cottage]").forEach((btn) => {
+    tbody.querySelectorAll("[data-reserve-cottage]").forEach((btn) => {
       btn.addEventListener("click", () => goReserve("cottage", btn.dataset.reserveCottage));
     });
-    grid.querySelectorAll("[data-view-cottage]").forEach((btn) => {
+    tbody.querySelectorAll("[data-view-cottage]").forEach((btn) => {
       btn.addEventListener("click", () => viewCottage(btn.dataset.viewCottage));
     });
   }
 
-  function dormCard(d) {
+  function dormRow(d) {
     const disabled = (d.reservedByMe || d.status !== "Available") ? "disabled" : "";
     const badgeLabel = d.reservedByMe ? "Room/Unit Reserved" : d.status;
-    const btnLabel = d.reservedByMe ? "Room/Unit Reserved" : "Reserve Now";
+    const btnLabel = d.reservedByMe ? "Reserved" : "Reserve";
     return `
-      <div class="col-sm-6 col-lg-4 col-xl-3">
-        <div class="room-card">
-          <img src="${resolveAsset(d.image)}" alt="${escapeHtml(d.roomNumber)}">
-          <div class="room-body">
-            <div class="d-flex justify-content-between align-items-start">
-              <h6 class="fw-bold mb-1">${escapeHtml(d.roomNumber)}</h6>
-              <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span>
-            </div>
-            <p class="text-muted small mb-1"><i class="fa-solid fa-users me-1"></i>Capacity: ${d.capacity} pax</p>
-            <p class="small text-muted mb-2" style="min-height:40px;">${escapeHtml(d.description).slice(0, 70)}...</p>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="fw-bold text-primary">₱${d.price.toLocaleString()}/mo</span>
-              <button class="btn btn-sm btn-outline-secondary" data-view-dorm="${d.id}"><i class="fa-solid fa-eye"></i></button>
-            </div>
-            <button class="btn btn-primary w-100" data-reserve-dorm="${d.id}" ${disabled}>${btnLabel}</button>
-          </div>
-        </div>
-      </div>`;
+      <tr>
+        <td><img src="${resolveAsset(d.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
+        <td>
+          <div class="fw-bold">${escapeHtml(d.roomNumber)}</div>
+          <div class="text-muted small">${escapeHtml(d.gender || "All")} Gender</div>
+        </td>
+        <td>${d.capacity} pax</td>
+        <td>₱${Number(d.price || 0).toLocaleString()} <span class="text-muted small">/mo</span></td>
+        <td><span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></td>
+        <td class="text-end text-nowrap">
+          <button class="btn btn-sm btn-outline-secondary me-1" data-view-dorm="${d.id}"><i class="fa-solid fa-eye me-1"></i>View</button>
+          <button class="btn btn-sm btn-primary" data-reserve-dorm="${d.id}" ${disabled}><i class="fa-solid fa-calendar-check me-1"></i>${btnLabel}</button>
+        </td>
+      </tr>`;
   }
 
-  function cottageCard(c) {
+  function cottageRow(c) {
     const disabled = (c.reservedByMe || c.availability !== "Available") ? "disabled" : "";
     const badgeLabel = c.reservedByMe ? "Room/Unit Reserved" : c.availability;
-    const btnLabel = c.reservedByMe ? "Room/Unit Reserved" : "Reserve Cottage";
+    const btnLabel = c.reservedByMe ? "Reserved" : "Reserve";
     return `
-      <div class="col-sm-6 col-lg-4 col-xl-3">
-        <div class="room-card">
-          <img src="${resolveAsset(c.image)}" alt="${escapeHtml(c.name)}">
-          <div class="room-body">
-            <div class="d-flex justify-content-between align-items-start">
-              <h6 class="fw-bold mb-1">${escapeHtml(c.name)}</h6>
-              <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span>
-            </div>
-            <p class="text-muted small mb-1"><i class="fa-solid fa-user me-1"></i>${escapeHtml(c.owner)} · <i class="fa-solid fa-door-open me-1"></i>${c.rooms} rooms</p>
-            <p class="small text-muted mb-2" style="min-height:40px;">${escapeHtml(c.description).slice(0, 70)}...</p>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="fw-bold text-primary">₱${c.price.toLocaleString()}/day</span>
-              <button class="btn btn-sm btn-outline-secondary" data-view-cottage="${c.id}"><i class="fa-solid fa-eye"></i></button>
-            </div>
-            <button class="btn btn-primary w-100" data-reserve-cottage="${c.id}" ${disabled}>${btnLabel}</button>
-          </div>
-        </div>
-      </div>`;
+      <tr>
+        <td><img src="${resolveAsset(c.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
+        <td class="fw-bold">${escapeHtml(c.name)}</td>
+        <td>${escapeHtml(c.owner || "CSU Auxiliary")}</td>
+        <td>${c.rooms} room(s)</td>
+        <td>₱${Number(c.price || 0).toLocaleString()} <span class="text-muted small">/rate</span></td>
+        <td><span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></td>
+        <td class="text-end text-nowrap">
+          <button class="btn btn-sm btn-outline-secondary me-1" data-view-cottage="${c.id}"><i class="fa-solid fa-eye me-1"></i>View</button>
+          <button class="btn btn-sm btn-primary" data-reserve-cottage="${c.id}" ${disabled}><i class="fa-solid fa-calendar-check me-1"></i>${btnLabel}</button>
+        </td>
+      </tr>`;
   }
 
   function goReserve(type, id) {
@@ -128,9 +148,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("room-detail-body").innerHTML = `
       <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
       <h5 class="fw-bold">${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
-      <p class="text-muted mb-2">Capacity: ${d.capacity} pax</p>
+      <p class="text-muted mb-2"><i class="fa-solid fa-users me-1"></i>Capacity: ${d.capacity} pax · <i class="fa-solid fa-venus-mars me-1"></i>${escapeHtml(d.gender || "All")} Gender</p>
       <p>${escapeHtml(d.description)}</p>
-      <h5 class="text-primary fw-bold">₱${d.price.toLocaleString()} / month</h5>`;
+      <h5 class="text-primary fw-bold">₱${Number(d.price || 0).toLocaleString()} / month</h5>`;
     const reserveBtn = document.getElementById("room-detail-reserve-btn");
     reserveBtn.disabled = d.reservedByMe || d.status !== "Available";
     reserveBtn.textContent = d.reservedByMe ? "Room/Unit Reserved" : "Reserve Now";
@@ -145,9 +165,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("room-detail-body").innerHTML = `
       <img src="${resolveAsset(c.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
       <h5 class="fw-bold">${escapeHtml(c.name)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
-      <p class="text-muted mb-2">Owner: ${escapeHtml(c.owner)} · ${c.rooms} rooms</p>
+      <p class="text-muted mb-2"><i class="fa-solid fa-user me-1"></i>Owner: ${escapeHtml(c.owner)} · <i class="fa-solid fa-bed me-1"></i>${c.rooms} rooms</p>
       <p>${escapeHtml(c.description)}</p>
-      <h5 class="text-primary fw-bold">₱${c.price.toLocaleString()} / day</h5>`;
+      <h5 class="text-primary fw-bold">₱${Number(c.price || 0).toLocaleString()} / rate</h5>`;
     const reserveBtn = document.getElementById("room-detail-reserve-btn");
     reserveBtn.disabled = c.reservedByMe || c.availability !== "Available";
     reserveBtn.textContent = c.reservedByMe ? "Room/Unit Reserved" : "Reserve Cottage";

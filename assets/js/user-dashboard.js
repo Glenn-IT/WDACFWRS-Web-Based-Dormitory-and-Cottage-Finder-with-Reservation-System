@@ -11,10 +11,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (e) {
     /* reservations endpoint lands in Phase 3 */
   }
-  document.getElementById("stat-total-reservations").textContent = reservations.length;
-  document.getElementById("stat-pending-reservations").textContent = reservations.filter((r) => r.approvalStatus === "Pending").length;
-  document.getElementById("stat-approved-reservations").textContent = reservations.filter((r) => r.approvalStatus === "Approved").length;
-
   let notifications = [];
   try {
     const data = await DataAPI.getNotifications();
@@ -22,7 +18,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (e) {
     /* notifications endpoint lands in Phase 4 */
   }
-  document.getElementById("stat-notifications").textContent = notifications.length;
 
   // Available rooms preview (mix of dorms + cottages, available only)
   const [dormsData, cottagesData] = await Promise.all([
