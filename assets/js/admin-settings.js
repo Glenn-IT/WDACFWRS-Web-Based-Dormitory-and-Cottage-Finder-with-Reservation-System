@@ -68,6 +68,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const next = document.getElementById("s-new-password").value;
     const confirm = document.getElementById("s-confirm-password").value;
 
+    if (!isValidPassword(next)) {
+      errorEl.textContent = "Password must be at least 6 characters long and contain both letters and numbers.";
+      errorEl.classList.remove("d-none");
+      return;
+    }
+    if (next !== confirm) {
+      errorEl.textContent = "New passwords do not match.";
+      errorEl.classList.remove("d-none");
+      return;
+    }
+
     withLoading(async () => {
       try {
         await DataAPI.updateAdminPassword({ current, next, confirm });

@@ -13,8 +13,8 @@ $newPassword = (string)($in['newPassword'] ?? '');
 if ($email === '' || $securityAnswer === '' || $newPassword === '') {
     fail('Please fill in all fields.');
 }
-if (strlen($newPassword) < 6) {
-    fail('Password must be at least 6 characters.');
+if (!is_valid_password($newPassword)) {
+    fail('Password must be at least 6 characters long and contain both letters and numbers.');
 }
 
 $pdo = get_db();

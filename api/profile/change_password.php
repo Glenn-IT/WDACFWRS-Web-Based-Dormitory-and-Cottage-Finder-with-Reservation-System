@@ -13,8 +13,8 @@ $confirm = (string)($in['confirm'] ?? '');
 if ($next !== $confirm) {
     fail('New passwords do not match.');
 }
-if (strlen($next) < 6) {
-    fail('Password must be at least 6 characters.');
+if (!is_valid_password($next)) {
+    fail('Password must be at least 6 characters long and contain both letters and numbers.');
 }
 
 $pdo = get_db();

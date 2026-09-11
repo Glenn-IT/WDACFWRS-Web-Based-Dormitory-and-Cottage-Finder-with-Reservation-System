@@ -18,8 +18,8 @@ if ($firstName === '' || $lastName === '' || $email === '' || $password === '' |
 if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-zA-Z0-9._%+-]+@gmail\.com$/i', $email)) {
     fail('Please use a Gmail address (e.g. name@gmail.com).');
 }
-if (strlen($password) < 6) {
-    fail('Password must be at least 6 characters.');
+if (!is_valid_password($password)) {
+    fail('Password must be at least 6 characters long and contain both letters and numbers.');
 }
 
 $phone = trim((string)($in['phone'] ?? ''));

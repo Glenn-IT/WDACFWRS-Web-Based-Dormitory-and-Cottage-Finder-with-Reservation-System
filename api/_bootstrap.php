@@ -66,6 +66,11 @@ function is_valid_ph_phone(string $v): bool {
     return (bool)preg_match('/^(09\d{9}|\+639\d{9})$/', trim($v));
 }
 
+/** Validate password requirements: at least 6 characters, must contain both letters and numbers (alphanumeric). */
+function is_valid_password(string $p): bool {
+    return strlen($p) >= 6 && (bool)preg_match('/[a-zA-Z]/', $p) && (bool)preg_match('/[0-9]/', $p);
+}
+
 /** Generate the next sequential display code, e.g. next_code($pdo, 'students', 'student_no', 'STU'). */
 function next_code(PDO $pdo, string $table, string $column, string $prefix): string {
     $stmt = $pdo->query("SELECT $column FROM $table ORDER BY id DESC LIMIT 1");

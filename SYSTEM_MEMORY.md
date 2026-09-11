@@ -298,6 +298,10 @@ When any change is made, use this matrix to locate and update **every connected 
    - HTML pages must contain structure and modals only.
    - JavaScript controllers handle all data fetching and DOM events.
    - Page titles and user avatars in topbars/sidebars are dynamically injected via `assets/js/layout.js`.
+5. **Password Policy & Validation**:
+   - All passwords must be alphanumeric: at least 6 characters in length, containing at least one letter and at least one number (special characters permitted).
+   - Validated on the backend via `is_valid_password()` in `api/_bootstrap.php` across `api/auth/register.php`, `api/auth/forgot_reset.php`, `api/profile/change_password.php`, and `api/settings/password.php`.
+   - Synchronized on the frontend via `isValidPassword()` in `assets/js/ui.js` across `register.html`, `forgot-password.html`, `user/profile.html` (`assets/js/user-profile.js`), and `admin/settings.html` (`assets/js/admin-settings.js`).
 
 ---
 

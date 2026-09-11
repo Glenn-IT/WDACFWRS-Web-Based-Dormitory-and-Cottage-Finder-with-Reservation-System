@@ -158,3 +158,9 @@ const PH_PHONE_PATTERN = /^(09\d{9}|\+639\d{9})$/;
 function isValidPhone(value) {
   return PH_PHONE_PATTERN.test((value ?? "").trim());
 }
+
+/** Validate password requirements: at least 6 characters, must contain both letters and numbers (alphanumeric). */
+function isValidPassword(value) {
+  const str = String(value ?? "");
+  return str.length >= 6 && /[a-zA-Z]/.test(str) && /[0-9]/.test(str);
+}
