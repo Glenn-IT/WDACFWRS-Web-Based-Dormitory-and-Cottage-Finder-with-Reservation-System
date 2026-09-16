@@ -242,6 +242,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<tr><td colspan="${colspan}" class="text-center py-4 text-muted"><i class="fa-solid fa-inbox me-2"></i>No records found matching the specified criteria.</td></tr>`;
   }
 
+  async function initSignatories() {
+    try {
+      const session = await Auth.getSession();
+      if (session?.name) {
+        const preparedEl = document.getElementById("sig-prepared-name");
+        if (preparedEl) preparedEl.textContent = session.name.toUpperCase();
+        const footerAdminEl = document.getElementById("report-footer-admin-name");
+        if (footerAdminEl) footerAdminEl.textContent = session.name;
+      }
+    } catch (e) {
+      /* fallback to defaults */
+    }
+  }
+
+  initSignatories();
   updateFilterVisibility();
   generateReport();
 });

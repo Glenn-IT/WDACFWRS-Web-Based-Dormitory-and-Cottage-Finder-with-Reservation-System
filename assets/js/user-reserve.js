@@ -19,18 +19,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // Requirement: My Reservation - should not accept new reservation if there is existing approved.
+  let hasApprovedReservation = false;
+  try {
+    const userResData = await DataAPI.getReservations();
+    const existingList = userResData.reservations || [];
+    hasApprovedReservation = existingList.some((r) => r.approvalStatus === "Approved");
+  } catch (e) {
+    hasApprovedReservation = false;
+  }
+
+  if (hasApprovedReservation) {
+    const warningEl = document.getElementById("approved-res-warning");
+    if (warningEl) warningEl.classList.remove("d-none");
+    const toStep2 = document.getElementById("to-step-2-btn");
+    if (toStep2) {
+      toStep2.disabled = true;
+      toStep2.classList.add("disabled");
+      toStep2.title = "You already have an active approved reservation.";
+    }
+  }
+
   const wizardState = {
-    parent: {},
-    background: {},
     paymentMethod: null,
   };
 
   function goToStep(n) {
-    for (let i = 1; i <= 5; i++) {
-      document.getElementById(`step-${i}`).classList.toggle("d-none", i !== n);
+    for (let i = 1; i <= 3; i++) {
+      const stepEl = document.getElementById(`step-${i}`);
+      if (stepEl) stepEl.classList.toggle("d-none", i !== n);
       const ind = document.getElementById(`step-indicator-${i}`);
-      ind.classList.toggle("active", i === n);
-      ind.classList.toggle("done", i < n);
+      if (ind) {
+        ind.classList.toggle("active", i === n);
+        ind.classList.toggle("done", i < n);
+      }
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -44,62 +66,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="col-md-8">
         <h5 class="fw-bold mb-1">${escapeHtml(label)}</h5>
         <p class="text-muted mb-1">${type === "dorm" ? `Dormitory · Capacity ${asset.capacity} pax` : `Owner: ${escapeHtml(asset.owner)} · ${asset.rooms} rooms`}</p>
-        <h5 class="text-primary fw-bold">₱${price.toLocaleString()} ${type === "dorm" ? "/ month" : "/ day"}</h5>
+        <h5 class="text-primary fw-bold">₱${Number(price || 0).toLocaleString()} ${type === "dorm" ? "/ month" : "/ day"}</h5>
       </div>
     </div>`;
 
-  document.getElementById("to-step-2-btn").addEventListener("click", () => goToStep(2));
-  document.getElementById("to-step-1-btn").addEventListener("click", () => goToStep(1));
-
-  // ---- Step 2 ----
-  document.getElementById("parent-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const phone = val("p-phone");
-    const emergencyNumber = val("p-emergency-number");
-    if (!isValidPhone(phone) || !isValidPhone(emergencyNumber)) {
-      showToast("Please enter valid PH mobile numbers (e.g. 09123456789).", "error");
+  document.getElementById("to-step-2-btn").addEventListener("click", () => {
+    if (hasApprovedReservation) {
+      showToast("You already have an active approved reservation.", "error");
       return;
     }
-
-    wizardState.parent = {
-      fatherName: val("p-father-name"),
-      motherName: val("p-mother-name"),
-      occupation: val("p-occupation"),
-      education: val("p-education"),
-      address: val("p-address"),
-      phone,
-      emergencyContact: val("p-emergency-contact"),
-      relationship: val("p-relationship"),
-      emergencyNumber,
-    };
-    goToStep(3);
+    goToStep(2);
   });
 
-  document.getElementById("step3-to-step2-btn").addEventListener("click", () => goToStep(2));
-
-  // ---- Step 3 ----
-  document.getElementById("background-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    wizardState.background = {
-      appliances: val("b-appliances") || "None",
-      friendsAtDorm: val("b-friends"),
-      relationship: val("b-friends-relationship") || "N/A",
-      reason: val("b-reason"),
-      medicalConditions: val("b-medical") || "None",
-      severeIllness: val("b-illness") || "None",
-      hobbies: val("b-hobbies") || "N/A",
-      smoking: val("b-smoking"),
-      drinking: val("b-drinking"),
-      organizations: val("b-organizations") || "None",
-      leisure: val("b-leisure") || "N/A",
-    };
-    goToStep(4);
-  });
-
-  document.getElementById("step4-to-step3-btn").addEventListener("click", () => goToStep(3));
-
-  // ---- Step 4 ----
+  // ---- Step 2: Payment ----
   document.querySelectorAll(".payment-option").forEach((el) => {
     el.addEventListener("click", () => {
       document.querySelectorAll(".payment-option").forEach((o) => o.classList.remove("border-primary", "border-2", "bg-light"));
@@ -109,17 +88,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("qr-caption").textContent =
         wizardState.paymentMethod === "Cash"
           ? "Please pay in cash at the Finance Office upon check-in."
-          : `Scan the QR code using your ${wizardState.paymentMethod} app to pay ₱${price.toLocaleString()}.`;
-      document.getElementById("to-step-5-btn").disabled = false;
+          : `Scan the QR code using your ${wizardState.paymentMethod} app to pay ₱${Number(price || 0).toLocaleString()}.`;
+      document.getElementById("to-step-3-btn").disabled = false;
     });
   });
 
-  document.getElementById("to-step-5-btn").addEventListener("click", () => {
+  document.getElementById("step2-to-step1-btn").addEventListener("click", () => goToStep(1));
+
+  document.getElementById("to-step-3-btn").addEventListener("click", () => {
     buildReceipt();
-    goToStep(5);
+    goToStep(3);
   });
 
-  // ---- Step 5 ----
+  // ---- Step 3: Receipt ----
   function buildReceipt() {
     const today = new Date().toISOString().slice(0, 10);
     const paymentStatus = wizardState.paymentMethod === "Cash" ? "Pending" : "Paid";
@@ -132,18 +113,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         <span class="text-muted">Payment Method</span><strong>${wizardState.paymentMethod}</strong>
       </div>
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-        <span class="text-muted">Amount</span><strong>₱${price.toLocaleString()}</strong>
+        <span class="text-muted">Amount</span><strong>₱${Number(price || 0).toLocaleString()}</strong>
       </div>
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
         <span class="text-muted">Reservation Date</span><strong>${today}</strong>
       </div>
       <div class="d-flex justify-content-between">
-        <span class="text-muted">Status</span><span class="badge ${badgeClass(paymentStatus)}">${paymentStatus}</span>
+        <span class="text-muted">Payment Status</span><span class="badge ${badgeClass(paymentStatus)}">${paymentStatus}</span>
       </div>`;
   }
 
+  document.getElementById("step3-to-step2-btn").addEventListener("click", () => goToStep(2));
+
   document.getElementById("save-receipt-btn").addEventListener("click", () => {
-    showToast("Receipt saved to your device (simulated).", "info");
+    showToast("Receipt saved to your device.", "info");
   });
 
   document.getElementById("print-receipt-btn").addEventListener("click", () => {
@@ -151,14 +134,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("submit-reservation-btn").addEventListener("click", () => {
+    if (hasApprovedReservation) {
+      showToast("You already have an active approved reservation.", "error");
+      return;
+    }
     withLoading(async () => {
       try {
         await DataAPI.createReservation({
           type: type === "dorm" ? "Dormitory" : "Cottage",
           assetId: asset.id,
           paymentMethod: wizardState.paymentMethod,
-          parentInfo: wizardState.parent,
-          background: wizardState.background,
         });
         showToast("Reservation submitted successfully!", "success");
         setTimeout(() => (window.location.href = "my-reservations.html"), 900);
@@ -167,8 +152,4 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   });
-
-  function val(id) {
-    return document.getElementById(id).value.trim();
-  }
 });

@@ -9,6 +9,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await DataAPI.getReservations({ mine: 1 });
     reservations = data.reservations || [];
 
+    const hasApproved = reservations.some((r) => r.approvalStatus === "Approved");
+    const bannerEl = document.getElementById("approved-banner");
+    if (bannerEl) bannerEl.classList.toggle("d-none", !hasApproved);
+
     grid.innerHTML = reservations.length
       ? reservations.map((r) => card(r)).join("")
       : `<div class="col-12 empty-state"><i class="fa-solid fa-clipboard"></i>You have no reservations yet.<br><a href="rooms.html" class="btn btn-primary mt-2">Browse Rooms</a></div>`;

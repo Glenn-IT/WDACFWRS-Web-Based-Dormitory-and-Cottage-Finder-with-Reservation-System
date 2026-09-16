@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/database.php';
 
+session_name('WDACFWRS_SESSID');
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
@@ -39,7 +40,11 @@ function json_input(): array {
 
 /** Return the current session array, or null if not logged in. */
 function current_session(): ?array {
-    return $_SESSION['user'] ?? null;
+    $u = $_SESSION['user'] ?? null;
+    if (!is_array($u) || empty($u['role']) || !in_array($u['role'], ['admin', 'student'], true) || empty($u['id'])) {
+        return null;
+    }
+    return $u;
 }
 
 /** Require a logged-in session of the given role ('admin' or 'student'); halts with 401/403 otherwise. */

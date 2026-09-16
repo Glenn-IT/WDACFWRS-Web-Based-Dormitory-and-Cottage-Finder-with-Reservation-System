@@ -89,8 +89,11 @@ const Auth = {
   async requireRole(role) {
     const session = await this.getSession();
     if (!session || session.role !== role) {
-      const base = window.location.pathname.includes("/user/") || window.location.pathname.includes("/admin/") ? "../" : "";
-      window.location.href = base + "index.html";
+      const path = window.location.pathname.toLowerCase();
+      const inProtectedArea = path.includes("/user/") || path.includes("/admin/");
+      if (inProtectedArea) {
+        window.location.href = "../index.html";
+      }
       return null;
     }
     return session;

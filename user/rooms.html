@@ -21,6 +21,16 @@
       </ul>
     </div>
 
+    <div class="alert alert-warning d-flex align-items-center mb-4 d-none" id="approved-banner">
+      <i class="fa-solid fa-lock fs-4 me-3 text-warning"></i>
+      <div>
+        <h6 class="fw-bold mb-1">Booking is Locked (Active Approved Reservation)</h6>
+        <p class="mb-0 small">
+          You currently have an approved reservation on file. Per school policy, students with an active approved reservation cannot book another unit until the existing reservation is cancelled or ended. You can manage your booking in <a href="my-reservations.html" class="alert-link fw-semibold">My Reservations</a>.
+        </p>
+      </div>
+    </div>
+
     <div class="section-card mb-4">
       <div class="row g-3 align-items-end" id="dorm-filters">
         <div class="col-md-6">
@@ -39,7 +49,13 @@
       </div>
     </div>
 
+    <div id="cottage-owners-section" class="mb-4 d-none"></div>
+
     <div class="section-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0" id="rooms-section-heading">Available Rooms</h6>
+        <span class="text-muted small" id="rooms-count-label"></span>
+      </div>
       <div class="table-responsive">
         <table class="table table-hover align-middle table-responsive-card">
           <thead id="rooms-table-head"></thead>

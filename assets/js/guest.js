@@ -235,9 +235,10 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="d-flex justify-content-between align-items-start mb-1">
               <h6 class="fw-bold mb-0 text-truncate" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</h6>
             </div>
-            <div class="text-muted small mb-2">
-              <span><i class="fa-solid fa-user me-1"></i>${escapeHtml(c.owner || "CSU Auxiliary")}</span>
-              <span class="ms-2"><i class="fa-solid fa-bed me-1"></i>${c.rooms} Room(s)</span>
+            <div class="text-muted small mb-2 d-flex align-items-center gap-1">
+              ${c.ownerPhoto ? `<img src="${resolveAsset(c.ownerPhoto)}" class="rounded-circle border" style="width:20px;height:20px;object-fit:cover;">` : `<i class="fa-solid fa-user text-primary"></i>`}
+              <span class="text-truncate">${escapeHtml(c.owner || "CSU Auxiliary")}</span>
+              <span class="ms-auto"><i class="fa-solid fa-bed me-1"></i>${c.rooms} Room(s)</span>
             </div>
             <p class="small text-muted mb-3 flex-grow-1" style="min-height: 38px;">
               ${escapeHtml(c.description ? c.description.slice(0, 85) + (c.description.length > 85 ? "..." : "") : "No description provided.")}
@@ -283,9 +284,9 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <p class="text-primary fw-bold fs-5 mb-2">₱${Number(d.price || 0).toLocaleString()} <span class="text-muted small fs-6">/ month</span></p>
           <ul class="list-unstyled small mb-3">
-            <li class="mb-1"><i class="fa-solid fa-users text-primary me-2"></i><strong>Capacity:</strong> ${d.capacity} persons</li>
-            <li class="mb-1"><i class="fa-solid fa-venus-mars text-primary me-2"></i><strong>Allowed Gender:</strong> ${escapeHtml(d.gender || "All")}</li>
-            <li class="mb-1"><i class="fa-solid fa-building text-primary me-2"></i><strong>Type:</strong> University Dormitory</li>
+            <li class="mb-1"><i class="fa-solid fa-users text-primary me-2"></i><strong>Capacity:</strong> ${d.capacity} pax</li>
+            <li class="mb-1"><i class="fa-solid fa-venus-mars text-primary me-2"></i><strong>Gender:</strong> ${escapeHtml(d.gender || "Any")}</li>
+            <li class="mb-1"><i class="fa-solid fa-building text-primary me-2"></i><strong>Type:</strong> Student Dormitory</li>
           </ul>
           <h6 class="fw-semibold small text-uppercase text-muted">Description &amp; Amenities</h6>
           <p class="small text-secondary mb-0">${escapeHtml(d.description || "No specific details provided.")}</p>
@@ -319,7 +320,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isAvail = c.availability === "Available";
     const body = document.getElementById("unit-detail-body");
+    const ownerName = c.owner || "CSU Auxiliary Services";
+    const initials = ownerName.split(" ").map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+
     body.innerHTML = `
+      <!-- Owner Profile Header -->
+      <div class="card border p-3 mb-3 bg-light shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+          ${c.ownerPhoto
+            ? `<img src="${resolveAsset(c.ownerPhoto)}" class="rounded-circle border shadow-sm flex-shrink-0" style="width:52px;height:52px;object-fit:cover;">`
+            : `<div class="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width:52px;height:52px;background:var(--brand-gradient, linear-gradient(135deg,#ea580c,#f97316));font-size:1.15rem;">
+                ${initials || '<i class="fa-solid fa-user"></i>'}
+              </div>`
+          }
+          <div class="overflow-hidden flex-grow-1">
+            <div class="d-flex align-items-center gap-2">
+              <h6 class="fw-bold mb-0 text-dark">${escapeHtml(ownerName)}</h6>
+              <span class="badge bg-success-subtle text-success border border-success-subtle small"><i class="fa-solid fa-check me-1"></i>Verified Host</span>
+            </div>
+            <div class="small text-muted mt-1">
+              ${c.ownerPhone ? `<span class="me-3"><i class="fa-solid fa-phone me-1 text-primary"></i>${escapeHtml(c.ownerPhone)}</span>` : ""}
+              ${c.ownerEmail ? `<span><i class="fa-solid fa-envelope me-1 text-primary"></i>${escapeHtml(c.ownerEmail)}</span>` : ""}
+            </div>
+            ${c.ownerBio ? `<div class="small text-secondary mt-1 fst-italic">"${escapeHtml(c.ownerBio)}"</div>` : ""}
+          </div>
+        </div>
+      </div>
+
       <div class="row g-3">
         <div class="col-md-5">
           <img src="${resolveAsset(c.image)}" class="w-100 rounded shadow-sm" style="max-height: 240px; object-fit: cover;">

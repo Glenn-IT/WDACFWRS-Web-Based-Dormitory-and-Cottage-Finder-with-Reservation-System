@@ -18,23 +18,25 @@
   - Frontend fetch client: `assets/js/data.js` (`DataAPI`) and `assets/js/auth.js` (`Auth`).
   - Request/Response format: JSON payload in request body, JSON response `{ ok: boolean, ... }`.
   - Multipart Form Data used only for file uploads (`FormData`).
-- **Session & Auth**: Native PHP session cookies (`PHPSESSID`, `HttpOnly`, `SameSite=Lax`). Passwords & security answers hashed using `password_hash(..., PASSWORD_DEFAULT)`.
+- **Session & Auth**: Isolated PHP session cookies (`WDACFWRS_SESSID`, `HttpOnly`, `SameSite=Lax`). Passwords & security answers hashed using `password_hash(..., PASSWORD_DEFAULT)`. Strict role validation (`'admin'` or `'student'`) ensures zero collision with external apps running on the same host.
 
 ---
 
 ## 2. Database Schema & Data Dictionary
 
-The database consists of **9 tables** with explicit foreign keys and check constraints:
+The database consists of **11 tables** with explicit foreign keys and check constraints:
 
 | Table | Primary Key | Foreign Keys / Constraints | Purpose |
 | :--- | :--- | :--- | :--- |
 | `admins` | `id INT AUTO_INCREMENT` | `email UNIQUE` | Administrative accounts (role, security question/answer hash) |
 | `students` | `id INT AUTO_INCREMENT` | `student_no UNIQUE`, `email UNIQUE` | Student accounts, profile details, academic info, status |
+| `student_parent_info` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE, UNIQUE) | Student profile parent/guardian background & emergency contacts |
+| `student_backgrounds` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE, UNIQUE) | Student profile habits, appliances, medical conditions, hobbies |
 | `dormitories` | `id INT AUTO_INCREMENT` | `room_no UNIQUE` | Dorm rooms (capacity, price, status: Available/Occupied/Full) |
-| `cottages` | `id INT AUTO_INCREMENT` | — | Cottages (owner, rooms, price, availability: Available/Booked) |
+| `cottages` | `id INT AUTO_INCREMENT` | — | Cottages (owner profile [name, photo, phone, email, bio], rooms, price, availability: Available/Booked) |
 | `reservations` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE)<br>`dorm_id -> dormitories(id)` (SET NULL)<br>`cottage_id -> cottages(id)` (SET NULL)<br>`chk_res_asset`: Exactly one asset ID per type | Core reservation records, payment status, approval status |
-| `reservation_parent_info` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Parent/guardian background and emergency contacts |
-| `reservation_backgrounds` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Student habits, appliances, medical conditions, hobbies |
+| `reservation_parent_info` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Parent/guardian background on specific reservation snapshot |
+| `reservation_backgrounds` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Student background on specific reservation snapshot |
 | `payments` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE) | Payment records tied to reservations |
 | `notifications` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE) | In-app student alerts with `is_read` status |
 
@@ -63,7 +65,11 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | :--- | :--- | :--- |
 | `id` | `id` (int) | Card ID, edit ID, delete ID |
 | `name` | `name` | Cottage title, search filter |
-| `owner` | `owner` | Owner name in card & detail modal |
+| `owner` | `owner` | Owner name in card, showcase & detail modal |
+| `owner_photo` | `ownerPhoto` | Owner profile photo in showcase & detail modal |
+| `owner_phone` | `ownerPhone` | Owner contact phone number |
+| `owner_email` | `ownerEmail` | Owner email address |
+| `owner_bio` | `ownerBio` | Owner biography / caretaker notes |
 | `rooms` | `rooms` (int) | Number of rooms badge |
 | `price` | `price` (float) | Price tag (₱) |
 | `availability` | `availability` ('Available', 'Booked') | Availability badge, booking guard |
@@ -161,18 +167,19 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 │
 ├── Reservations Domain
 │   ├── api/reservations/_helpers.php <-- RESERVATION_SELECT, JOINS, map_reservation()
-│   ├── api/reservations/create.php   <-- Transactional: SELECT FOR UPDATE, insert parent/bg/payment, flip asset
+│   ├── api/reservations/create.php   <-- Transactional: SELECT FOR UPDATE, auto-pull parent/bg, check approved, flip asset
+│   ├── api/reservations/update.php   <-- Admin update reservation details with asset status sync
 │   ├── api/reservations/list.php     <-- Role-scoped (admin gets all + filters; student gets only own)
 │   ├── api/reservations/get.php      <-- Detail fetch
 │   ├── api/reservations/approve.php  <-- Admin approve + student notification
 │   ├── api/reservations/decline.php  <-- Admin decline + revert asset to Available + notify
 │   ├── api/reservations/cancel.php   <-- Student cancel + revert asset to Available + notify
-│   ├── assets/js/data.js             <-- DataAPI.createReservation, getReservations, approve/decline/cancel
-│   ├── admin/reservations.html       <-- Admin reservation management list (list only, no admin add)
-│   ├── assets/js/admin-reservations.js<-- Admin approve/decline/view/print handlers
-│   ├── user/reserve.html             <-- 5-step student booking wizard
+│   ├── assets/js/data.js             <-- DataAPI.createReservation, updateReservation, getReservations, approve/decline/cancel
+│   ├── admin/reservations.html       <-- Admin reservation management list & Edit modal
+│   ├── assets/js/admin-reservations.js<-- Admin approve/decline/edit/view/print handlers
+│   ├── user/reserve.html             <-- 3-step student booking wizard with approved lock check
 │   ├── assets/js/user-reserve.js     <-- Wizard controller & validation
-│   ├── user/my-reservations.html     <-- Student reservation cards & cancel action
+│   ├── user/my-reservations.html     <-- Student reservation cards, approved banner & cancel action
 │   └── assets/js/user-reservations.js<-- Student reservation controller & print view
 │
 ├── Dashboard & Reports Domain
@@ -180,8 +187,8 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 │   ├── api/reports/generate.php      <-- PDF/table reports: reservations, dorm/cottage occupancy, revenue, registrations
 │   ├── admin/dashboard.html          <-- Admin dashboard cards + Chart.js charts
 │   ├── assets/js/admin-dashboard.js  <-- Admin dashboard stats loader
-│   ├── admin/reports.html            <-- Admin reports tab (list view, print, auto-download PDF)
-│   └── assets/js/admin-reports.js    <-- Report generator & export controller
+│   ├── admin/reports.html            <-- Admin reports tab (list view, official signatories, print, auto-download PDF)
+│   └── assets/js/admin-reports.js    <-- Report generator, signatories loader & export controller
 │
 ├── Notifications Domain
 │   ├── api/notifications/list.php    <-- Student notification list
@@ -193,11 +200,11 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 │   ├── api/users/list.php, get.php, set_status.php
 │   ├── api/profile/get.php, update.php, change_password.php, upload_picture.php
 │   ├── admin/users.html, assets/js/admin-users.js
-│   └── user/profile.html, assets/js/user-profile.js
+│   └── user/profile.html, assets/js/user-profile.js (personal, parent/guardian, and background info)
 │
-└── Admin Settings Domain
+└── Admin Profile & Settings Domain
     ├── api/settings/get.php, profile.php, security.php, password.php
-    ├── admin/settings.html
+    ├── admin/settings.html           <-- Admin "My Profile" management
     └── assets/js/admin-settings.js
 ```
 

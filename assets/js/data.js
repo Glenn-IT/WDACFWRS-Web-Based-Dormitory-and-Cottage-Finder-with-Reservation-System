@@ -69,6 +69,7 @@ const DataAPI = {
   getReservations: (params = {}) => apiFetch(`reservations/list.php${qs(params)}`),
   getReservation: (id) => apiFetch(`reservations/get.php${qs({ id })}`),
   createReservation: (payload) => apiFetch("reservations/create.php", { method: "POST", body: JSON.stringify(payload) }),
+  updateReservation: (payload) => apiFetch("reservations/update.php", { method: "POST", body: JSON.stringify(payload) }),
   approveReservation: (id) => apiFetch("reservations/approve.php", { method: "POST", body: JSON.stringify({ id }) }),
   declineReservation: (id) => apiFetch("reservations/decline.php", { method: "POST", body: JSON.stringify({ id }) }),
   cancelReservation: (id) => apiFetch("reservations/cancel.php", { method: "POST", body: JSON.stringify({ id }) }),

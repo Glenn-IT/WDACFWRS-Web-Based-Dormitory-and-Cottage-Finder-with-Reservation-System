@@ -35,27 +35,74 @@
 
       <div class="col-lg-8">
         <div class="section-card">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0">Personal Information</h6>
-            <button class="btn btn-sm btn-outline-primary" id="edit-profile-btn"><i class="fa-solid fa-pen me-1"></i>Edit Profile</button>
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <ul class="nav nav-tabs border-bottom-0" id="profile-tabs">
+              <li class="nav-item"><button class="nav-link active" data-tab="personal" type="button"><i class="fa-solid fa-user me-1"></i>Personal Info</button></li>
+              <li class="nav-item"><button class="nav-link" data-tab="parent" type="button"><i class="fa-solid fa-users me-1"></i>Parent / Guardian</button></li>
+              <li class="nav-item"><button class="nav-link" data-tab="background" type="button"><i class="fa-solid fa-clipboard-list me-1"></i>Background</button></li>
+            </ul>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="edit-profile-btn"><i class="fa-solid fa-pen me-1"></i>Edit Profile</button>
           </div>
+
           <form id="profile-form">
             <fieldset id="profile-fieldset" disabled>
-              <div class="row g-3">
-                <div class="col-md-6"><label class="form-label small">First Name <span class="text-muted">(Read-only)</span></label><input class="form-control bg-light" id="pf-first-name" readonly></div>
-                <div class="col-md-6"><label class="form-label small">Last Name <span class="text-muted">(Read-only)</span></label><input class="form-control bg-light" id="pf-last-name" readonly></div>
-                <div class="col-md-6"><label class="form-label small">Course</label><input class="form-control" id="pf-course"></div>
-                <div class="col-md-3"><label class="form-label small">Year Level</label><input class="form-control" id="pf-year-level"></div>
-                <div class="col-md-3"><label class="form-label small">Semester</label><input class="form-control" id="pf-semester"></div>
-                <div class="col-md-6"><label class="form-label small">Nationality</label><input class="form-control" id="pf-nationality"></div>
-                <div class="col-md-6"><label class="form-label small">Birthday</label><input type="date" class="form-control" id="pf-birthday"></div>
-                <div class="col-md-6"><label class="form-label small">Phone Number</label><input class="form-control" id="pf-phone" placeholder="09XXXXXXXXX" pattern="^(09\d{9}|\+639\d{9})$" maxlength="13" inputmode="tel" title="Enter a valid PH mobile number (e.g. 09123456789)"></div>
-                <div class="col-md-12"><label class="form-label small">Address</label><input class="form-control" id="pf-address"></div>
+              <!-- Personal Tab -->
+              <div id="tab-pane-personal">
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label small">First Name <span class="text-muted">(Read-only)</span></label><input class="form-control bg-light" id="pf-first-name" readonly></div>
+                  <div class="col-md-6"><label class="form-label small">Last Name <span class="text-muted">(Read-only)</span></label><input class="form-control bg-light" id="pf-last-name" readonly></div>
+                  <div class="col-md-6"><label class="form-label small">Course</label><input class="form-control" id="pf-course"></div>
+                  <div class="col-md-3"><label class="form-label small">Year Level</label><input class="form-control" id="pf-year-level"></div>
+                  <div class="col-md-3"><label class="form-label small">Semester</label><input class="form-control" id="pf-semester"></div>
+                  <div class="col-md-6"><label class="form-label small">Nationality</label><input class="form-control" id="pf-nationality"></div>
+                  <div class="col-md-6"><label class="form-label small">Birthday</label><input type="date" class="form-control" id="pf-birthday"></div>
+                  <div class="col-md-6"><label class="form-label small">Phone Number</label><input class="form-control" id="pf-phone" placeholder="09XXXXXXXXX" pattern="^(09\d{9}|\+639\d{9})$" maxlength="13" inputmode="tel" title="Enter a valid PH mobile number (e.g. 09123456789)"></div>
+                  <div class="col-md-12"><label class="form-label small">Address</label><input class="form-control" id="pf-address"></div>
+                </div>
+              </div>
+
+              <!-- Parent Info Tab -->
+              <div id="tab-pane-parent" class="d-none">
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label small">Father's Full Name</label><input type="text" class="form-control" id="p-father-name"></div>
+                  <div class="col-md-6"><label class="form-label small">Mother's Full Name</label><input type="text" class="form-control" id="p-mother-name"></div>
+                  <div class="col-md-6"><label class="form-label small">Occupation</label><input type="text" class="form-control" id="p-occupation"></div>
+                  <div class="col-md-6"><label class="form-label small">Educational Attainment</label><input type="text" class="form-control" id="p-education"></div>
+                  <div class="col-12"><label class="form-label small">Permanent Address</label><input type="text" class="form-control" id="p-address"></div>
+                  <div class="col-md-6"><label class="form-label small">Parent's Phone Number</label><input type="text" class="form-control" id="p-phone" placeholder="09XXXXXXXXX" pattern="^(09\d{9}|\+639\d{9})$" maxlength="13" inputmode="tel"></div>
+                  <div class="col-md-6"><label class="form-label small">Emergency Contact Person</label><input type="text" class="form-control" id="p-emergency-contact"></div>
+                  <div class="col-md-6"><label class="form-label small">Relationship</label><input type="text" class="form-control" id="p-relationship"></div>
+                  <div class="col-md-6"><label class="form-label small">Emergency Contact Number</label><input type="text" class="form-control" id="p-emergency-number" placeholder="09XXXXXXXXX" pattern="^(09\d{9}|\+639\d{9})$" maxlength="13" inputmode="tel"></div>
+                </div>
+              </div>
+
+              <!-- Student Background Tab -->
+              <div id="tab-pane-background" class="d-none">
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label small">Appliances Brought</label><input type="text" class="form-control" id="b-appliances"></div>
+                  <div class="col-md-6"><label class="form-label small">Friends Staying at Dorm</label>
+                    <select class="form-select" id="b-friends"><option value="No">No</option><option value="Yes">Yes</option></select>
+                  </div>
+                  <div class="col-md-6"><label class="form-label small">Relationship (if any)</label><input type="text" class="form-control" id="b-friends-relationship"></div>
+                  <div class="col-md-6"><label class="form-label small">Reason for Staying</label><input type="text" class="form-control" id="b-reason"></div>
+                  <div class="col-md-6"><label class="form-label small">Medical Conditions / Allergies</label><input type="text" class="form-control" id="b-medical" value="None"></div>
+                  <div class="col-md-6"><label class="form-label small">Severe Illness</label><input type="text" class="form-control" id="b-illness" value="None"></div>
+                  <div class="col-md-6"><label class="form-label small">Hobbies</label><input type="text" class="form-control" id="b-hobbies"></div>
+                  <div class="col-md-3"><label class="form-label small">Smoking</label>
+                    <select class="form-select" id="b-smoking"><option value="No">No</option><option value="Yes">Yes</option></select>
+                  </div>
+                  <div class="col-md-3"><label class="form-label small">Drinking</label>
+                    <select class="form-select" id="b-drinking"><option value="No">No</option><option value="Occasionally">Occasionally</option><option value="Yes">Yes</option></select>
+                  </div>
+                  <div class="col-md-6"><label class="form-label small">Organizations Joined</label><input type="text" class="form-control" id="b-organizations"></div>
+                  <div class="col-md-6"><label class="form-label small">Leisure Activities</label><input type="text" class="form-control" id="b-leisure"></div>
+                </div>
               </div>
             </fieldset>
-            <div class="mt-3 d-none" id="profile-save-actions">
-              <button type="submit" class="btn btn-primary">Save Changes</button>
-              <button type="button" class="btn btn-outline-secondary" id="cancel-edit-btn">Cancel</button>
+
+            <div class="mt-4 d-none" id="profile-save-actions">
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i>Save Changes</button>
+              <button type="button" class="btn btn-outline-secondary ms-1" id="cancel-edit-btn">Cancel</button>
             </div>
           </form>
         </div>

@@ -90,7 +90,7 @@
     // Redirect if already logged in
     (async function () {
       const session = await Auth.getSession();
-      if (session) {
+      if (session && (session.role === "admin" || session.role === "student")) {
         window.location.href = session.role === "admin" ? "admin/dashboard.html" : "user/dashboard.html";
         return;
       }
@@ -117,7 +117,8 @@
         }
         showToast("Log in successful! Redirecting...", "success");
         setTimeout(() => {
-          window.location.href = currentRole === "admin" ? "admin/dashboard.html" : "user/dashboard.html";
+          const target = (result.user && result.user.role === "admin") ? "admin/dashboard.html" : "user/dashboard.html";
+          window.location.href = target;
         }, 600);
       });
     });

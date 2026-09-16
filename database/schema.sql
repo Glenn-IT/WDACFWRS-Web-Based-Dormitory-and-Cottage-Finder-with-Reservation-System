@@ -43,6 +43,44 @@ CREATE TABLE students (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------
+-- Student parent/guardian info (Profile)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS student_parent_info (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL UNIQUE,
+  father_name VARCHAR(150) DEFAULT '',
+  mother_name VARCHAR(150) DEFAULT '',
+  occupation VARCHAR(150) DEFAULT '',
+  education VARCHAR(150) DEFAULT '',
+  address VARCHAR(255) DEFAULT '',
+  phone VARCHAR(30) DEFAULT '',
+  emergency_contact VARCHAR(150) DEFAULT '',
+  relationship VARCHAR(100) DEFAULT '',
+  emergency_number VARCHAR(30) DEFAULT '',
+  CONSTRAINT fk_student_parent FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------
+-- Student background (Profile)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS student_backgrounds (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL UNIQUE,
+  appliances VARCHAR(255) DEFAULT '',
+  friends_at_dorm VARCHAR(10) DEFAULT '',
+  friends_relationship VARCHAR(100) DEFAULT '',
+  reason VARCHAR(255) DEFAULT '',
+  medical_conditions VARCHAR(255) DEFAULT '',
+  severe_illness VARCHAR(255) DEFAULT '',
+  hobbies VARCHAR(255) DEFAULT '',
+  smoking VARCHAR(10) DEFAULT '',
+  drinking VARCHAR(20) DEFAULT '',
+  organizations VARCHAR(255) DEFAULT '',
+  leisure VARCHAR(255) DEFAULT '',
+  CONSTRAINT fk_student_bg FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------
 -- Dormitories
 -- ---------------------------------------------------------------
 CREATE TABLE dormitories (
@@ -64,6 +102,10 @@ CREATE TABLE cottages (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
   owner VARCHAR(150) DEFAULT '',
+  owner_photo VARCHAR(255) DEFAULT NULL,
+  owner_phone VARCHAR(50) DEFAULT '',
+  owner_email VARCHAR(100) DEFAULT '',
+  owner_bio TEXT DEFAULT NULL,
   rooms INT NOT NULL DEFAULT 1,
   price DECIMAL(10,2) NOT NULL DEFAULT 0,
   availability ENUM('Available','Booked') NOT NULL DEFAULT 'Available',

@@ -1,3 +1,12 @@
-Admin - Manage Reservation - Add reservation remove this function admin should not be able to add reservations - instead of icons on the action buttons, use text labels for better accessibility and clarity
+Week 11: Recommendations (System Testing)
+*USER
+•View Rooms- when the "Cottage" button is pressed, the owners with profiles will appear first, followed by the room details.
 
-Report Tab - add header to the report tab for better organization and understanding of the data presented and footer for additional context - remove the unnecessary empty space in the report tab to improve the layout and user experience i want to see the list only there ok
+•My Reservation- should not accept new reservation if there is existing approved.
+
+•My profile- parent info and background found in new reservation must be move to “my profile” section.
+
+*ADMINISTRATOR
+•Manage Reservation- add edit under action.
+•Reports - add signatories.
+Change setting to “My profile” section to admin account.

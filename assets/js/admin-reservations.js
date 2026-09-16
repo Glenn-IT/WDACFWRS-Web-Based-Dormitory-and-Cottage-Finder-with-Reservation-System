@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.getElementById("reservations-table-body");
   const viewModal = new bootstrap.Modal(document.getElementById("reservation-view-modal"));
+  const editModal = new bootstrap.Modal(document.getElementById("reservation-edit-modal"));
   let reservations = [];
 
   ["filter-type", "filter-approval", "filter-payment", "filter-search"].forEach((id) => {
@@ -32,6 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <button class="btn btn-sm btn-outline-primary me-1" data-view="${r.id}">
             <i class="fa-solid fa-eye me-1"></i>View
           </button>
+          <button class="btn btn-sm btn-outline-secondary me-1" data-edit="${r.id}">
+            <i class="fa-solid fa-pen-to-square me-1"></i>Edit
+          </button>
           ${r.approvalStatus === "Pending" ? `
             <button class="btn btn-sm btn-success me-1" data-approve="${r.id}">
               <i class="fa-solid fa-check me-1"></i>Approve
@@ -46,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : `<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-clipboard"></i>No reservations match your filters.</div></td></tr>`;
 
     tbody.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => viewReservation(b.dataset.view)));
+    tbody.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => openEditModal(b.dataset.edit)));
     tbody.querySelectorAll("[data-approve]").forEach((b) => b.addEventListener("click", () => setApproval(b.dataset.approve, "Approved")));
     tbody.querySelectorAll("[data-decline]").forEach((b) => b.addEventListener("click", () => setApproval(b.dataset.decline, "Declined")));
   }
@@ -89,6 +94,44 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
     viewModal.show();
   }
+
+  function openEditModal(id) {
+    const r = reservations.find((x) => String(x.id) === String(id));
+    if (!r) return;
+    document.getElementById("edit-res-id").value = r.id;
+    document.getElementById("edit-res-student").value = `${r.studentName} (ID: ${r.studentId})`;
+    document.getElementById("edit-res-asset").value = `${r.type}: ${r.assetLabel}`;
+    document.getElementById("edit-res-date").value = r.reservationDate;
+    document.getElementById("edit-res-amount").value = r.amount;
+    document.getElementById("edit-res-payment-method").value = r.paymentMethod;
+    document.getElementById("edit-res-payment-status").value = r.paymentStatus;
+    document.getElementById("edit-res-approval-status").value = r.approvalStatus;
+    editModal.show();
+  }
+
+  document.getElementById("reservation-edit-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const id = document.getElementById("edit-res-id").value;
+    const payload = {
+      id: Number(id),
+      reservationDate: document.getElementById("edit-res-date").value,
+      amount: parseFloat(document.getElementById("edit-res-amount").value) || 0,
+      paymentMethod: document.getElementById("edit-res-payment-method").value,
+      paymentStatus: document.getElementById("edit-res-payment-status").value,
+      approvalStatus: document.getElementById("edit-res-approval-status").value,
+    };
+
+    withLoading(async () => {
+      try {
+        await DataAPI.updateReservation(payload);
+        editModal.hide();
+        showToast("Reservation updated successfully.", "success");
+        await render();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    });
+  });
 
   document.getElementById("print-reservation-btn").addEventListener("click", () => window.print());
 

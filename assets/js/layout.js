@@ -5,6 +5,7 @@
 
 async function initLayout() {
   const role = document.body.dataset.role; // "student" | "admin"
+  if (!role) return;
   const page = document.body.dataset.page;
   const isAdmin = role === "admin";
 
@@ -13,14 +14,20 @@ async function initLayout() {
 
   const sidebarHost = document.getElementById("app-sidebar");
   const topbarHost = document.getElementById("app-topbar");
+  if (!sidebarHost || !topbarHost) return;
 
-  const [sidebarHtml, topbarHtml] = await Promise.all([
-    fetch(`../partials/${isAdmin ? "admin" : "user"}-sidebar.html`).then((r) => r.text()),
-    fetch(`../partials/${isAdmin ? "admin" : "user"}-topbar.html`).then((r) => r.text()),
-  ]);
+  try {
+    const [sidebarHtml, topbarHtml] = await Promise.all([
+      fetch(`../partials/${isAdmin ? "admin" : "user"}-sidebar.html`).then((r) => r.text()),
+      fetch(`../partials/${isAdmin ? "admin" : "user"}-topbar.html`).then((r) => r.text()),
+    ]);
 
-  sidebarHost.innerHTML = sidebarHtml;
-  topbarHost.innerHTML = topbarHtml;
+    sidebarHost.innerHTML = sidebarHtml;
+    topbarHost.innerHTML = topbarHtml;
+  } catch (e) {
+    console.error("Failed to load layout partials:", e);
+    return;
+  }
 
   sidebarHost.querySelectorAll(".nav-link[data-page]").forEach((link) => {
     if (link.dataset.page === page) link.classList.add("active");
