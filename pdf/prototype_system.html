@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Prototype — Web-Based Dormitory and Cottage Finder with Reservation System</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+      color: #000000;
+      background-color: #e5e7eb;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page-container {
+      width: 210mm;
+      height: 297mm;
+      max-height: 297mm;
+      margin: 0 auto 20px auto;
+      padding: 16mm 18mm;
+      background: #ffffff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      position: relative;
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+
+    @media print {
+      body {
+        background: transparent;
+      }
+      .page-container {
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+        height: 297mm;
+        max-height: 297mm;
+      }
+    }
+
+    .proto-heading {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      margin-bottom: 18px;
+    }
+
+    .section-badge-title {
+      text-align: center;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      color: #444444;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    /* Main Wireframe Container */
+    .wire-frame {
+      border: 1.5px solid #000000;
+      background: #ffffff;
+      padding: 14px 18px 16px 18px;
+      width: 100%;
+      position: relative;
+    }
+
+    .wire-frame.narrow-frame {
+      width: 84%;
+      margin: 0 auto;
+    }
+
+    /* Inner Title Banner Box */
+    .title-banner {
+      border: 1px solid #000000;
+      padding: 7px 12px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 14px;
+      letter-spacing: 0.2px;
+      background: #ffffff;
+    }
+
+    /* Form Rows */
+    .wire-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 9px;
+    }
+
+    .wire-row label {
+      width: 165px;
+      font-size: 11.5px;
+      color: #000000;
+    }
+
+    .wire-input {
+      flex: 1;
+      border: 1px solid #000000;
+      height: 25px;
+      padding: 2px 8px;
+      font-size: 11px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wire-input.textarea-input {
+      height: 44px;
+      align-items: flex-start;
+      padding-top: 4px;
+    }
+
+    /* Eye Icon in Password fields */
+    .eye-icon {
+      width: 16px;
+      height: 14px;
+      display: inline-block;
+      position: relative;
+    }
+
+    .eye-icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* File Upload Row */
+    .file-input-group {
+      flex: 1;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .file-box {
+      flex: 1;
+      border: 1px solid #000000;
+      height: 25px;
+    }
+
+    .btn-upload-wire {
+      border: 1px solid #000000;
+      padding: 3px 12px;
+      font-size: 10.5px;
+      font-weight: 500;
+      background: #ffffff;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Buttons & Links */
+    .btn-action {
+      border: 1px solid #000000;
+      background: #ffffff;
+      padding: 4px 20px;
+      font-size: 11.5px;
+      cursor: pointer;
+      display: inline-block;
+      text-align: center;
+      min-width: 80px;
+    }
+
+    .link-text {
+      font-size: 11.5px;
+      font-style: italic;
+      text-decoration: underline;
+      color: #000000;
+      cursor: pointer;
+    }
+
+    .bottom-bar-split {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+    }
+
+    .bottom-bar-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    /* Flow Arrow */
+    .flow-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 0;
+    }
+
+    .flow-connector svg {
+      width: 20px;
+      height: 34px;
+    }
+
+    /* Admin & User Dashboard Grid */
+    .dashboard-layout {
+      display: flex;
+      gap: 16px;
+      min-height: 200px;
+    }
+
+    .sidebar-list {
+      width: 175px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .sidebar-item {
+      border: 1px solid #000000;
+      padding: 6px 8px;
+      font-size: 11px;
+      text-align: center;
+      background: #ffffff;
+    }
+
+    .cards-content-box {
+      flex: 1;
+      border: 1px solid #000000;
+      padding: 18px 12px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-around;
+      gap: 12px;
+    }
+
+    .folder-stat-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 105px;
+    }
+
+    .folder-graphic {
+      width: 64px;
+      height: 64px;
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .folder-graphic .back-sheet {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 54px;
+      height: 54px;
+      border: 1px solid #000000;
+      background: #ffffff;
+    }
+
+    .folder-graphic .front-sheet {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 54px;
+      height: 54px;
+      border: 1px solid #000000;
+      background: #ffffff;
+    }
+
+    .folder-label {
+      border: 1px solid #000000;
+      padding: 3px 6px;
+      font-size: 10px;
+      text-align: center;
+      width: 100%;
+      background: #ffffff;
+      white-space: nowrap;
+    }
+
+    /* Table Component */
+    .table-frame {
+      border: 1px solid #000000;
+      width: 100%;
+      min-height: 140px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .table-head {
+      display: flex;
+      border-bottom: 1px solid #000000;
+      background: #ffffff;
+    }
+
+    .th-box {
+      border-right: 1px solid #000000;
+      padding: 5px 6px;
+      font-size: 10.5px;
+      font-weight: bold;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .th-box:last-child {
+      border-right: none;
+    }
+
+    .table-body-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .center-watermark {
+      position: absolute;
+      top: 50%;
+      left: 45%;
+      transform: translate(-50%, -50%);
+      font-size: 12px;
+      color: #111111;
+      pointer-events: none;
+    }
+
+    .action-col-right {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 100px;
+      border-left: 1px solid #000000;
+    }
+
+    .action-btn-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 4px;
+      gap: 6px;
+    }
+
+    .btn-row-action {
+      border: 1px solid #000000;
+      padding: 3px 12px;
+      font-size: 10px;
+      background: #ffffff;
+      cursor: pointer;
+      text-align: center;
+      width: 72px;
+    }
+
+    /* Top bar for tables with Add button */
+    .header-with-action {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .header-with-action .title-banner {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    /* Confirmation Box */
+    .confirm-body {
+      border: 1px solid #000000;
+      padding: 24px 16px;
+      text-align: center;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    /* Search Bar */
+    .search-control-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .search-control-bar label {
+      font-size: 11.5px;
+      white-space: nowrap;
+    }
+
+    .search-box-input {
+      flex: 1;
+      border: 1px solid #000000;
+      height: 25px;
+      padding: 2px 8px;
+      font-size: 11px;
+    }
+
+    /* 3-Step Wizard Navigation */
+    .wizard-steps-wire {
+      display: flex;
+      border: 1px solid #000000;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .wizard-step-item {
+      flex: 1;
+      padding: 6px 4px;
+      font-size: 11px;
+      border-right: 1px solid #000000;
+      background: #ffffff;
+    }
+
+    .wizard-step-item:last-child {
+      border-right: none;
+    }
+
+    .wizard-step-item.active {
+      font-weight: bold;
+      background: #f0f0f0;
+    }
+
+    /* Card Box for Rooms & Cottages */
+    .unit-card-grid {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .unit-card-wire {
+      flex: 1;
+      border: 1px solid #000000;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .unit-card-thumb {
+      border: 1px solid #000000;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      background: #fafafa;
+    }
+
+    .tab-toggle-bar {
+      display: flex;
+      border: 1px solid #000000;
+      margin-bottom: 12px;
+    }
+
+    .tab-toggle-item {
+      flex: 1;
+      text-align: center;
+      padding: 5px;
+      font-size: 11px;
+      border-right: 1px solid #000000;
+    }
+
+    .tab-toggle-item:last-child {
+      border-right: none;
+    }
+
+    .tab-toggle-item.active {
+      font-weight: bold;
+      background: #eeeeee;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       PAGE 1: AUTHENTICATION — LOGIN & FORGOT PASSWORD FLOW
+       ============================================================ -->
+  <div class="page-container">
+    <div class="proto-heading">PROTOTYPE</div>
+    <div class="section-badge-title">Authentication Module</div>
+
+    <!-- Login Frame -->
+    <div class="wire-frame narrow-frame">
+      <div class="title-banner">
+        Web-Based Dormitory and Cottage Finder with Reservation System
+      </div>
+
+      <div class="tab-toggle-bar">
+        <div class="tab-toggle-item active">Student Login</div>
+        <div class="tab-toggle-item">Administrator Login</div>
+      </div>
+
+      <div class="wire-row">
+        <label>Username / Email:</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Password:</label>
+        <div class="wire-input">
+          <span></span>
+          <span class="eye-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3" fill="#000"></circle>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="bottom-bar-split">
+        <span class="link-text">Forgot Password</span>
+        <button class="btn-action">Login</button>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Forgot Password Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Forgot Password Page</div>
+
+      <div class="wire-row">
+        <label>Security Question:</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Answer:</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>New Password:</label>
+        <div class="wire-input">
+          <span></span>
+          <span class="eye-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3" fill="#000"></circle>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="wire-row">
+        <label>Confirm Password:</label>
+        <div class="wire-input">
+          <span></span>
+          <span class="eye-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3" fill="#000"></circle>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="bottom-bar-split">
+        <span class="link-text">Go Back to Login Page...</span>
+        <button class="btn-action">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 2: STUDENT REGISTRATION & GUEST UNIT EXPLORER
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Student Onboarding & Guest Discovery</div>
+
+    <!-- Student Registration Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Student Registration</div>
+
+      <div class="wire-row">
+        <label>Student ID Number</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>First &amp; Last Name</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Course &amp; Year Level</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Email Address</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Password</label>
+        <div class="wire-input">
+          <span></span>
+          <span class="eye-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3" fill="#000"></circle>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="wire-row">
+        <label>Profile Photo (JPG/PNG)</label>
+        <div class="file-input-group">
+          <div class="file-box"></div>
+          <button class="btn-upload-wire">UPLOAD FILE</button>
+        </div>
+      </div>
+
+      <div class="bottom-bar-split">
+        <span class="link-text">Already registered? Login</span>
+        <button class="btn-action">Register</button>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Guest Unit Explorer Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Guest Unit Explorer (Public View)</div>
+
+      <div class="search-control-bar">
+        <label>Browse Units:</label>
+        <div class="search-box-input"></div>
+        <button class="btn-action" style="min-width: 65px;">Dorms</button>
+        <button class="btn-action" style="min-width: 65px;">Cottages</button>
+      </div>
+
+      <div class="unit-card-grid">
+        <div class="unit-card-wire">
+          <div class="unit-card-thumb">Room 101 (Male Dorm)</div>
+          <div style="font-size: 10.5px;">Capacity: 4 Persons</div>
+          <div style="font-size: 10.5px;">Rate: ₱1,500 / Month</div>
+          <button class="btn-row-action" style="width: 100%; margin-top: 4px;">View</button>
+        </div>
+
+        <div class="unit-card-wire">
+          <div class="unit-card-thumb">Room 102 (Female Dorm)</div>
+          <div style="font-size: 10.5px;">Capacity: 6 Persons</div>
+          <div style="font-size: 10.5px;">Rate: ₱1,200 / Month</div>
+          <button class="btn-row-action" style="width: 100%; margin-top: 4px;">View</button>
+        </div>
+
+        <div class="unit-card-wire">
+          <div class="unit-card-thumb">Pine Tree Cottage</div>
+          <div style="font-size: 10.5px;">2 Rooms / Full Unit</div>
+          <div style="font-size: 10.5px;">Rate: ₱3,500 / Month</div>
+          <button class="btn-row-action" style="width: 100%; margin-top: 4px;">View</button>
+        </div>
+      </div>
+
+      <div class="bottom-bar-split">
+        <span class="link-text">Explore accommodation guidelines</span>
+        <button class="btn-action">Login to Reserve</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 3: STUDENT DASHBOARD & NOTIFICATION ALERTS
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Student Module — Dashboard &amp; Notifications</div>
+
+    <!-- Student Dashboard Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Student Dashboard</div>
+
+      <div class="dashboard-layout">
+        <div class="sidebar-list">
+          <div class="sidebar-item">My Dashboard</div>
+          <div class="sidebar-item">Find Accommodations</div>
+          <div class="sidebar-item">Reserve a Unit</div>
+          <div class="sidebar-item">My Reservations</div>
+          <div class="sidebar-item">Student Profile</div>
+          <div class="sidebar-item">Notifications</div>
+          <div class="sidebar-item">Log out</div>
+        </div>
+
+        <div class="cards-content-box">
+          <div class="folder-stat-card">
+            <div class="folder-graphic">
+              <div class="back-sheet"></div>
+              <div class="front-sheet"></div>
+            </div>
+            <div class="folder-label">Active Bookings</div>
+          </div>
+
+          <div class="folder-stat-card">
+            <div class="folder-graphic">
+              <div class="back-sheet"></div>
+              <div class="front-sheet"></div>
+            </div>
+            <div class="folder-label">Pending Requests</div>
+          </div>
+
+          <div class="folder-stat-card">
+            <div class="folder-graphic">
+              <div class="back-sheet"></div>
+              <div class="front-sheet"></div>
+            </div>
+            <div class="folder-label">Available Units</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Student Notifications Alert Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Student Notification Alerts</div>
+
+      <div class="table-frame" style="min-height: 150px;">
+        <div class="table-head">
+          <div class="th-box" style="width: 25%;">Notice Date</div>
+          <div class="th-box" style="width: 25%;">Reservation #</div>
+          <div class="th-box" style="width: 35%;">Notification Message</div>
+          <div class="th-box" style="width: 15%;">Status</div>
+        </div>
+
+        <div class="table-body-area">
+          <div style="border-bottom: 1px solid #d0d0d0; padding: 6px 8px; font-size: 10.5px; display: flex;">
+            <div style="width: 25%;">2026-09-18</div>
+            <div style="width: 25%;">RES-1042</div>
+            <div style="width: 35%;">Your reservation for Room 101 was Approved.</div>
+            <div style="width: 15%; text-align: center;">Read</div>
+          </div>
+          <div style="border-bottom: 1px solid #d0d0d0; padding: 6px 8px; font-size: 10.5px; display: flex;">
+            <div style="width: 25%;">2026-09-15</div>
+            <div style="width: 25%;">RES-1038</div>
+            <div style="width: 35%;">Payment receipt verified by housing administration.</div>
+            <div style="width: 15%; text-align: center;">Read</div>
+          </div>
+          <div class="center-watermark" style="top: 75%;">Student Activity Alerts</div>
+        </div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Mark All as Read</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 4: STUDENT UNIT FINDER CATALOG & DETAILS MODAL
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Student Module — Unit Finder &amp; Catalog</div>
+
+    <!-- Room & Cottage Catalog Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Browse Accommodations (Dormitories &amp; Cottages)</div>
+
+      <div class="search-control-bar">
+        <label>Filter:</label>
+        <div class="search-box-input" style="flex: 1.5;"></div>
+        <button class="btn-action" style="min-width: 60px;">Male</button>
+        <button class="btn-action" style="min-width: 60px;">Female</button>
+        <button class="btn-action" style="min-width: 60px;">Cottage</button>
+      </div>
+
+      <div class="table-frame">
+        <div class="table-head">
+          <div class="th-box" style="width: 18%;">Unit Name</div>
+          <div class="th-box" style="width: 18%;">Category</div>
+          <div class="th-box" style="width: 18%;">Capacity</div>
+          <div class="th-box" style="width: 18%;">Price / Month</div>
+          <div class="th-box" style="width: 14%;">Availability</div>
+          <div class="th-box" style="width: 14%;">Action</div>
+        </div>
+
+        <div class="table-body-area">
+          <div class="center-watermark">List of Accommodations</div>
+          <div class="action-col-right">
+            <div class="action-btn-list">
+              <button class="btn-row-action">Details</button>
+              <button class="btn-row-action">Reserve</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Unit Details & Specifications Modal -->
+    <div class="wire-frame">
+      <div class="title-banner">Unit Details &amp; Specifications</div>
+
+      <div class="wire-row">
+        <label>Unit Name / Room Number</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Accommodation Type</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Capacity / Slot Details</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Monthly Rental Rate (₱)</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Included Amenities</label>
+        <div class="wire-input textarea-input"></div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Back</button>
+        <button class="btn-action">Reserve Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 5: STUDENT RESERVATION WIZARD (3-STEP)
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Student Module — Reservation Booking Wizard</div>
+
+    <!-- Wizard Step 1: Unit & Schedule -->
+    <div class="wire-frame">
+      <div class="title-banner">New Reservation — Step 1: Unit &amp; Schedule</div>
+
+      <div class="wizard-steps-wire">
+        <div class="wizard-step-item active">1. Select Unit</div>
+        <div class="wizard-step-item">2. Background &amp; Guardian</div>
+        <div class="wizard-step-item">3. Payment &amp; Proof</div>
+      </div>
+
+      <div class="wire-row">
+        <label>Selected Accommodation</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Target Check-In Date</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Assigned Monthly Fee</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="confirm-body" style="padding: 10px; margin-bottom: 10px; font-size: 10.5px;">
+        Emergency parent/guardian contacts and student lifestyle background will automatically sync from your profile.
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Next Step</button>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Wizard Step 2 & 3: Payment & Receipt Submission -->
+    <div class="wire-frame">
+      <div class="title-banner">New Reservation — Step 2 &amp; 3: Payment Submission</div>
+
+      <div class="tab-toggle-bar">
+        <div class="tab-toggle-item active">GCash / Digital QR</div>
+        <div class="tab-toggle-item">Cash / On-Site Payment</div>
+      </div>
+
+      <div class="wire-row">
+        <label>Payment Reference No.</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Transaction Amount (₱)</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Proof of Payment Receipt</label>
+        <div class="file-input-group">
+          <div class="file-box"></div>
+          <button class="btn-upload-wire">UPLOAD RECEIPT</button>
+        </div>
+      </div>
+
+      <div class="wire-row">
+        <label>Agreement Terms</label>
+        <div class="wire-input" style="font-size: 10.5px;">
+          I agree to the dormitory housing policies and guidelines.
+        </div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel</button>
+        <button class="btn-action">Submit Reservation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 6: STUDENT MY RESERVATIONS & PRINTABLE SLIP
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Student Module — Reservation History &amp; Slip</div>
+
+    <!-- My Reservations List -->
+    <div class="wire-frame">
+      <div class="title-banner">My Reservations</div>
+
+      <div class="tab-toggle-bar">
+        <div class="tab-toggle-item active">All Bookings</div>
+        <div class="tab-toggle-item">Pending</div>
+        <div class="tab-toggle-item">Approved</div>
+        <div class="tab-toggle-item">Declined</div>
+      </div>
+
+      <div class="table-frame">
+        <div class="table-head">
+          <div class="th-box" style="width: 18%;">Reservation ID</div>
+          <div class="th-box" style="width: 22%;">Reserved Unit</div>
+          <div class="th-box" style="width: 18%;">Scheduled Date</div>
+          <div class="th-box" style="width: 16%;">Payment</div>
+          <div class="th-box" style="width: 14%;">Status</div>
+          <div class="th-box" style="width: 12%;">Action</div>
+        </div>
+
+        <div class="table-body-area">
+          <div class="center-watermark">List of Student Reservations</div>
+          <div class="action-col-right" style="width: 12%;">
+            <div class="action-btn-list">
+              <button class="btn-row-action" style="width: 58px;">Slip</button>
+              <button class="btn-row-action" style="width: 58px;">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Printable Official Reservation Slip -->
+    <div class="wire-frame">
+      <div class="title-banner">Official Reservation Slip (Print View)</div>
+
+      <div class="confirm-body" style="text-align: left; padding: 14px; font-size: 11px;">
+        <div style="font-weight: bold; text-align: center; margin-bottom: 8px;">CAGAYAN STATE UNIVERSITY — PIAT CAMPUS</div>
+        <div style="text-align: center; margin-bottom: 12px; font-size: 10px;">Dormitory and Cottage Housing Office</div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span><strong>Reservation No:</strong> RES-1042</span>
+          <span><strong>Date Issued:</strong> 2026-09-21</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span><strong>Student:</strong> STU-0042 — Juan Dela Cruz</span>
+          <span><strong>Assigned Unit:</strong> Dorm Room 101</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span><strong>Payment Status:</strong> Paid (Verified via GCash)</span>
+          <span><strong>Approval:</strong> APPROVED</span>
+        </div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel Reservation</button>
+        <button class="btn-action">Print Slip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 7: STUDENT PROFILE & GUARDIAN BACKGROUND
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Student Module — Profile &amp; Guardian Info</div>
+
+    <!-- Profile & Guardian Form Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Student Profile Management</div>
+
+      <div class="tab-toggle-bar">
+        <div class="tab-toggle-item active">Personal Info</div>
+        <div class="tab-toggle-item">Parent / Guardian</div>
+        <div class="tab-toggle-item">Student Background</div>
+      </div>
+
+      <div class="wire-row">
+        <label>Student ID Number</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Father's Full Name</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Mother's Full Name</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Emergency Contact Person</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Emergency Contact Number</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel</button>
+        <button class="btn-action">Save Profile</button>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Student Background & Lifestyle Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Student Lifestyle Background &amp; Appliances</div>
+
+      <div class="wire-row">
+        <label>Electrical Appliances Brought</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Medical Conditions / Allergies</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Daily Study Habits &amp; Schedule</label>
+        <div class="wire-input textarea-input"></div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel</button>
+        <button class="btn-action">Update Background</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 8: ADMINISTRATOR DASHBOARD & RECENT ACTIVITY
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Administrator Module — Dashboard</div>
+
+    <!-- Admin Dashboard Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Admin Dashboard</div>
+
+      <div class="dashboard-layout">
+        <div class="sidebar-list">
+          <div class="sidebar-item">Dashboard Overview</div>
+          <div class="sidebar-item">Manage Dormitories</div>
+          <div class="sidebar-item">Manage Cottages</div>
+          <div class="sidebar-item">Reservation Requests</div>
+          <div class="sidebar-item">Student Accounts</div>
+          <div class="sidebar-item">Official Reports</div>
+          <div class="sidebar-item">Admin Profile</div>
+          <div class="sidebar-item">Log out</div>
+        </div>
+
+        <div class="cards-content-box">
+          <div class="folder-stat-card">
+            <div class="folder-graphic">
+              <div class="back-sheet"></div>
+              <div class="front-sheet"></div>
+            </div>
+            <div class="folder-label">Total Dormitories</div>
+          </div>
+
+          <div class="folder-stat-card">
+            <div class="folder-graphic">
+              <div class="back-sheet"></div>
+              <div class="front-sheet"></div>
+            </div>
+            <div class="folder-label">Total Cottages</div>
+          </div>
+
+          <div class="folder-stat-card">
+            <div class="folder-graphic">
+              <div class="back-sheet"></div>
+              <div class="front-sheet"></div>
+            </div>
+            <div class="folder-label">Pending Requests</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Upload New Dormitory Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Upload New Dormitory</div>
+
+      <div class="wire-row">
+        <label>Room Number</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Gender Category</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Capacity</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Monthly Price (₱)</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Unit Photo (JPG/PNG Only)</label>
+        <div class="file-input-group">
+          <div class="file-box"></div>
+          <button class="btn-upload-wire">UPLOAD FILE</button>
+        </div>
+      </div>
+
+      <div class="wire-row">
+        <label>Description</label>
+        <div class="wire-input textarea-input"></div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel</button>
+        <button class="btn-action">Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 9: MANAGE DORMITORIES (LIST & ADD MODAL)
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Administrator Module — Dormitory Management</div>
+
+    <!-- Dormitory List Frame -->
+    <div class="wire-frame">
+      <div class="header-with-action">
+        <div class="title-banner">Dormitory List</div>
+        <button class="btn-action">Add Dormitory</button>
+      </div>
+
+      <div class="table-frame">
+        <div class="table-head">
+          <div class="th-box" style="width: 16%;">Room No</div>
+          <div class="th-box" style="width: 18%;">Gender</div>
+          <div class="th-box" style="width: 16%;">Capacity</div>
+          <div class="th-box" style="width: 18%;">Monthly Rate</div>
+          <div class="th-box" style="width: 16%;">Status</div>
+          <div class="th-box" style="width: 16%;">Action Button</div>
+        </div>
+
+        <div class="table-body-area">
+          <div class="center-watermark">List of Dormitories</div>
+          <div class="action-col-right" style="width: 16%;">
+            <div class="action-btn-list">
+              <button class="btn-row-action">Edit</button>
+              <button class="btn-row-action">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- New Dormitory Modal Form -->
+    <div class="wire-frame">
+      <div class="title-banner">New Dormitory</div>
+
+      <div class="wire-row">
+        <label>Room Number</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Gender Category</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Capacity</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Monthly Price (₱)</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Unit Photo (JPG/PNG Only)</label>
+        <div class="file-input-group">
+          <div class="file-box"></div>
+          <button class="btn-upload-wire">UPLOAD FILE</button>
+        </div>
+      </div>
+
+      <div class="wire-row">
+        <label>Description</label>
+        <div class="wire-input textarea-input"></div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel</button>
+        <button class="btn-action">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 10: EDIT DORMITORY & DELETE CONFIRMATION
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Administrator Module — Modify / Delete Dormitory</div>
+
+    <!-- Edit Dormitory Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Edit Dormitory</div>
+
+      <div class="wire-row">
+        <label>Room Number</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Gender Category</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Capacity</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Monthly Price (₱)</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Unit Photo (JPG/PNG Only)</label>
+        <div class="file-input-group">
+          <div class="file-box"></div>
+          <button class="btn-upload-wire">Upload File</button>
+        </div>
+      </div>
+
+      <div class="wire-row">
+        <label>Description</label>
+        <div class="wire-input textarea-input"></div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel</button>
+        <button class="btn-action">Edit</button>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Delete Dormitory Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Delete Dormitory</div>
+
+      <div class="confirm-body">
+        Are you sure you want to Delete this Dormitory?
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel</button>
+        <button class="btn-action">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 11: MANAGE COTTAGES (LIST, SEARCH & DELETE)
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Administrator Module — Cottage Records</div>
+
+    <!-- Cottage List with Search Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Cottage List</div>
+
+      <div class="search-control-bar">
+        <label>Search:</label>
+        <div class="search-box-input"></div>
+        <button class="btn-action" style="min-width: 65px; padding: 3px 10px;">Search</button>
+        <button class="btn-action" style="min-width: 65px; padding: 3px 10px;">Clear</button>
+      </div>
+
+      <div class="table-frame">
+        <div class="table-head">
+          <div class="th-box" style="width: 20%;">Cottage Name</div>
+          <div class="th-box" style="width: 22%;">Owner / Caretaker</div>
+          <div class="th-box" style="width: 14%;">Rooms</div>
+          <div class="th-box" style="width: 16%;">Rental Price</div>
+          <div class="th-box" style="width: 14%;">Status</div>
+          <div class="th-box" style="width: 14%;">Action Button</div>
+        </div>
+
+        <div class="table-body-area">
+          <div class="center-watermark">List of Cottages</div>
+          <div class="action-col-right" style="width: 14%;">
+            <div class="action-btn-list">
+              <button class="btn-row-action">Edit</button>
+              <button class="btn-row-action">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Delete Cottage Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Delete Cottage</div>
+
+      <div class="confirm-body">
+        Are you sure you want to Delete this Cottage?
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel</button>
+        <button class="btn-action">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 12: MANAGE RESERVATIONS & REVIEW MODAL
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Administrator Module — Reservation Approval</div>
+
+    <!-- Reservation Management Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Reservation Management</div>
+
+      <div class="table-frame">
+        <div class="table-head">
+          <div class="th-box" style="width: 15%;">Reservation ID</div>
+          <div class="th-box" style="width: 25%;">Student Name</div>
+          <div class="th-box" style="width: 22%;">Unit Reserved</div>
+          <div class="th-box" style="width: 14%;">Payment</div>
+          <div class="th-box" style="width: 12%;">Status</div>
+          <div class="th-box" style="width: 12%;">Action</div>
+        </div>
+
+        <div class="table-body-area">
+          <div class="center-watermark">List of Reservations</div>
+          <div class="action-col-right" style="width: 12%;">
+            <div class="action-btn-list">
+              <button class="btn-row-action" style="width: 58px;">Review</button>
+              <button class="btn-row-action" style="width: 58px;">Decline</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Review Reservation Verification Modal -->
+    <div class="wire-frame">
+      <div class="title-banner">Reservation Review &amp; Background Verification</div>
+
+      <div class="wire-row">
+        <label>Student ID &amp; Full Name</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Parent / Guardian Contact</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Target Unit &amp; Rate</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Payment Proof (Receipt)</label>
+        <div class="file-input-group">
+          <div class="file-box"></div>
+          <button class="btn-upload-wire">VIEW RECEIPT</button>
+        </div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Decline</button>
+        <button class="btn-action">Approve</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 13: DECLINE RESERVATION & STUDENT ACCOUNTS
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Administrator Module — User Accounts Management</div>
+
+    <!-- Decline Reservation Confirmation Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Decline Reservation</div>
+
+      <div class="confirm-body">
+        Are you sure you want to Decline this Reservation? The accommodation slot will be reverted to Available.
+      </div>
+
+      <div class="wire-row">
+        <label>Reason for Declining</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Cancel</button>
+        <button class="btn-action">Confirm Decline</button>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Student Accounts Table Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Registered Student Accounts</div>
+
+      <div class="table-frame">
+        <div class="table-head">
+          <div class="th-box" style="width: 18%;">Student No</div>
+          <div class="th-box" style="width: 24%;">Student Full Name</div>
+          <div class="th-box" style="width: 22%;">Course &amp; Year</div>
+          <div class="th-box" style="width: 18%;">Registered Date</div>
+          <div class="th-box" style="width: 18%;">Account Status</div>
+        </div>
+
+        <div class="table-body-area">
+          <div class="center-watermark">List of Registered Students</div>
+          <div style="border-bottom: 1px solid #d0d0d0; height: 36px;"></div>
+          <div style="border-bottom: 1px solid #d0d0d0; height: 36px;"></div>
+        </div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Toggle Status</button>
+        <button class="btn-action">View Full Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE 14: SYSTEM REPORTS, ADMIN SECURITY & LOGOUT
+       ============================================================ -->
+  <div class="page-container">
+    <div class="section-badge-title">Administrator Module — Reports &amp; Security</div>
+
+    <!-- System Reports Generator Frame -->
+    <div class="wire-frame">
+      <div class="title-banner">Generate System Reports</div>
+
+      <div class="wire-row">
+        <label>Select Report Type</label>
+        <div class="wire-input" style="font-size: 11px;">
+          Reservations Report / Dorm Occupancy / Cottage Occupancy / Revenue Summary
+        </div>
+      </div>
+
+      <div class="wire-row">
+        <label>Date Filter (From — To)</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>Designated Signatory</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="bottom-bar-right">
+        <button class="btn-action">Preview</button>
+        <button class="btn-action">Print Report</button>
+        <button class="btn-action">Export PDF</button>
+      </div>
+    </div>
+
+    <!-- Downward Flow Arrow -->
+    <div class="flow-connector">
+      <svg viewBox="0 0 24 48">
+        <line x1="12" y1="2" x2="12" y2="40" stroke="#000" stroke-width="1.5"></line>
+        <polygon points="6,38 12,48 18,38" fill="#000"></polygon>
+      </svg>
+    </div>
+
+    <!-- Update Admin Account & Logout -->
+    <div class="wire-frame">
+      <div class="title-banner">Update Admin Account &amp; Logout</div>
+
+      <div class="wire-row">
+        <label>Username / Email</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="wire-row">
+        <label>New Password</label>
+        <div class="wire-input">
+          <span></span>
+          <span class="eye-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3" fill="#000"></circle>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="wire-row">
+        <label>Security Question &amp; Answer</label>
+        <div class="wire-input"></div>
+      </div>
+
+      <div class="bottom-bar-split">
+        <button class="btn-action" style="border: 1.5px solid #000;">Logout of System</button>
+        <button class="btn-action">Update Account</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
