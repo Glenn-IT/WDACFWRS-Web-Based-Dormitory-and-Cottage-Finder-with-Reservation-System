@@ -14,14 +14,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     background: document.getElementById("tab-pane-background"),
   };
 
+  function switchToTab(target) {
+    tabButtons.forEach((b) => b.classList.toggle("active", b.dataset.tab === target));
+    Object.keys(tabPanes).forEach((k) => {
+      if (tabPanes[k]) tabPanes[k].classList.toggle("d-none", k !== target);
+    });
+  }
+
   tabButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
-      tabButtons.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      const target = btn.dataset.tab;
-      Object.keys(tabPanes).forEach((k) => {
-        if (tabPanes[k]) tabPanes[k].classList.toggle("d-none", k !== target);
-      });
+      switchToTab(btn.dataset.tab);
     });
   });
 
@@ -71,17 +73,41 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("b-leisure").value = bg.leisure || "";
   }
 
-  async function reload() {
-    const data = await DataAPI.getProfile();
-    render(data);
-    return data;
-  }
-
-  await reload();
+  const urlParams = new URLSearchParams(window.location.search);
+  const isRequiredMode = urlParams.get("required") === "1";
 
   const fieldset = document.getElementById("profile-fieldset");
   const saveActions = document.getElementById("profile-save-actions");
   const editBtn = document.getElementById("edit-profile-btn");
+
+  async function reload() {
+    const data = await DataAPI.getProfile();
+    render(data);
+
+    const profStatus = data.profileStatus;
+    const parentBadge = document.getElementById("parent-tab-badge");
+    const callout = document.getElementById("profile-mandatory-callout");
+    const isParentIncomplete = profStatus && !profStatus.parentComplete;
+
+    if (parentBadge) parentBadge.classList.toggle("d-none", !isParentIncomplete);
+    if (callout) callout.classList.toggle("d-none", !isParentIncomplete);
+
+    if (isRequiredMode || isParentIncomplete) {
+      fieldset.disabled = false;
+      document.getElementById("pf-first-name").readOnly = true;
+      document.getElementById("pf-last-name").readOnly = true;
+      saveActions.classList.remove("d-none");
+      editBtn.classList.add("d-none");
+      switchToTab("parent");
+      if (isRequiredMode) {
+        showToast("Please complete your mandatory Parent / Guardian and Emergency details.", "warning");
+      }
+    }
+
+    return data;
+  }
+
+  await reload();
 
   editBtn.addEventListener("click", () => {
     fieldset.disabled = false;
@@ -109,13 +135,50 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const pPhone = document.getElementById("p-phone").value.trim();
     if (pPhone && !isValidPhone(pPhone)) {
+      switchToTab("parent");
       showToast("Please enter a valid parent mobile number (e.g. 09123456789).", "error");
+      document.getElementById("p-phone").focus();
       return;
     }
 
+    const fatherName = document.getElementById("p-father-name").value.trim();
+    const motherName = document.getElementById("p-mother-name").value.trim();
+    const emergContact = document.getElementById("p-emergency-contact").value.trim();
+    const relationship = document.getElementById("p-relationship").value.trim();
     const pEmerg = document.getElementById("p-emergency-number").value.trim();
-    if (pEmerg && !isValidPhone(pEmerg)) {
+
+    if (!fatherName && !motherName) {
+      switchToTab("parent");
+      showToast("Please enter either Father's Full Name or Mother's Full Name under Parent / Guardian.", "error");
+      document.getElementById("p-father-name").focus();
+      return;
+    }
+
+    if (!emergContact) {
+      switchToTab("parent");
+      showToast("Please provide an Emergency Contact Person under Parent / Guardian.", "error");
+      document.getElementById("p-emergency-contact").focus();
+      return;
+    }
+
+    if (!relationship) {
+      switchToTab("parent");
+      showToast("Please provide your relationship to the emergency contact person.", "error");
+      document.getElementById("p-relationship").focus();
+      return;
+    }
+
+    if (!pEmerg) {
+      switchToTab("parent");
+      showToast("Please provide an Emergency Contact Number.", "error");
+      document.getElementById("p-emergency-number").focus();
+      return;
+    }
+
+    if (!isValidPhone(pEmerg)) {
+      switchToTab("parent");
       showToast("Please enter a valid emergency mobile number (e.g. 09123456789).", "error");
+      document.getElementById("p-emergency-number").focus();
       return;
     }
 
@@ -130,14 +193,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       phone,
       address: document.getElementById("pf-address").value.trim(),
       parentInfo: {
-        fatherName: document.getElementById("p-father-name").value.trim(),
-        motherName: document.getElementById("p-mother-name").value.trim(),
+        fatherName,
+        motherName,
         occupation: document.getElementById("p-occupation").value.trim(),
         education: document.getElementById("p-education").value.trim(),
         address: document.getElementById("p-address").value.trim(),
         phone: pPhone,
-        emergencyContact: document.getElementById("p-emergency-contact").value.trim(),
-        relationship: document.getElementById("p-relationship").value.trim(),
+        emergencyContact: emergContact,
+        relationship,
         emergencyNumber: pEmerg,
       },
       background: {
@@ -163,6 +226,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         saveActions.classList.add("d-none");
         editBtn.classList.remove("d-none");
         showToast("Profile updated successfully.", "success");
+        if (isRequiredMode) {
+          showToast("Mandatory profile setup completed! You can now browse and reserve accommodations.", "success");
+          setTimeout(() => {
+            window.location.href = "rooms.html";
+          }, 1200);
+        }
       } catch (err) {
         showToast(err.message, "error");
       }

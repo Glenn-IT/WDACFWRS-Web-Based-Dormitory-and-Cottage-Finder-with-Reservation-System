@@ -29,6 +29,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     hasApprovedReservation = false;
   }
 
+  // Check mandatory parent background profile status
+  let profileStatus = null;
+  try {
+    const session = await Auth.getSession();
+    if (session && session.profileStatus) {
+      profileStatus = session.profileStatus;
+    } else {
+      const pData = await DataAPI.getProfile();
+      profileStatus = pData.profileStatus || null;
+    }
+  } catch (e) {
+    profileStatus = null;
+  }
+
+  const mandatoryBanner = document.getElementById("mandatory-profile-banner");
+  if (mandatoryBanner && profileStatus && !profileStatus.parentComplete) {
+    mandatoryBanner.classList.remove("d-none");
+  }
+
   function setType(type) {
     currentType = type;
     selectedOwnerFilter = "";
@@ -297,6 +316,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   function goReserve(type, id) {
     if (hasApprovedReservation) {
       showToast("You already have an active approved reservation.", "error");
+      return;
+    }
+    if (profileStatus && !profileStatus.parentComplete) {
+      showToast("Action Required: Please complete your Parent / Guardian details in your profile first.", "warning");
+      setTimeout(() => {
+        window.location.href = "profile.html?required=1";
+      }, 900);
       return;
     }
     window.location.href = `reserve.html?type=${type}&id=${id}`;

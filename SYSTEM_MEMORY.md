@@ -309,6 +309,10 @@ When any change is made, use this matrix to locate and update **every connected 
    - All passwords must be alphanumeric: at least 6 characters in length, containing at least one letter and at least one number (special characters permitted).
    - Validated on the backend via `is_valid_password()` in `api/_bootstrap.php` across `api/auth/register.php`, `api/auth/forgot_reset.php`, `api/profile/change_password.php`, and `api/settings/password.php`.
    - Synchronized on the frontend via `isValidPassword()` in `assets/js/ui.js` across `register.html`, `forgot-password.html`, `user/profile.html` (`assets/js/user-profile.js`), and `admin/settings.html` (`assets/js/admin-settings.js`).
+6. **Mandatory Profile & Parent Background Policy**:
+   - Any newly registered student or student with missing parent/guardian background (Father or Mother Name, Emergency Contact Person, Relationship, and Emergency Contact Number) MUST complete these details before submitting room reservations.
+   - **Backend Guard**: Enforced via `check_profile_completion()` in `api/users/_helpers.php`, guarded in `api/reservations/create.php` (returns 403 error), and validated on `api/profile/update.php`.
+   - **Frontend Guard**: `index.html` guides newly registered students with incomplete profiles directly to `user/profile.html?required=1`; `user/dashboard.html` and `user/rooms.html` render prominent action banners; `user/reserve.html` disables step continuation until completed.
 
 ---
 

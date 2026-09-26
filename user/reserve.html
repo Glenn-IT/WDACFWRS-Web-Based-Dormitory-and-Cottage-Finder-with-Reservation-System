@@ -17,6 +17,19 @@
     <h4 class="fw-bold mb-4">New Reservation</h4>
 
     <!-- Approved Reservation Warning Banner -->
+    <div class="alert alert-danger d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm d-none" id="mandatory-profile-warning">
+      <div class="d-flex align-items-center gap-3">
+        <i class="fa-solid fa-triangle-exclamation fa-2x text-danger"></i>
+        <div>
+          <h6 class="fw-bold mb-1 text-dark">Action Required: Mandatory Profile &amp; Parent Background Incomplete</h6>
+          <p class="mb-0 text-muted small">You cannot submit a reservation without completing your Parent / Guardian details and emergency contact in your profile.</p>
+        </div>
+      </div>
+      <a href="profile.html?required=1" class="btn btn-danger fw-bold text-nowrap ms-3">
+        <i class="fa-solid fa-user-pen me-1"></i>Complete Profile Now
+      </a>
+    </div>
+
     <div class="alert alert-danger d-flex align-items-center mb-4 d-none" id="approved-res-warning">
       <i class="fa-solid fa-circle-exclamation fs-3 me-3 text-danger"></i>
       <div>

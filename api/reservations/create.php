@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../_bootstrap.php';
 require_once __DIR__ . '/_helpers.php';
+require_once __DIR__ . '/../users/_helpers.php';
 
 $session = require_role('student');
 $studentId = (int)$session['id'];
@@ -18,6 +19,12 @@ if (!$assetId || $paymentMethod === '') {
 }
 
 $pdo = get_db();
+
+// Requirement: Mandatory Profile & Parent Background Completion Check
+$profStatus = check_profile_completion($pdo, $studentId);
+if (!$profStatus['parentComplete']) {
+    fail('Mandatory Profile Incomplete: University housing rules require you to complete your Parent / Guardian Background and Emergency Contacts in your profile before you can reserve a unit.', 403);
+}
 
 // Requirement: My Reservation - should not accept new reservation if there is existing approved.
 $chkApproved = $pdo->prepare("SELECT id FROM reservations WHERE student_id = ? AND approval_status = 'Approved' LIMIT 1");

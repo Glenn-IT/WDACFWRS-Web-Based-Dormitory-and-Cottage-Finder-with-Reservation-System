@@ -8,6 +8,9 @@ const Auth = {
   async getSession() {
     try {
       const data = await apiFetch("auth/session.php");
+      if (data.user) {
+        data.user.profileStatus = data.profileStatus || null;
+      }
       return data.user || null;
     } catch (e) {
       return null;
@@ -20,7 +23,7 @@ const Auth = {
         method: "POST",
         body: JSON.stringify({ role: "student", email, password }),
       });
-      return { ok: true, user: data.user };
+      return { ok: true, user: data.user, profileStatus: data.profileStatus };
     } catch (e) {
       return { ok: false, message: e.message };
     }

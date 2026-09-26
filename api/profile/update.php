@@ -14,13 +14,27 @@ if ($phone !== '' && !is_valid_ph_phone($phone)) {
 
 $parent = is_array($in['parentInfo'] ?? null) ? $in['parentInfo'] : null;
 if ($parent !== null) {
+    $fatherName = trim((string)($parent['fatherName'] ?? ''));
+    $motherName = trim((string)($parent['motherName'] ?? ''));
+    $emergContact = trim((string)($parent['emergencyContact'] ?? ''));
+    $relationship = trim((string)($parent['relationship'] ?? ''));
+    $emergNumber = trim((string)($parent['emergencyNumber'] ?? ''));
     $parentPhone = trim((string)($parent['phone'] ?? ''));
-    $emergencyNumber = trim((string)($parent['emergencyNumber'] ?? ''));
+
+    if ($fatherName === '' && $motherName === '') {
+        fail('Please enter either Father\'s Name or Mother\'s Name under Parent / Guardian information.');
+    }
+    if ($emergContact === '') {
+        fail('Please provide an Emergency Contact Person under Parent / Guardian information.');
+    }
+    if ($relationship === '') {
+        fail('Please provide your relationship to the emergency contact person.');
+    }
+    if ($emergNumber === '' || !is_valid_ph_phone($emergNumber)) {
+        fail('Please enter a valid Emergency Contact Number (e.g. 09123456789).');
+    }
     if ($parentPhone !== '' && !is_valid_ph_phone($parentPhone)) {
         fail('Please enter a valid parent mobile number (e.g. 09123456789).');
-    }
-    if ($emergencyNumber !== '' && !is_valid_ph_phone($emergencyNumber)) {
-        fail('Please enter a valid emergency contact number (e.g. 09123456789).');
     }
 }
 
@@ -97,4 +111,8 @@ try {
 $stmt = $pdo->prepare('SELECT * FROM students WHERE id = ?');
 $stmt->execute([$session['id']]);
 
-respond(['ok' => true, 'user' => map_student($stmt->fetch())]);
+respond([
+    'ok' => true,
+    'user' => map_student($stmt->fetch()),
+    'profileStatus' => check_profile_completion($pdo, (int)$session['id']),
+]);

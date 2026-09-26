@@ -48,5 +48,6 @@ respond([
         'drinking' => (string)($bgRow['drinking'] ?? ''),
         'organizations' => (string)($bgRow['organizations'] ?? ''),
         'leisure' => (string)($bgRow['leisure'] ?? ''),
-    ]
+    ],
+    'profileStatus' => check_profile_completion($pdo, (int)$session['id']),
 ]);

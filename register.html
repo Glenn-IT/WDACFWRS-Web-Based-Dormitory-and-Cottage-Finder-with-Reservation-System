@@ -175,7 +175,8 @@
           errorEl.classList.remove("d-none");
           return;
         }
-        sessionStorage.setItem("loginNotice", "Account created successfully! Please log in.");
+        sessionStorage.setItem("loginNotice", "Account created successfully! Please log in to complete your mandatory profile & parent background.");
+        sessionStorage.setItem("justRegistered", "true");
         window.location.href = "index.html";
       });
     });

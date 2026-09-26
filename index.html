@@ -117,9 +117,19 @@
           return;
         }
         showToast("Log in successful! Redirecting...", "success");
+        const justRegistered = sessionStorage.getItem("justRegistered");
+        sessionStorage.removeItem("justRegistered");
+        const isStudent = result.user && result.user.role === "student";
+        const needsProfile = isStudent && (justRegistered || (result.profileStatus && !result.profileStatus.parentComplete));
+
         setTimeout(() => {
-          const target = (result.user && result.user.role === "admin") ? "admin/dashboard.html" : "user/dashboard.html";
-          window.location.href = target;
+          if (result.user && result.user.role === "admin") {
+            window.location.href = "admin/dashboard.html";
+          } else if (needsProfile) {
+            window.location.href = "user/profile.html?required=1";
+          } else {
+            window.location.href = "user/dashboard.html";
+          }
         }, 600);
       });
     });

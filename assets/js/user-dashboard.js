@@ -4,6 +4,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("welcome-name").textContent = `Welcome back, ${session.name}!`;
 
+  const profStatus = session.profileStatus;
+  const warningContainer = document.getElementById("profile-warning-container");
+  if (warningContainer && profStatus && !profStatus.parentComplete) {
+    warningContainer.innerHTML = `
+      <div class="alert alert-warning border-warning d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+          <i class="fa-solid fa-triangle-exclamation fa-2x text-warning"></i>
+          <div>
+            <h6 class="fw-bold mb-1 text-dark">Action Required: Mandatory Profile &amp; Parent Background Incomplete</h6>
+            <p class="mb-0 text-muted small">Welcome! University housing policy mandates that you complete your Parent / Guardian details and emergency contacts before you can reserve accommodations.</p>
+          </div>
+        </div>
+        <a href="profile.html?required=1" class="btn btn-warning text-dark fw-bold text-nowrap ms-3">
+          <i class="fa-solid fa-user-pen me-1"></i>Complete Profile Now
+        </a>
+      </div>`;
+  }
+
   let reservations = [];
   try {
     const data = await DataAPI.getReservations({ mine: 1 });

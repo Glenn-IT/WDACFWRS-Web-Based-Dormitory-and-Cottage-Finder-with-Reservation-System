@@ -40,6 +40,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // Mandatory Profile Check
+  let profileStatus = session.profileStatus || null;
+  if (!profileStatus) {
+    try {
+      const pData = await DataAPI.getProfile();
+      profileStatus = pData.profileStatus || null;
+    } catch (e) {
+      profileStatus = null;
+    }
+  }
+
+  const isProfileIncomplete = profileStatus && !profileStatus.parentComplete;
+  if (isProfileIncomplete) {
+    const profWarning = document.getElementById("mandatory-profile-warning");
+    if (profWarning) profWarning.classList.remove("d-none");
+    const toStep2 = document.getElementById("to-step-2-btn");
+    if (toStep2) {
+      toStep2.disabled = true;
+      toStep2.classList.add("disabled");
+      toStep2.title = "Please complete your mandatory parent background in your profile first.";
+    }
+  }
+
   const wizardState = {
     paymentMethod: null,
   };
@@ -73,6 +96,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("to-step-2-btn").addEventListener("click", () => {
     if (hasApprovedReservation) {
       showToast("You already have an active approved reservation.", "error");
+      return;
+    }
+    if (isProfileIncomplete) {
+      showToast("Mandatory Profile Incomplete: Please complete your Parent / Guardian details in your profile first.", "warning");
+      setTimeout(() => (window.location.href = "profile.html?required=1"), 900);
       return;
     }
     goToStep(2);
@@ -136,6 +164,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("submit-reservation-btn").addEventListener("click", () => {
     if (hasApprovedReservation) {
       showToast("You already have an active approved reservation.", "error");
+      return;
+    }
+    if (isProfileIncomplete) {
+      showToast("Mandatory Profile Incomplete: Please complete your Parent / Guardian details in your profile first.", "error");
+      setTimeout(() => (window.location.href = "profile.html?required=1"), 900);
       return;
     }
     withLoading(async () => {

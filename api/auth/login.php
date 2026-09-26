@@ -46,4 +46,11 @@ if ($role === 'admin') {
     ];
 }
 
-respond(['ok' => true, 'user' => $_SESSION['user']]);
+require_once __DIR__ . '/../users/_helpers.php';
+
+$profileStatus = null;
+if ($role === 'student' && isset($_SESSION['user']['id'])) {
+    $profileStatus = check_profile_completion($pdo, (int)$_SESSION['user']['id']);
+}
+
+respond(['ok' => true, 'user' => $_SESSION['user'], 'profileStatus' => $profileStatus]);
