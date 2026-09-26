@@ -14,7 +14,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     background: document.getElementById("tab-pane-background"),
   };
 
+  let isParentIncomplete = false;
+
   function switchToTab(target) {
+    if (isParentIncomplete && target !== "parent") {
+      showToast("Access Locked: You must complete and save your Parent / Guardian information first.", "warning");
+      return;
+    }
     tabButtons.forEach((b) => b.classList.toggle("active", b.dataset.tab === target));
     Object.keys(tabPanes).forEach((k) => {
       if (tabPanes[k]) tabPanes[k].classList.toggle("d-none", k !== target);
@@ -87,10 +93,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     const profStatus = data.profileStatus;
     const parentBadge = document.getElementById("parent-tab-badge");
     const callout = document.getElementById("profile-mandatory-callout");
-    const isParentIncomplete = profStatus && !profStatus.parentComplete;
+    isParentIncomplete = Boolean(profStatus && !profStatus.parentComplete);
 
     if (parentBadge) parentBadge.classList.toggle("d-none", !isParentIncomplete);
     if (callout) callout.classList.toggle("d-none", !isParentIncomplete);
+
+    // Disable/Lock other tabs when parent info is incomplete
+    tabButtons.forEach((btn) => {
+      const isOther = btn.dataset.tab !== "parent";
+      if (isParentIncomplete && isOther) {
+        btn.classList.add("tab-locked");
+        btn.setAttribute("title", "Locked: Complete and save Parent / Guardian details first");
+        if (!btn.querySelector(".tab-lock-icon")) {
+          const lock = document.createElement("i");
+          lock.className = "fa-solid fa-lock ms-1 text-danger tab-lock-icon";
+          btn.appendChild(lock);
+        }
+      } else {
+        btn.classList.remove("tab-locked");
+        btn.removeAttribute("title");
+        const lock = btn.querySelector(".tab-lock-icon");
+        if (lock) lock.remove();
+      }
+    });
+
+    const cancelBtn = document.getElementById("cancel-edit-btn");
 
     if (isRequiredMode || isParentIncomplete) {
       fieldset.disabled = false;
@@ -98,10 +125,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("pf-last-name").readOnly = true;
       saveActions.classList.remove("d-none");
       editBtn.classList.add("d-none");
+      if (cancelBtn) cancelBtn.classList.add("d-none");
       switchToTab("parent");
       if (isRequiredMode) {
         showToast("Please complete your mandatory Parent / Guardian and Emergency details.", "warning");
       }
+    } else {
+      if (cancelBtn) cancelBtn.classList.remove("d-none");
     }
 
     return data;
@@ -118,6 +148,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("cancel-edit-btn").addEventListener("click", async () => {
+    if (isParentIncomplete) {
+      showToast("Access Locked: You must complete and save your Parent / Guardian information first.", "warning");
+      return;
+    }
     await reload();
     fieldset.disabled = true;
     saveActions.classList.add("d-none");
@@ -221,11 +255,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     withLoading(async () => {
       try {
         await DataAPI.updateProfile(payload);
-        await reload();
-        fieldset.disabled = true;
-        saveActions.classList.add("d-none");
-        editBtn.classList.remove("d-none");
-        showToast("Profile updated successfully.", "success");
+        const updated = await reload();
+        const profStatus = updated?.profileStatus;
+        if (!profStatus || profStatus.parentComplete) {
+          fieldset.disabled = true;
+          saveActions.classList.add("d-none");
+          editBtn.classList.remove("d-none");
+          showToast("Profile & Parent / Guardian details saved! All sections unlocked.", "success");
+        } else {
+          showToast("Profile saved, but Parent / Guardian details are still incomplete.", "warning");
+        }
         if (isRequiredMode) {
           showToast("Mandatory profile setup completed! You can now browse and reserve accommodations.", "success");
           setTimeout(() => {

@@ -61,6 +61,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       toStep2.classList.add("disabled");
       toStep2.title = "Please complete your mandatory parent background in your profile first.";
     }
+    showToast("Access Locked: You cannot reserve until your Parent / Guardian details are completed.", "warning");
+    setTimeout(() => {
+      window.location.href = "profile.html?required=1";
+    }, 1500);
+    return;
   }
 
   const wizardState = {

@@ -265,11 +265,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function dormRow(d) {
+    const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
     const isLocked = d.reservedByMe || d.status !== "Available" || hasApprovedReservation;
     const disabled = isLocked ? "disabled" : "";
     const badgeLabel = d.reservedByMe ? "Room/Unit Reserved" : d.status;
-    const btnLabel = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Reserved" : "Reserve");
-    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : "";
+    const btnLabel = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Reserved" : (isParentIncomplete ? "Profile Incomplete" : "Reserve"));
+    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isParentIncomplete ? "You must complete Parent / Guardian details first" : "");
     return `
       <tr>
         <td><img src="${resolveAsset(d.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
@@ -288,11 +289,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function cottageRow(c) {
+    const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
     const isLocked = c.reservedByMe || c.availability !== "Available" || hasApprovedReservation;
     const disabled = isLocked ? "disabled" : "";
     const badgeLabel = c.reservedByMe ? "Room/Unit Reserved" : c.availability;
-    const btnLabel = hasApprovedReservation ? "Booking Locked" : (c.reservedByMe ? "Reserved" : "Reserve");
-    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : "";
+    const btnLabel = hasApprovedReservation ? "Booking Locked" : (c.reservedByMe ? "Reserved" : (isParentIncomplete ? "Profile Incomplete" : "Reserve"));
+    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isParentIncomplete ? "You must complete Parent / Guardian details first" : "");
     return `
       <tr>
         <td><img src="${resolveAsset(c.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
@@ -338,9 +340,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       <p class="text-muted mb-2"><i class="fa-solid fa-users me-1"></i>Capacity: ${d.capacity} pax · <i class="fa-solid fa-venus-mars me-1"></i>${escapeHtml(d.gender || "All")} Gender</p>
       <p>${escapeHtml(d.description)}</p>
       <h5 class="text-primary fw-bold">₱${Number(d.price || 0).toLocaleString()} / month</h5>`;
+    const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
     const reserveBtn = document.getElementById("room-detail-reserve-btn");
     reserveBtn.disabled = d.reservedByMe || d.status !== "Available" || hasApprovedReservation;
-    reserveBtn.textContent = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Room/Unit Reserved" : "Reserve Now");
+    reserveBtn.textContent = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Room/Unit Reserved" : (isParentIncomplete ? "Complete Profile to Reserve" : "Reserve Now"));
     reserveBtn.onclick = () => goReserve("dorm", d.id);
     new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
   }
@@ -382,10 +385,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       <p class="text-muted mb-2"><i class="fa-solid fa-bed me-1"></i>${c.rooms} rooms total · <i class="fa-solid fa-tag me-1"></i>Daily Rate Accommodation</p>
       <p>${escapeHtml(c.description)}</p>
       <h5 class="text-primary fw-bold">₱${Number(c.price || 0).toLocaleString()} / rate</h5>`;
-    const reserveBtn = document.getElementById("room-detail-reserve-btn");
-    reserveBtn.disabled = c.reservedByMe || c.availability !== "Available" || hasApprovedReservation;
-    reserveBtn.textContent = hasApprovedReservation ? "Booking Locked" : (c.reservedByMe ? "Room/Unit Reserved" : "Reserve Cottage");
-    reserveBtn.onclick = () => goReserve("cottage", c.id);
+    const isParentIncompleteCottage = profileStatus && !profileStatus.parentComplete;
+    const reserveCottageBtn = document.getElementById("room-detail-reserve-btn");
+    reserveCottageBtn.disabled = c.reservedByMe || c.availability !== "Available" || hasApprovedReservation;
+    reserveCottageBtn.textContent = hasApprovedReservation ? "Booking Locked" : (c.reservedByMe ? "Room/Unit Reserved" : (isParentIncompleteCottage ? "Complete Profile to Reserve" : "Reserve Cottage"));
+    reserveCottageBtn.onclick = () => goReserve("cottage", c.id);
     new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
   }
 
