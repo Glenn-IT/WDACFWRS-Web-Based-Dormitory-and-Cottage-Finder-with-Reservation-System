@@ -6,6 +6,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   wireTogglePassword("cp-toggle-new", "cp-new");
   wireTogglePassword("cp-toggle-confirm", "cp-confirm");
 
+  ["pf-phone", "p-phone", "p-emergency-number"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) restrictToPhoneDigits(el, 11);
+  });
+
   // Tab switching
   const tabButtons = document.querySelectorAll("#profile-tabs button[data-tab]");
   const tabPanes = {
@@ -51,7 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("pf-semester").value = user.semester || "";
     document.getElementById("pf-nationality").value = user.nationality || "";
     document.getElementById("pf-birthday").value = user.birthday || "";
-    document.getElementById("pf-phone").value = user.phone || "";
+    document.getElementById("pf-phone").value = (user.phone || "").replace(/\D/g, "").slice(0, 11);
     document.getElementById("pf-address").value = user.address || "";
 
     // Parent
@@ -60,10 +65,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("p-occupation").value = parent.occupation || "";
     document.getElementById("p-education").value = parent.education || "";
     document.getElementById("p-address").value = parent.address || "";
-    document.getElementById("p-phone").value = parent.phone || "";
+    document.getElementById("p-phone").value = (parent.phone || "").replace(/\D/g, "").slice(0, 11);
     document.getElementById("p-emergency-contact").value = parent.emergencyContact || "";
     document.getElementById("p-relationship").value = parent.relationship || "";
-    document.getElementById("p-emergency-number").value = parent.emergencyNumber || "";
+    document.getElementById("p-emergency-number").value = (parent.emergencyNumber || "").replace(/\D/g, "").slice(0, 11);
 
     // Background
     document.getElementById("b-appliances").value = bg.appliances || "";
@@ -163,14 +168,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const phone = document.getElementById("pf-phone").value.trim();
     if (phone && !isValidPhone(phone)) {
-      showToast("Please enter a valid PH mobile number (e.g. 09123456789).", "error");
+      switchToTab("personal");
+      showToast("Please enter a valid 11-digit PH mobile number starting with 09 (e.g. 09123456789).", "error");
+      document.getElementById("pf-phone").focus();
       return;
     }
 
     const pPhone = document.getElementById("p-phone").value.trim();
     if (pPhone && !isValidPhone(pPhone)) {
       switchToTab("parent");
-      showToast("Please enter a valid parent mobile number (e.g. 09123456789).", "error");
+      showToast("Please enter a valid 11-digit parent phone number starting with 09 (e.g. 09123456789).", "error");
       document.getElementById("p-phone").focus();
       return;
     }
@@ -211,7 +218,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!isValidPhone(pEmerg)) {
       switchToTab("parent");
-      showToast("Please enter a valid emergency mobile number (e.g. 09123456789).", "error");
+      showToast("Please enter a valid 11-digit emergency contact number starting with 09 (e.g. 09123456789).", "error");
       document.getElementById("p-emergency-number").focus();
       return;
     }

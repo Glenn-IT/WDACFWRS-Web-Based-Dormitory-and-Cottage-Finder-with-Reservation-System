@@ -9,7 +9,7 @@ $in = json_input();
 
 $phone = trim((string)($in['phone'] ?? ''));
 if ($phone !== '' && !is_valid_ph_phone($phone)) {
-    fail('Please enter a valid PH mobile number (e.g. 09123456789).');
+    fail('Please enter a valid 11-digit PH mobile number starting with 09 (e.g. 09123456789).');
 }
 
 $parent = is_array($in['parentInfo'] ?? null) ? $in['parentInfo'] : null;
@@ -31,10 +31,10 @@ if ($parent !== null) {
         fail('Please provide your relationship to the emergency contact person.');
     }
     if ($emergNumber === '' || !is_valid_ph_phone($emergNumber)) {
-        fail('Please enter a valid Emergency Contact Number (e.g. 09123456789).');
+        fail('Please enter a valid 11-digit Emergency Contact Number starting with 09 (e.g. 09123456789).');
     }
     if ($parentPhone !== '' && !is_valid_ph_phone($parentPhone)) {
-        fail('Please enter a valid parent mobile number (e.g. 09123456789).');
+        fail('Please enter a valid 11-digit parent phone number starting with 09 (e.g. 09123456789).');
     }
 }
 

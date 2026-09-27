@@ -153,10 +153,53 @@ function badgeClass(status) {
   return map[status] || "bg-secondary";
 }
 
-const PH_PHONE_PATTERN = /^(09\d{9}|\+639\d{9})$/;
+const PH_PHONE_PATTERN = /^09\d{9}$/;
 
 function isValidPhone(value) {
   return PH_PHONE_PATTERN.test((value ?? "").trim());
+}
+
+/**
+ * Restrict an input element to accept only numeric digits up to a specified length (default 11 for PH format 09XXXXXXXXX).
+ * Disallows letters and symbols from being typed, pasted, or dropped.
+ */
+function restrictToPhoneDigits(inputEl, maxLen = 11) {
+  if (!inputEl) return;
+  inputEl.setAttribute("maxlength", String(maxLen));
+  inputEl.setAttribute("inputmode", "numeric");
+
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey) return;
+    const allowedKeys = [
+      "Backspace", "Delete", "Tab", "Escape", "Enter",
+      "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+      "Home", "End"
+    ];
+    if (allowedKeys.includes(e.key)) return;
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+    }
+  });
+
+  inputEl.addEventListener("input", () => {
+    const raw = inputEl.value;
+    const cleaned = raw.replace(/\D/g, "").slice(0, maxLen);
+    if (raw !== cleaned) {
+      inputEl.value = cleaned;
+    }
+  });
+
+  inputEl.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const pasteData = (e.clipboardData || window.clipboardData)?.getData("text") || "";
+    const digits = pasteData.replace(/\D/g, "");
+    const start = inputEl.selectionStart ?? inputEl.value.length;
+    const end = inputEl.selectionEnd ?? inputEl.value.length;
+    const currentVal = inputEl.value;
+    const nextVal = (currentVal.slice(0, start) + digits + currentVal.slice(end)).replace(/\D/g, "").slice(0, maxLen);
+    inputEl.value = nextVal;
+    inputEl.dispatchEvent(new Event("input"));
+  });
 }
 
 /** Validate password requirements: at least 6 characters, must contain both letters and numbers (alphanumeric). */
@@ -164,3 +207,4 @@ function isValidPassword(value) {
   const str = String(value ?? "");
   return str.length >= 6 && /[a-zA-Z]/.test(str) && /[0-9]/.test(str);
 }
+

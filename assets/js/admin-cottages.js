@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let uploadedPhoto = null;
   let cottages = [];
 
+  restrictToPhoneDigits(document.getElementById("cottage-owner-phone"), 11);
+
   async function render() {
     const data = await DataAPI.getCottages();
     cottages = data.cottages || [];
@@ -86,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cottage-id").value = c.id;
     document.getElementById("cottage-name").value = c.name;
     document.getElementById("cottage-owner").value = c.owner || "";
-    document.getElementById("cottage-owner-phone").value = c.ownerPhone || "";
+    document.getElementById("cottage-owner-phone").value = (c.ownerPhone || "").replace(/\D/g, "").slice(0, 11);
     document.getElementById("cottage-owner-email").value = c.ownerEmail || "";
     document.getElementById("cottage-owner-bio").value = c.ownerBio || "";
     document.getElementById("cottage-rooms").value = c.rooms;
@@ -151,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const phone = document.getElementById("cottage-owner-phone").value.trim();
     if (phone && !isValidPhone(phone)) {
-      showToast("Please enter a valid PH mobile number (e.g. 09123456789).", "error");
+      showToast("Please enter a valid 11-digit PH mobile number starting with 09 (e.g. 09123456789).", "error");
       return;
     }
 

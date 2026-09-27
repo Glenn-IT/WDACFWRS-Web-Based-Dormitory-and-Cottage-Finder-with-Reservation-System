@@ -48,7 +48,7 @@
             <a href="forgot-password.html" class="small">Forgot Password?</a>
           </div>
           <div class="alert alert-danger d-none" id="login-error"></div>
-          <button type="submit" class="btn btn-primary w-100 py-2">Log In</button>
+          <button type="submit" class="btn btn-primary w-100 py-2" id="login-submit-btn">Log In</button>
 
           <div class="position-relative text-center my-3">
             <hr class="my-0">
@@ -70,10 +70,81 @@
   <script src="assets/js/ui.js"></script>
   <script src="assets/js/auth.js"></script>
   <script>
+    const MAX_ATTEMPTS = 3;
+    const LOCKOUT_SECONDS = 30;
+    const STORAGE_KEY_ATTEMPTS = "wdacfwrs_login_attempts";
+    const STORAGE_KEY_LOCKOUT = "wdacfwrs_lockout_until";
+
     let currentRole = "student";
+    let countdownTimer = null;
+
     const studentBtn = document.getElementById("role-student-btn");
     const adminBtn = document.getElementById("role-admin-btn");
     const registerHint = document.getElementById("register-hint");
+    const submitBtn = document.getElementById("login-submit-btn");
+    const emailInput = document.getElementById("login-email");
+    const passwordInput = document.getElementById("login-password");
+    const errorEl = document.getElementById("login-error");
+
+    function getFailedAttempts() {
+      const val = parseInt(localStorage.getItem(STORAGE_KEY_ATTEMPTS) || "0", 10);
+      return isNaN(val) ? 0 : val;
+    }
+
+    function setFailedAttempts(val) {
+      if (val <= 0) {
+        localStorage.removeItem(STORAGE_KEY_ATTEMPTS);
+      } else {
+        localStorage.setItem(STORAGE_KEY_ATTEMPTS, String(val));
+      }
+    }
+
+    function getLockoutRemainingSec() {
+      const until = parseInt(localStorage.getItem(STORAGE_KEY_LOCKOUT) || "0", 10);
+      if (!until || isNaN(until)) return 0;
+      const remaining = Math.ceil((until - Date.now()) / 1000);
+      return remaining > 0 ? remaining : 0;
+    }
+
+    function startLockout(seconds = LOCKOUT_SECONDS) {
+      if (countdownTimer) clearInterval(countdownTimer);
+
+      const existingUntil = parseInt(localStorage.getItem(STORAGE_KEY_LOCKOUT) || "0", 10);
+      if (!existingUntil || existingUntil <= Date.now()) {
+        localStorage.setItem(STORAGE_KEY_LOCKOUT, String(Date.now() + (seconds * 1000)));
+      }
+
+      function updateUI() {
+        const remaining = getLockoutRemainingSec();
+        if (remaining > 0) {
+          submitBtn.disabled = true;
+          emailInput.disabled = true;
+          passwordInput.disabled = true;
+          submitBtn.innerHTML = `<i class="fa-solid fa-lock me-2"></i>Locked (${remaining}s)`;
+
+          errorEl.className = "alert alert-warning";
+          errorEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-2"></i>Too many failed attempts. Login is locked. Please try again in <strong><span id="lockout-countdown">${remaining}</span>s</strong>.`;
+          errorEl.classList.remove("d-none");
+        } else {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+          localStorage.removeItem(STORAGE_KEY_LOCKOUT);
+          setFailedAttempts(0);
+
+          submitBtn.disabled = false;
+          emailInput.disabled = false;
+          passwordInput.disabled = false;
+          submitBtn.innerHTML = `Log In`;
+
+          errorEl.className = "alert alert-info";
+          errorEl.innerHTML = `<i class="fa-solid fa-circle-check me-2"></i>Lockout expired. You can now try logging in again.`;
+          errorEl.classList.remove("d-none");
+        }
+      }
+
+      updateUI();
+      countdownTimer = setInterval(updateUI, 1000);
+    }
 
     function setRole(role) {
       currentRole = role;
@@ -100,22 +171,57 @@
         sessionStorage.removeItem("loginNotice");
         showToast(notice, "success");
       }
+
+      // Check if currently locked out
+      const activeLock = getLockoutRemainingSec();
+      if (activeLock > 0) {
+        startLockout(activeLock);
+      }
     })();
 
     document.getElementById("login-form").addEventListener("submit", function (e) {
       e.preventDefault();
-      const email = document.getElementById("login-email").value.trim();
-      const password = document.getElementById("login-password").value;
-      const errorEl = document.getElementById("login-error");
+
+      const activeLock = getLockoutRemainingSec();
+      if (activeLock > 0) {
+        startLockout(activeLock);
+        return;
+      }
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
       errorEl.classList.add("d-none");
+
+      if (!email || !password) {
+        errorEl.className = "alert alert-danger";
+        errorEl.textContent = "Please enter your email and password.";
+        errorEl.classList.remove("d-none");
+        return;
+      }
 
       withLoading(async () => {
         const result = currentRole === "admin" ? await Auth.loginAdmin(email, password) : await Auth.loginStudent(email, password);
         if (!result.ok) {
-          errorEl.textContent = result.message;
-          errorEl.classList.remove("d-none");
+          const isLockedMsg = result.message && result.message.toLowerCase().includes("locked");
+          const nextAttempts = getFailedAttempts() + 1;
+          setFailedAttempts(nextAttempts);
+
+          if (nextAttempts >= MAX_ATTEMPTS || isLockedMsg) {
+            setFailedAttempts(MAX_ATTEMPTS);
+            startLockout(LOCKOUT_SECONDS);
+          } else {
+            const remainingAttempts = MAX_ATTEMPTS - nextAttempts;
+            errorEl.className = "alert alert-danger";
+            errorEl.innerHTML = `<i class="fa-solid fa-circle-xmark me-2"></i>${result.message || "Invalid email or password."} <div class="small fw-semibold mt-1 text-danger">Attempt ${nextAttempts} of ${MAX_ATTEMPTS} (${remainingAttempts} attempt${remainingAttempts === 1 ? "" : "s"} remaining before 30-second lockout)</div>`;
+            errorEl.classList.remove("d-none");
+          }
           return;
         }
+
+        // Login successful: reset counter & lockout
+        setFailedAttempts(0);
+        localStorage.removeItem(STORAGE_KEY_LOCKOUT);
+
         showToast("Log in successful! Redirecting...", "success");
         const justRegistered = sessionStorage.getItem("justRegistered");
         sessionStorage.removeItem("justRegistered");
