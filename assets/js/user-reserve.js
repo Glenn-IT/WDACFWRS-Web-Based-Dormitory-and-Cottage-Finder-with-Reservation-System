@@ -71,7 +71,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Requirement: Gender check for dormitories
   const studentGender = session.gender || "";
   const dormGender = type === "dorm" ? (asset.gender || "Male") : "";
-  const isGenderMismatch = Boolean(type === "dorm" && studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
+  const isMixed = dormGender === "Mixed";
+  const isGenderMismatch = Boolean(type === "dorm" && !isMixed && studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
 
   if (isGenderMismatch) {
     const toStep2 = document.getElementById("to-step-2-btn");
@@ -103,9 +104,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const price = asset.price;
   const label = type === "dorm" ? (asset.dormitoryName || asset.roomNumber) : asset.name;
   const isFemale = dormGender === "Female";
+  const badgeClassStyle = isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : (isMixed ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle');
+  const badgeIcon = isFemale ? 'venus' : (isMixed ? 'venus-mars' : 'mars');
+  const badgeLabelText = isMixed ? 'Mixed Gender (Male & Female)' : `${escapeHtml(dormGender)} Boarders Only`;
   const genderBadge = type === "dorm" ? `
-    <span class="badge ${isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'} me-2">
-      <i class="fa-solid fa-${isFemale ? 'venus' : 'mars'} me-1"></i>${escapeHtml(dormGender)} Boarders Only
+    <span class="badge ${badgeClassStyle} me-2">
+      <i class="fa-solid fa-${badgeIcon} me-1"></i>${badgeLabelText}
     </span>` : "";
 
   let genderMismatchAlert = "";

@@ -52,7 +52,7 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | :--- | :--- | :--- |
 | `id` | `id` (int) | Card ID, edit ID, delete ID, reservation assetId |
 | `room_no` | `roomNumber`, `dormitoryName`, `name` | Room title, badges, filters |
-| `gender` | `gender` ('Male', 'Female') | Accepted Boarders (Male Only / Female Only), filter pill, room tag, reservation guard |
+| `gender` | `gender` ('Male', 'Female', 'Mixed') | Accepted Boarders (Male Only / Female Only / Mixed Gender), filter pill, room tag, reservation guard |
 | `capacity` | `capacity` (int) | Badge, capacity counter |
 | `price` | `price` (float) | Price tag (₱/month) |
 | `status` | `status` ('Available', 'Occupied', 'Full') | Status badge, booking guard |
@@ -314,12 +314,12 @@ When any change is made, use this matrix to locate and update **every connected 
    - Any newly registered student or student with missing parent/guardian background (Father or Mother Name, Emergency Contact Person, Relationship, and Emergency Contact Number) MUST complete these details before submitting room reservations.
    - **Backend Guard**: Enforced via `check_profile_completion()` in `api/users/_helpers.php`, guarded in `api/reservations/create.php` (returns 403 error), and validated on `api/profile/update.php`.
    - **Frontend Guard**: `index.html` guides newly registered students with incomplete profiles directly to `user/profile.html?required=1`; `user/dashboard.html` and `user/rooms.html` render prominent action banners; `user/reserve.html` disables step continuation until completed.
-7. **Strict Gender-Segregated Dormitory Boarder Policy**:
-   - Dormitories strictly enforce gender segregation (`Male` or `Female` boarders only) adhering to campus residential regulations.
-   - When adding or editing a dormitory (`admin/dormitories.html`), administrators must designate Accepted Boarders (`Male Boarders Only` or `Female Boarders Only`).
+7. **Dormitory Gender Boarder Policy (Male, Female, Mixed)**:
+   - Dormitories support single-gender allocation (`Male` or `Female` boarders only) as well as `Mixed` gender units (accessible to both male and female students).
+   - When adding or editing a dormitory (`admin/dormitories.html`), administrators designate Accepted Boarders (`Male Boarders Only`, `Female Boarders Only`, or `Mixed Gender (Male & Female)`).
    - Students register and maintain their legal gender during account registration (`register.html`) and personal profile management (`user/profile.html`).
-   - **Backend Guard**: `api/reservations/create.php` queries the student's registered gender and compares it against the dormitory's accepted boarder restriction. If mismatched, it rolls back the transaction and throws a 400 runtime exception.
-   - **Frontend Guard**: `user/rooms.html` provides an Accepted Boarders filter, clearly badges room allocations, and disables booking buttons for mismatched students; `user/reserve.html` displays prominent gender restriction warnings and disables proceeding to payment.
+   - **Backend Guard**: `api/reservations/create.php` queries the student's registered gender and compares it against the dormitory's accepted boarder restriction. For single-gender dorms (`Male` or `Female`), mismatched bookings are rejected. For `Mixed` dormitories, both male and female students are accepted.
+   - **Frontend Guard**: `user/rooms.html` provides an Accepted Boarders filter (All, Male, Female, Mixed), clearly badges room allocations, and disables booking buttons for single-gender mismatches; `user/reserve.html` displays prominent gender restriction warnings and disables proceeding to payment for mismatched single-gender dorms while allowing Mixed dorms freely.
 
 ---
 

@@ -16,8 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <td><img src="${resolveAsset(d.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
         <td>${escapeHtml(d.roomNumber)}</td>
         <td>
-          <span class="badge ${d.gender === 'Female' ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'}">
-            <i class="fa-solid fa-${d.gender === 'Female' ? 'venus' : 'mars'} me-1"></i>${escapeHtml(d.gender || 'Male')} Only
+          <span class="badge ${d.gender === 'Female' ? 'bg-danger-subtle text-danger border border-danger-subtle' : (d.gender === 'Mixed' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle')}">
+            <i class="fa-solid fa-${d.gender === 'Female' ? 'venus' : (d.gender === 'Mixed' ? 'venus-mars' : 'mars')} me-1"></i>${d.gender === 'Mixed' ? 'Mixed Gender' : `${escapeHtml(d.gender || 'Male')} Only`}
           </span>
         </td>
         <td>${d.capacity} pax</td>
@@ -85,12 +85,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = dorms.find((x) => String(x.id) === String(id));
     if (!d) return;
     const isFemale = d.gender === "Female";
+    const isMixed = d.gender === "Mixed";
+    const genderBadgeClass = isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : (isMixed ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle');
+    const genderIcon = isFemale ? 'venus' : (isMixed ? 'venus-mars' : 'mars');
+    const genderLabel = isMixed ? 'Mixed Gender (Male & Female)' : `${escapeHtml(d.gender || 'Male')} Boarders Only`;
+
     document.getElementById("dorm-view-body").innerHTML = `
       <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:220px;object-fit:cover;">
       <h5 class="fw-bold">${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(d.status)}">${d.status}</span></h5>
       <p class="text-muted mb-2">
-        <span class="badge ${isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'} me-2">
-          <i class="fa-solid fa-${isFemale ? 'venus' : 'mars'} me-1"></i>${escapeHtml(d.gender || 'Male')} Boarders Only
+        <span class="badge ${genderBadgeClass} me-2">
+          <i class="fa-solid fa-${genderIcon} me-1"></i>${genderLabel}
         </span>
         Capacity: ${d.capacity} pax · ₱${Number(d.price || 0).toLocaleString()}/month
       </p>

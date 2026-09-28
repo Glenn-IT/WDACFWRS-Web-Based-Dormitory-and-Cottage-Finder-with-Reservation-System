@@ -7,7 +7,7 @@ require_role('admin');
 require_post();
 
 $roomNumber = trim((string)($_POST['dormitoryName'] ?? $_POST['dormName'] ?? $_POST['name'] ?? $_POST['roomNumber'] ?? ''));
-$gender = ($_POST['gender'] ?? '') === 'Female' ? 'Female' : 'Male';
+$gender = in_array($_POST['gender'] ?? '', ['Male', 'Female', 'Mixed'], true) ? $_POST['gender'] : 'Male';
 $capacity = (int)($_POST['capacity'] ?? 0);
 $price = (float)($_POST['price'] ?? 0);
 $status = in_array($_POST['status'] ?? '', ['Available', 'Occupied', 'Full'], true) ? $_POST['status'] : 'Available';

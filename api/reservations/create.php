@@ -107,7 +107,7 @@ try {
         $studentGender = $studentRow ? (string)$studentRow['gender'] : '';
         $dormGender = (string)($asset['gender'] ?? 'Male');
 
-        if ($dormGender !== '' && $studentGender !== '' && strcasecmp($dormGender, $studentGender) !== 0) {
+        if ($dormGender !== 'Mixed' && $dormGender !== '' && $studentGender !== '' && strcasecmp($dormGender, $studentGender) !== 0) {
             throw new RuntimeException("This dormitory strictly accepts {$dormGender} boarders only. Your registered profile gender is {$studentGender}.");
         }
     } else {

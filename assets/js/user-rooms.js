@@ -272,12 +272,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
     const studentGender = currentSession?.gender || "";
     const dormGender = d.gender || "Male";
-    const isGenderMismatch = Boolean(studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
+    const isMixed = dormGender === "Mixed";
+    const isGenderMismatch = Boolean(!isMixed && studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
     const isLocked = d.reservedByMe || d.status !== "Available" || hasApprovedReservation || isGenderMismatch;
     const disabled = isLocked ? "disabled" : "";
     const badgeLabel = d.reservedByMe ? "Room/Unit Reserved" : d.status;
     const isFemale = dormGender === "Female";
-    const genderBadge = `<span class="badge ${isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'}"><i class="fa-solid fa-${isFemale ? 'venus' : 'mars'} me-1"></i>${escapeHtml(dormGender)} Only</span>`;
+    const badgeClassStyle = isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : (isMixed ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle');
+    const badgeIcon = isFemale ? 'venus' : (isMixed ? 'venus-mars' : 'mars');
+    const badgeText = isMixed ? 'Mixed Gender' : `${escapeHtml(dormGender)} Only`;
+    const genderBadge = `<span class="badge ${badgeClassStyle}"><i class="fa-solid fa-${badgeIcon} me-1"></i>${badgeText}</span>`;
 
     let btnLabel = "Reserve";
     let btnTitle = "";
@@ -347,7 +351,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const d = dormsCache.find((x) => String(x.id) === String(id));
       const studentGender = currentSession?.gender || "";
       const dormGender = d?.gender || "Male";
-      if (studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase()) {
+      if (dormGender !== "Mixed" && studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase()) {
         showToast(`Cannot Reserve: This dormitory strictly accepts ${dormGender} boarders only.`, "error");
         return;
       }
@@ -369,7 +373,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const studentGender = currentSession?.gender || "";
     const dormGender = d.gender || "Male";
     const isFemale = dormGender === "Female";
-    const isGenderMismatch = Boolean(studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
+    const isMixed = dormGender === "Mixed";
+    const isGenderMismatch = Boolean(!isMixed && studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
     const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
 
     let mismatchAlert = "";
@@ -381,12 +386,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>`;
     }
 
+    const badgeClassStyle = isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : (isMixed ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle');
+    const badgeIcon = isFemale ? 'venus' : (isMixed ? 'venus-mars' : 'mars');
+    const badgeLabelText = isMixed ? 'Mixed Gender (Male & Female)' : `${escapeHtml(dormGender)} Boarders Only`;
+
     document.getElementById("room-detail-body").innerHTML = `
       <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
       <h5 class="fw-bold">${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
       <p class="text-muted mb-2">
-        <span class="badge ${isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'} me-2">
-          <i class="fa-solid fa-${isFemale ? 'venus' : 'mars'} me-1"></i>${escapeHtml(dormGender)} Boarders Only
+        <span class="badge ${badgeClassStyle} me-2">
+          <i class="fa-solid fa-${badgeIcon} me-1"></i>${badgeLabelText}
         </span>
         <i class="fa-solid fa-users me-1"></i>Capacity: ${d.capacity} pax
       </p>

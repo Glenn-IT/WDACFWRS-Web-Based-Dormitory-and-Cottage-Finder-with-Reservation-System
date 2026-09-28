@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS student_backgrounds (
 CREATE TABLE dormitories (
   id INT AUTO_INCREMENT PRIMARY KEY,
   room_no VARCHAR(150) NOT NULL,
-  gender ENUM('Male','Female') NULL DEFAULT 'Male',
+  gender ENUM('Male','Female','Mixed') NOT NULL DEFAULT 'Male',
   capacity INT NOT NULL DEFAULT 1,
   price DECIMAL(10,2) NOT NULL DEFAULT 0,
   status ENUM('Available','Occupied','Full') NOT NULL DEFAULT 'Available',
