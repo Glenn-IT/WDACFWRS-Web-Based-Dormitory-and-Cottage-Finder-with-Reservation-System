@@ -42,17 +42,34 @@ $pdo = get_db();
 $pdo->beginTransaction();
 
 try {
-    $stmt = $pdo->prepare('UPDATE students SET course=?, year_level=?, semester=?, nationality=?, birthday=?, phone=?, address=? WHERE id=?');
-    $stmt->execute([
-        trim((string)($in['course'] ?? '')),
-        trim((string)($in['yearLevel'] ?? '')),
-        trim((string)($in['semester'] ?? '')),
-        trim((string)($in['nationality'] ?? '')),
-        ($in['birthday'] ?? '') !== '' ? $in['birthday'] : null,
-        $phone,
-        trim((string)($in['address'] ?? '')),
-        $session['id'],
-    ]);
+    $gender = in_array($in['gender'] ?? '', ['Male', 'Female'], true) ? $in['gender'] : null;
+    if ($gender !== null) {
+        $stmt = $pdo->prepare('UPDATE students SET gender=?, course=?, year_level=?, semester=?, nationality=?, birthday=?, phone=?, address=? WHERE id=?');
+        $stmt->execute([
+            $gender,
+            trim((string)($in['course'] ?? '')),
+            trim((string)($in['yearLevel'] ?? '')),
+            trim((string)($in['semester'] ?? '')),
+            trim((string)($in['nationality'] ?? '')),
+            ($in['birthday'] ?? '') !== '' ? $in['birthday'] : null,
+            $phone,
+            trim((string)($in['address'] ?? '')),
+            $session['id'],
+        ]);
+        $_SESSION['user']['gender'] = $gender;
+    } else {
+        $stmt = $pdo->prepare('UPDATE students SET course=?, year_level=?, semester=?, nationality=?, birthday=?, phone=?, address=? WHERE id=?');
+        $stmt->execute([
+            trim((string)($in['course'] ?? '')),
+            trim((string)($in['yearLevel'] ?? '')),
+            trim((string)($in['semester'] ?? '')),
+            trim((string)($in['nationality'] ?? '')),
+            ($in['birthday'] ?? '') !== '' ? $in['birthday'] : null,
+            $phone,
+            trim((string)($in['address'] ?? '')),
+            $session['id'],
+        ]);
+    }
 
     if ($parent !== null) {
         $stmtParent = $pdo->prepare('INSERT INTO student_parent_info 

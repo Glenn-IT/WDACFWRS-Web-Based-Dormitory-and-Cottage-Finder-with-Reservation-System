@@ -30,6 +30,13 @@
             <input type="text" class="form-control" id="reg-last-name" required>
           </div>
           <div class="col-md-6">
+            <label class="form-label">Gender</label>
+            <select class="form-select" id="reg-gender" required>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+          <div class="col-md-6">
             <label class="form-label">Email Address</label>
             <input type="email" class="form-control" id="reg-email" placeholder="name@gmail.com" pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$" title="Please use a Gmail address (e.g. name@gmail.com)" required>
           </div>
@@ -159,6 +166,7 @@
       const data = {
         firstName: document.getElementById("reg-first-name").value.trim(),
         lastName: document.getElementById("reg-last-name").value.trim(),
+        gender: document.getElementById("reg-gender").value,
         email,
         phone,
         password,

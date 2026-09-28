@@ -26,6 +26,7 @@ CREATE TABLE students (
   student_no VARCHAR(20) NOT NULL UNIQUE,
   first_name VARCHAR(100) NOT NULL,
   last_name VARCHAR(100) NOT NULL,
+  gender ENUM('Male','Female') NOT NULL DEFAULT 'Male',
   email VARCHAR(150) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   security_question VARCHAR(255) NOT NULL,
@@ -85,7 +86,7 @@ CREATE TABLE IF NOT EXISTS student_backgrounds (
 -- ---------------------------------------------------------------
 CREATE TABLE dormitories (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  room_no VARCHAR(150) NOT NULL UNIQUE,
+  room_no VARCHAR(150) NOT NULL,
   gender ENUM('Male','Female') NULL DEFAULT 'Male',
   capacity INT NOT NULL DEFAULT 1,
   price DECIMAL(10,2) NOT NULL DEFAULT 0,
@@ -100,7 +101,7 @@ CREATE TABLE dormitories (
 -- ---------------------------------------------------------------
 CREATE TABLE cottages (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(150) NOT NULL,
+  name VARCHAR(150) NOT NULL UNIQUE,
   owner VARCHAR(150) DEFAULT '',
   owner_photo VARCHAR(255) DEFAULT NULL,
   owner_phone VARCHAR(50) DEFAULT '',

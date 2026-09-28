@@ -90,7 +90,7 @@ $pdo->beginTransaction();
 
 try {
     if ($type === 'Dormitory') {
-        $stmt = $pdo->prepare('SELECT id, price, status FROM dormitories WHERE id = ? FOR UPDATE');
+        $stmt = $pdo->prepare('SELECT id, room_no, gender, price, status FROM dormitories WHERE id = ? FOR UPDATE');
         $stmt->execute([$assetId]);
         $asset = $stmt->fetch();
         if (!$asset) {
@@ -98,6 +98,17 @@ try {
         }
         if ($asset['status'] !== 'Available') {
             throw new RuntimeException('This dormitory is no longer available.');
+        }
+
+        // Gender Restriction Check: Dormitory strictly accepts Male or Female boarders only
+        $stmtStudent = $pdo->prepare('SELECT gender FROM students WHERE id = ?');
+        $stmtStudent->execute([$studentId]);
+        $studentRow = $stmtStudent->fetch();
+        $studentGender = $studentRow ? (string)$studentRow['gender'] : '';
+        $dormGender = (string)($asset['gender'] ?? 'Male');
+
+        if ($dormGender !== '' && $studentGender !== '' && strcasecmp($dormGender, $studentGender) !== 0) {
+            throw new RuntimeException("This dormitory strictly accepts {$dormGender} boarders only. Your registered profile gender is {$studentGender}.");
         }
     } else {
         $stmt = $pdo->prepare('SELECT id, price, availability FROM cottages WHERE id = ? FOR UPDATE');

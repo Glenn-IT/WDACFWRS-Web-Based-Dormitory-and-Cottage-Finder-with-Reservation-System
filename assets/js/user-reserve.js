@@ -68,6 +68,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // Requirement: Gender check for dormitories
+  const studentGender = session.gender || "";
+  const dormGender = type === "dorm" ? (asset.gender || "Male") : "";
+  const isGenderMismatch = Boolean(type === "dorm" && studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
+
+  if (isGenderMismatch) {
+    const toStep2 = document.getElementById("to-step-2-btn");
+    if (toStep2) {
+      toStep2.disabled = true;
+      toStep2.classList.add("disabled");
+      toStep2.title = `This dormitory strictly accepts ${dormGender} boarders only.`;
+    }
+  }
+
   const wizardState = {
     paymentMethod: null,
   };
@@ -88,19 +102,43 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ---- Step 1 ----
   const price = asset.price;
   const label = type === "dorm" ? (asset.dormitoryName || asset.roomNumber) : asset.name;
+  const isFemale = dormGender === "Female";
+  const genderBadge = type === "dorm" ? `
+    <span class="badge ${isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'} me-2">
+      <i class="fa-solid fa-${isFemale ? 'venus' : 'mars'} me-1"></i>${escapeHtml(dormGender)} Boarders Only
+    </span>` : "";
+
+  let genderMismatchAlert = "";
+  if (isGenderMismatch) {
+    genderMismatchAlert = `
+      <div class="alert alert-danger d-flex align-items-center mt-3 mb-0">
+        <i class="fa-solid fa-triangle-exclamation fs-4 me-3 text-danger"></i>
+        <div>
+          <h6 class="fw-bold mb-1">Gender Restriction: Cannot Reserve</h6>
+          <p class="mb-0 small">This dormitory strictly accepts <strong>${escapeHtml(dormGender)} boarders only</strong>. Your registered profile gender is <strong>${escapeHtml(studentGender)}</strong>.</p>
+        </div>
+      </div>`;
+  }
+
   document.getElementById("selected-asset-card").innerHTML = `
     <div class="row g-3 align-items-center">
       <div class="col-md-4"><img src="${resolveAsset(asset.image)}" class="w-100 rounded" style="height:160px;object-fit:cover;"></div>
       <div class="col-md-8">
         <h5 class="fw-bold mb-1">${escapeHtml(label)}</h5>
+        <div class="mb-2">${genderBadge}</div>
         <p class="text-muted mb-1">${type === "dorm" ? `Dormitory · Capacity ${asset.capacity} pax` : `Owner: ${escapeHtml(asset.owner)} · ${asset.rooms} rooms`}</p>
         <h5 class="text-primary fw-bold">₱${Number(price || 0).toLocaleString()} ${type === "dorm" ? "/ month" : "/ day"}</h5>
+        ${genderMismatchAlert}
       </div>
     </div>`;
 
   document.getElementById("to-step-2-btn").addEventListener("click", () => {
     if (hasApprovedReservation) {
       showToast("You already have an active approved reservation.", "error");
+      return;
+    }
+    if (isGenderMismatch) {
+      showToast(`Cannot Reserve: This dormitory strictly accepts ${dormGender} boarders only.`, "error");
       return;
     }
     if (isProfileIncomplete) {

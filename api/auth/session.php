@@ -8,6 +8,12 @@ $profileStatus = null;
 if ($session && ($session['role'] ?? '') === 'student') {
     $pdo = get_db();
     $profileStatus = check_profile_completion($pdo, (int)$session['id']);
+    $stmtG = $pdo->prepare('SELECT gender FROM students WHERE id = ?');
+    $stmtG->execute([(int)$session['id']]);
+    if ($gRow = $stmtG->fetch()) {
+        $_SESSION['user']['gender'] = $gRow['gender'];
+        $session['gender'] = $gRow['gender'];
+    }
 }
 
 respond(['ok' => true, 'user' => $session, 'profileStatus' => $profileStatus]);

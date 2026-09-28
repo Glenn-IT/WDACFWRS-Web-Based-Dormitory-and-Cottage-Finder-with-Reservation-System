@@ -36,15 +36,17 @@ if ($stmt->fetch()) {
 }
 
 $studentNo = next_code($pdo, 'students', 'student_no', 'STU');
+$gender = in_array($in['gender'] ?? '', ['Male', 'Female'], true) ? $in['gender'] : 'Male';
 
 $stmt = $pdo->prepare('INSERT INTO students
-    (student_no, first_name, last_name, email, password_hash, security_question, security_answer_hash,
+    (student_no, first_name, last_name, gender, email, password_hash, security_question, security_answer_hash,
      course, year_level, semester, nationality, address, birthday, phone, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Active\')');
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Active\')');
 $stmt->execute([
     $studentNo,
     $firstName,
     $lastName,
+    $gender,
     $email,
     password_hash($password, PASSWORD_DEFAULT),
     $securityQuestion,
@@ -65,4 +67,5 @@ respond(['ok' => true, 'user' => [
     'id' => $id,
     'email' => $email,
     'name' => "$firstName $lastName",
+    'gender' => $gender,
 ]]);

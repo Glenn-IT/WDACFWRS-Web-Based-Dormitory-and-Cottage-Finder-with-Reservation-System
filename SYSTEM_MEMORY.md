@@ -32,8 +32,8 @@ The database consists of **11 tables** with explicit foreign keys and check cons
 | `students` | `id INT AUTO_INCREMENT` | `student_no UNIQUE`, `email UNIQUE` | Student accounts, profile details, academic info, status |
 | `student_parent_info` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE, UNIQUE) | Student profile parent/guardian background & emergency contacts |
 | `student_backgrounds` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE, UNIQUE) | Student profile habits, appliances, medical conditions, hobbies |
-| `dormitories` | `id INT AUTO_INCREMENT` | `room_no UNIQUE` | Dorm rooms (capacity, price, status: Available/Occupied/Full) |
-| `cottages` | `id INT AUTO_INCREMENT` | — | Cottages (owner profile [name, photo, phone, email, bio], rooms, price, availability: Available/Booked) |
+| `dormitories` | `id INT AUTO_INCREMENT` | — | Dorm rooms (shared dorm names permitted, capacity, gender, price, status) |
+| `cottages` | `id INT AUTO_INCREMENT` | `name UNIQUE` | Cottages (unique name enforced, owner profile, rooms, price, availability) |
 | `reservations` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE)<br>`dorm_id -> dormitories(id)` (SET NULL)<br>`cottage_id -> cottages(id)` (SET NULL)<br>`chk_res_asset`: Exactly one asset ID per type | Core reservation records, payment status, approval status |
 | `reservation_parent_info` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Parent/guardian background on specific reservation snapshot |
 | `reservation_backgrounds` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Student background on specific reservation snapshot |
@@ -52,7 +52,7 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | :--- | :--- | :--- |
 | `id` | `id` (int) | Card ID, edit ID, delete ID, reservation assetId |
 | `room_no` | `roomNumber`, `dormitoryName`, `name` | Room title, badges, filters |
-| `gender` | `gender` ('Male', 'Female') | Filter pill, room tag |
+| `gender` | `gender` ('Male', 'Female') | Accepted Boarders (Male Only / Female Only), filter pill, room tag, reservation guard |
 | `capacity` | `capacity` (int) | Badge, capacity counter |
 | `price` | `price` (float) | Price tag (₱/month) |
 | `status` | `status` ('Available', 'Occupied', 'Full') | Status badge, booking guard |
@@ -102,6 +102,7 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | `student_no` | `studentNo` | Student ID badge (e.g. `STU-0001`) |
 | `first_name` | `firstName` | Name field |
 | `last_name` | `lastName` | Name field |
+| `gender` | `gender` ('Male', 'Female') | Gender assignment, profile & registration field, boarder restriction check |
 | `course` / `year_level` / `semester` | `course`, `yearLevel`, `semester` | Academic info |
 | `status` | `status` ('Active', 'Inactive') | Account status toggle |
 | `date_registered` | `dateRegistered` | Date formatted YYYY-MM-DD |
@@ -313,6 +314,12 @@ When any change is made, use this matrix to locate and update **every connected 
    - Any newly registered student or student with missing parent/guardian background (Father or Mother Name, Emergency Contact Person, Relationship, and Emergency Contact Number) MUST complete these details before submitting room reservations.
    - **Backend Guard**: Enforced via `check_profile_completion()` in `api/users/_helpers.php`, guarded in `api/reservations/create.php` (returns 403 error), and validated on `api/profile/update.php`.
    - **Frontend Guard**: `index.html` guides newly registered students with incomplete profiles directly to `user/profile.html?required=1`; `user/dashboard.html` and `user/rooms.html` render prominent action banners; `user/reserve.html` disables step continuation until completed.
+7. **Strict Gender-Segregated Dormitory Boarder Policy**:
+   - Dormitories strictly enforce gender segregation (`Male` or `Female` boarders only) adhering to campus residential regulations.
+   - When adding or editing a dormitory (`admin/dormitories.html`), administrators must designate Accepted Boarders (`Male Boarders Only` or `Female Boarders Only`).
+   - Students register and maintain their legal gender during account registration (`register.html`) and personal profile management (`user/profile.html`).
+   - **Backend Guard**: `api/reservations/create.php` queries the student's registered gender and compares it against the dormitory's accepted boarder restriction. If mismatched, it rolls back the transaction and throws a 400 runtime exception.
+   - **Frontend Guard**: `user/rooms.html` provides an Accepted Boarders filter, clearly badges room allocations, and disables booking buttons for mismatched students; `user/reserve.html` displays prominent gender restriction warnings and disables proceeding to payment.
 
 ---
 

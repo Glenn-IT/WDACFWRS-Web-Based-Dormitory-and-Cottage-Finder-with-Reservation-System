@@ -53,7 +53,7 @@ if ($role === 'admin') {
         'name' => $account['name'],
     ];
 } else {
-    $stmt = $pdo->prepare('SELECT id, first_name, last_name, email, password_hash, status FROM students WHERE email = ?');
+    $stmt = $pdo->prepare('SELECT id, first_name, last_name, gender, email, password_hash, status FROM students WHERE email = ?');
     $stmt->execute([$email]);
     $account = $stmt->fetch();
     if (!$account || !password_verify($password, $account['password_hash'])) {
@@ -68,6 +68,7 @@ if ($role === 'admin') {
         'id' => (int)$account['id'],
         'email' => $account['email'],
         'name' => $account['first_name'] . ' ' . $account['last_name'],
+        'gender' => $account['gender'] ?? 'Male',
     ];
 }
 

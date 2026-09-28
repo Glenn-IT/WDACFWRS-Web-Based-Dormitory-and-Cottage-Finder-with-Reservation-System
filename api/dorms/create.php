@@ -19,12 +19,6 @@ if ($roomNumber === '' || $capacity <= 0 || $price < 0) {
 
 $pdo = get_db();
 
-$stmt = $pdo->prepare('SELECT id FROM dormitories WHERE room_no = ?');
-$stmt->execute([$roomNumber]);
-if ($stmt->fetch()) {
-    fail('A dormitory with this name already exists.');
-}
-
 $imagePath = isset($_FILES['image']) ? save_uploaded_image($_FILES['image'], 'dorms') : null;
 
 $stmt = $pdo->prepare('INSERT INTO dormitories (room_no, gender, capacity, price, status, description, image_path)

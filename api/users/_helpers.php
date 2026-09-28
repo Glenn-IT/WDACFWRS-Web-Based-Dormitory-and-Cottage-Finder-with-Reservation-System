@@ -7,6 +7,7 @@ function map_student(array $u): array {
         'studentNo' => $u['student_no'],
         'firstName' => $u['first_name'],
         'lastName' => $u['last_name'],
+        'gender' => $u['gender'] ?? 'Male',
         'email' => $u['email'],
         'course' => $u['course'],
         'yearLevel' => $u['year_level'],

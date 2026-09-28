@@ -29,12 +29,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     hasApprovedReservation = false;
   }
 
-  // Check mandatory parent background profile status
+  // Check mandatory parent background profile status & student gender
   let profileStatus = null;
+  let currentSession = null;
   try {
-    const session = await Auth.getSession();
-    if (session && session.profileStatus) {
-      profileStatus = session.profileStatus;
+    currentSession = await Auth.getSession();
+    if (currentSession && currentSession.profileStatus) {
+      profileStatus = currentSession.profileStatus;
     } else {
       const pData = await DataAPI.getProfile();
       profileStatus = pData.profileStatus || null;
@@ -53,6 +54,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     selectedOwnerFilter = "";
     tabDorm.classList.toggle("active", type === "dorm");
     tabCottage.classList.toggle("active", type === "cottage");
+    const dormGenderCol = document.getElementById("dorm-gender-col");
+    if (dormGenderCol) dormGenderCol.style.display = type === "dorm" ? "" : "none";
     if (searchInput) {
       searchInput.placeholder = type === "dorm" ? "Search dormitory name..." : "Search cottage name or owner...";
     }
@@ -68,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   tabDorm.addEventListener("click", () => setType("dorm"));
   tabCottage.addEventListener("click", () => setType("cottage"));
 
-  ["filter-status", "filter-search"].forEach((id) => {
+  ["filter-status", "filter-gender", "filter-search"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener("input", () => {
@@ -99,9 +102,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       </tr>`;
 
     const status = document.getElementById("filter-status")?.value || "";
+    const gender = document.getElementById("filter-gender")?.value || "";
     const search = document.getElementById("filter-search")?.value.trim() || "";
 
-    const data = await DataAPI.getDorms({ status, search });
+    const data = await DataAPI.getDorms({ status, gender, search });
     dormsCache = data.dorms || [];
 
     if (countLabel) countLabel.textContent = `${dormsCache.length} room(s) available`;
@@ -266,17 +270,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function dormRow(d) {
     const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
-    const isLocked = d.reservedByMe || d.status !== "Available" || hasApprovedReservation;
+    const studentGender = currentSession?.gender || "";
+    const dormGender = d.gender || "Male";
+    const isGenderMismatch = Boolean(studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
+    const isLocked = d.reservedByMe || d.status !== "Available" || hasApprovedReservation || isGenderMismatch;
     const disabled = isLocked ? "disabled" : "";
     const badgeLabel = d.reservedByMe ? "Room/Unit Reserved" : d.status;
-    const btnLabel = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Reserved" : (isParentIncomplete ? "Profile Incomplete" : "Reserve"));
-    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isParentIncomplete ? "You must complete Parent / Guardian details first" : "");
+    const isFemale = dormGender === "Female";
+    const genderBadge = `<span class="badge ${isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'}"><i class="fa-solid fa-${isFemale ? 'venus' : 'mars'} me-1"></i>${escapeHtml(dormGender)} Only</span>`;
+
+    let btnLabel = "Reserve";
+    let btnTitle = "";
+    if (hasApprovedReservation) {
+      btnLabel = "Booking Locked";
+      btnTitle = "You already have an active approved reservation";
+    } else if (d.reservedByMe) {
+      btnLabel = "Reserved";
+    } else if (isGenderMismatch) {
+      btnLabel = `${escapeHtml(dormGender)} Only`;
+      btnTitle = `This dormitory strictly accepts ${escapeHtml(dormGender)} boarders only. Your registered gender is ${escapeHtml(studentGender)}.`;
+    } else if (isParentIncomplete) {
+      btnLabel = "Profile Incomplete";
+      btnTitle = "You must complete Parent / Guardian details first";
+    }
+
     return `
       <tr>
         <td><img src="${resolveAsset(d.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
         <td>
           <div class="fw-bold">${escapeHtml(d.roomNumber)}</div>
-          <div class="text-muted small">${escapeHtml(d.gender || "All")} Gender</div>
+          <div class="mt-1">${genderBadge}</div>
         </td>
         <td>${d.capacity} pax</td>
         <td>₱${Number(d.price || 0).toLocaleString()} <span class="text-muted small">/mo</span></td>
@@ -320,6 +343,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       showToast("You already have an active approved reservation.", "error");
       return;
     }
+    if (type === "dorm") {
+      const d = dormsCache.find((x) => String(x.id) === String(id));
+      const studentGender = currentSession?.gender || "";
+      const dormGender = d?.gender || "Male";
+      if (studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase()) {
+        showToast(`Cannot Reserve: This dormitory strictly accepts ${dormGender} boarders only.`, "error");
+        return;
+      }
+    }
     if (profileStatus && !profileStatus.parentComplete) {
       showToast("Action Required: Please complete your Parent / Guardian details in your profile first.", "warning");
       setTimeout(() => {
@@ -334,16 +366,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     const d = dormsCache.find((x) => String(x.id) === String(id));
     if (!d) return;
     const badgeLabel = d.reservedByMe ? "Room/Unit Reserved" : d.status;
+    const studentGender = currentSession?.gender || "";
+    const dormGender = d.gender || "Male";
+    const isFemale = dormGender === "Female";
+    const isGenderMismatch = Boolean(studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
+    const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
+
+    let mismatchAlert = "";
+    if (isGenderMismatch) {
+      mismatchAlert = `
+        <div class="alert alert-warning py-2 mb-3">
+          <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
+          <strong>Gender Restriction:</strong> This dormitory strictly accepts <strong>${escapeHtml(dormGender)} boarders only</strong>. Your registered profile gender is <strong>${escapeHtml(studentGender)}</strong>.
+        </div>`;
+    }
+
     document.getElementById("room-detail-body").innerHTML = `
       <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
       <h5 class="fw-bold">${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
-      <p class="text-muted mb-2"><i class="fa-solid fa-users me-1"></i>Capacity: ${d.capacity} pax · <i class="fa-solid fa-venus-mars me-1"></i>${escapeHtml(d.gender || "All")} Gender</p>
+      <p class="text-muted mb-2">
+        <span class="badge ${isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'} me-2">
+          <i class="fa-solid fa-${isFemale ? 'venus' : 'mars'} me-1"></i>${escapeHtml(dormGender)} Boarders Only
+        </span>
+        <i class="fa-solid fa-users me-1"></i>Capacity: ${d.capacity} pax
+      </p>
+      ${mismatchAlert}
       <p>${escapeHtml(d.description)}</p>
       <h5 class="text-primary fw-bold">₱${Number(d.price || 0).toLocaleString()} / month</h5>`;
-    const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
+
     const reserveBtn = document.getElementById("room-detail-reserve-btn");
-    reserveBtn.disabled = d.reservedByMe || d.status !== "Available" || hasApprovedReservation;
-    reserveBtn.textContent = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Room/Unit Reserved" : (isParentIncomplete ? "Complete Profile to Reserve" : "Reserve Now"));
+    reserveBtn.disabled = d.reservedByMe || d.status !== "Available" || hasApprovedReservation || isGenderMismatch;
+    reserveBtn.textContent = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Room/Unit Reserved" : (isGenderMismatch ? `${escapeHtml(dormGender)} Boarders Only` : (isParentIncomplete ? "Complete Profile to Reserve" : "Reserve Now")));
     reserveBtn.onclick = () => goReserve("dorm", d.id);
     new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
   }

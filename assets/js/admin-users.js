@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <tr>
         <td><img src="${resolveAsset(u.profilePic)}" class="avatar-circle"></td>
         <td>${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</td>
+        <td><span class="badge ${u.gender === 'Female' ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'}">${escapeHtml(u.gender || "Male")}</span></td>
         <td>${escapeHtml(u.email)}</td>
         <td>${escapeHtml(u.course || "-")}</td>
         <td>${u.dateRegistered}</td>
@@ -35,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </tr>`
           )
           .join("")
-      : `<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-users"></i>No users match your search.</div></td></tr>`;
+      : `<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-users"></i>No users match your search.</div></td></tr>`;
 
     tbody.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => viewUser(b.dataset.view)));
     tbody.querySelectorAll("[data-deactivate]").forEach((b) => b.addEventListener("click", () => setStatus(b.dataset.deactivate, "Inactive")));
@@ -54,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="row small">
         <div class="col-6">Student ID: ${u.id}</div>
+        <div class="col-6">Gender: <span class="fw-semibold">${escapeHtml(u.gender || "Male")}</span></div>
         <div class="col-6">Phone: ${escapeHtml(u.phone || "-")}</div>
         <div class="col-6">Course: ${escapeHtml(u.course || "-")}</div>
         <div class="col-6">Year Level: ${escapeHtml(u.yearLevel || "-")}</div>

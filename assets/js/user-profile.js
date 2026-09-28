@@ -51,6 +51,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Personal
     document.getElementById("pf-first-name").value = user.firstName || "";
     document.getElementById("pf-last-name").value = user.lastName || "";
+    const pfGender = document.getElementById("pf-gender");
+    if (pfGender) pfGender.value = user.gender || "Male";
     document.getElementById("pf-course").value = user.course || "";
     document.getElementById("pf-year-level").value = user.yearLevel || "";
     document.getElementById("pf-semester").value = user.semester || "";
@@ -226,6 +228,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const payload = {
       firstName: document.getElementById("pf-first-name").value.trim(),
       lastName: document.getElementById("pf-last-name").value.trim(),
+      gender: document.getElementById("pf-gender") ? document.getElementById("pf-gender").value : undefined,
       course: document.getElementById("pf-course").value.trim(),
       yearLevel: document.getElementById("pf-year-level").value.trim(),
       semester: document.getElementById("pf-semester").value.trim(),
