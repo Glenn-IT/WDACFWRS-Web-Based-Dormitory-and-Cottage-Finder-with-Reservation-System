@@ -64,6 +64,34 @@
                 <input type="file" accept="image/*" class="form-control" id="dorm-image-input">
                 <img id="dorm-image-preview" class="mt-2 rounded" style="max-height:140px;display:none;">
               </div>
+
+              <!-- Owner Profile & Online Payment QR Section -->
+              <div class="col-12 mt-3">
+                <h6 class="fw-bold text-primary mb-2 border-bottom pb-2"><i class="fa-solid fa-qrcode me-2"></i>Owner / Landlord &amp; Online Payment (QR Code)</h6>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Owner / Landlord Name</label>
+                <input class="form-control" id="dorm-owner-name" placeholder="e.g. Engr. Roberto Santos">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Owner Contact Phone</label>
+                <input type="tel" class="form-control" id="dorm-owner-phone" placeholder="09XXXXXXXXX" maxlength="11">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Account / Payee Name</label>
+                <input class="form-control" id="dorm-account-name" placeholder="e.g. Roberto Santos (GCash/Maya)">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Account / Mobile Number</label>
+                <input class="form-control" id="dorm-account-number" placeholder="e.g. 0912-345-6789">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Payment QR Code (GCash / Maya / Bank)</label>
+                <input type="file" accept="image/*" class="form-control" id="dorm-qr-input">
+                <div class="mt-2" id="dorm-qr-preview-container" style="display:none;">
+                  <img id="dorm-qr-preview" class="border rounded p-1" style="max-height:160px;object-fit:contain;background:#fff;">
+                </div>
+              </div>
             </div>
           </div>
           <div class="modal-footer">

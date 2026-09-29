@@ -91,10 +91,70 @@
             </div>
           </div>
         </div>
-        <div class="text-center d-none" id="qr-section">
-          <div class="qr-placeholder"><i class="fa-solid fa-qrcode fa-3x"></i></div>
-          <p class="text-muted mt-2 small" id="qr-caption">Scan the QR code to pay.</p>
+        <!-- Payment Details Container -->
+        <div id="payment-details-container" class="d-none">
+          <!-- Cash Payment Details -->
+          <div id="cash-payment-info" class="card border-0 bg-light p-4 text-center d-none">
+            <div class="mb-2"><i class="fa-solid fa-hand-holding-dollar fa-3x text-success"></i></div>
+            <h6 class="fw-bold mb-1">Cash Payment Upon Check-In</h6>
+            <p class="text-muted small mb-2" id="cash-payment-text">Please prepare the exact reservation amount to pay at the housing office or caretaker upon check-in.</p>
+            <div class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-3 py-2 align-self-center" id="cash-amount-badge">₱0.00</div>
+          </div>
+
+          <!-- Online Payment (QR Code & Account Info) -->
+          <div id="online-payment-info" class="card border p-4 shadow-sm d-none" style="max-width: 600px; margin: 0 auto;">
+            <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
+              <div>
+                <h6 class="fw-bold mb-0 text-primary" id="online-method-title"><i class="fa-solid fa-qrcode me-2"></i>Scan to Pay</h6>
+                <div class="text-muted small" id="online-method-subtitle">Use your mobile app to scan the owner's QR code</div>
+              </div>
+              <span class="badge bg-primary fs-6 px-3 py-2" id="online-amount-badge">₱0.00</span>
+            </div>
+
+            <!-- With QR Code -->
+            <div id="qr-available-block" class="text-center d-none">
+              <div class="bg-white p-2 border rounded shadow-sm d-inline-block position-relative mb-2">
+                <img id="owner-qr-image" src="" alt="Payment QR Code" style="max-height: 230px; max-width: 230px; object-fit: contain; cursor: pointer;" title="Click to view full size">
+              </div>
+              <div>
+                <a id="download-qr-btn" href="#" target="_blank" class="btn btn-sm btn-outline-secondary mb-3"><i class="fa-solid fa-arrow-down-to-bracket me-1"></i>Open / Download QR</a>
+              </div>
+            </div>
+
+            <!-- Without QR Code Notice -->
+            <div id="qr-missing-block" class="alert alert-light border small text-muted text-center d-none">
+              <i class="fa-solid fa-circle-info text-primary me-1 fs-5 align-middle"></i>
+              <span>No direct QR code image uploaded for this unit yet. You may transfer manually to the owner account details below or choose <strong>Cash</strong>.</span>
+            </div>
+
+            <!-- Account Details Card -->
+            <div class="card bg-light border-0 p-3 mb-3" id="payee-details-card">
+              <div class="row g-2 small">
+                <div class="col-sm-6">
+                  <span class="text-muted d-block">Payee / Account Name:</span>
+                  <strong class="text-dark" id="payee-name-display">—</strong>
+                </div>
+                <div class="col-sm-6">
+                  <span class="text-muted d-block">Account / Mobile Number:</span>
+                  <div class="d-flex align-items-center gap-1">
+                    <strong class="text-dark font-monospace" id="payee-number-display">—</strong>
+                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" id="copy-number-btn" title="Copy Number" style="font-size:0.75rem;"><i class="fa-regular fa-copy"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transaction Reference Number Input -->
+            <div class="mt-2">
+              <label class="form-label small fw-semibold" for="payment-reference-input">
+                <i class="fa-solid fa-receipt me-1 text-primary"></i>Payment Reference / Transaction Number <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control font-monospace" id="payment-reference-input" placeholder="e.g. 100293841928 (from GCash / Maya SMS or receipt)" required>
+              <div class="form-text small">Enter the reference number generated after completing your online transfer so the administrator can verify your payment.</div>
+            </div>
+          </div>
         </div>
+
         <div class="d-flex justify-content-between mt-4">
           <button type="button" class="btn btn-outline-secondary" id="step2-to-step1-btn"><i class="fa-solid fa-arrow-left me-1"></i> Back</button>
           <button type="button" class="btn btn-primary" id="to-step-3-btn" disabled>Continue <i class="fa-solid fa-arrow-right ms-1"></i></button>

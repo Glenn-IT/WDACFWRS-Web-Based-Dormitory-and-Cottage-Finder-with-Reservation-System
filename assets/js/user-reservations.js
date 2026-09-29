@@ -60,8 +60,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           <h5 class="fw-bold">${escapeHtml(r.assetLabel)} <span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></h5>
           <p class="mb-1"><strong>Reservation #:</strong> ${r.id}</p>
           <p class="mb-1"><strong>Type:</strong> ${r.type}</p>
+          <p class="mb-1"><strong>Owner / Payee:</strong> ${escapeHtml(r.assetOwner || "CSU Auxiliary")} ${r.assetOwnerPhone ? `· <i class="fa-solid fa-phone ms-1 me-1 text-primary"></i>${escapeHtml(r.assetOwnerPhone)}` : ""}</p>
           <p class="mb-1"><strong>Reservation Date:</strong> ${r.reservationDate}</p>
           <p class="mb-1"><strong>Payment Method:</strong> ${r.paymentMethod}</p>
+          ${r.referenceNumber ? `<p class="mb-1"><strong>Payment Ref #:</strong> <span class="badge bg-secondary-subtle text-dark border font-monospace">${escapeHtml(r.referenceNumber)}</span></p>` : ""}
           <p class="mb-1"><strong>Amount:</strong> ₱${r.amount.toLocaleString()}</p>
           <p class="mb-0"><strong>Payment Status:</strong> <span class="badge ${badgeClass(r.paymentStatus)}">${r.paymentStatus}</span></p>
         </div>

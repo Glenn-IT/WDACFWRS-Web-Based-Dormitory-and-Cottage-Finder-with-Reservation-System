@@ -93,6 +93,11 @@ CREATE TABLE dormitories (
   status ENUM('Available','Occupied','Full') NOT NULL DEFAULT 'Available',
   description TEXT,
   image_path VARCHAR(255) DEFAULT NULL,
+  owner_name VARCHAR(150) DEFAULT '',
+  owner_phone VARCHAR(50) DEFAULT '',
+  payment_qr VARCHAR(255) DEFAULT NULL,
+  payment_account_name VARCHAR(150) DEFAULT '',
+  payment_account_number VARCHAR(100) DEFAULT '',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -112,6 +117,9 @@ CREATE TABLE cottages (
   availability ENUM('Available','Booked') NOT NULL DEFAULT 'Available',
   description TEXT,
   image_path VARCHAR(255) DEFAULT NULL,
+  payment_qr VARCHAR(255) DEFAULT NULL,
+  payment_account_name VARCHAR(150) DEFAULT '',
+  payment_account_number VARCHAR(100) DEFAULT '',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -129,6 +137,7 @@ CREATE TABLE reservations (
   reservation_date DATE NOT NULL,
   payment_status ENUM('Pending','Paid') NOT NULL DEFAULT 'Pending',
   approval_status ENUM('Pending','Approved','Declined','Cancelled') NOT NULL DEFAULT 'Pending',
+  reference_number VARCHAR(100) DEFAULT '',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_res_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
   CONSTRAINT fk_res_dorm FOREIGN KEY (dorm_id) REFERENCES dormitories(id) ON DELETE SET NULL,
@@ -187,6 +196,7 @@ CREATE TABLE payments (
   amount DECIMAL(10,2) NOT NULL DEFAULT 0,
   status ENUM('Pending','Paid') NOT NULL DEFAULT 'Pending',
   date DATE NOT NULL,
+  reference_number VARCHAR(100) DEFAULT '',
   CONSTRAINT fk_pay_res FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

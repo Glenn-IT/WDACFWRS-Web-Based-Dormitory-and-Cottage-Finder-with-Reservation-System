@@ -122,13 +122,14 @@ try {
         }
     }
 
+    $referenceNumber = trim((string)($in['referenceNumber'] ?? $in['reference_number'] ?? ''));
     $amount = (float)$asset['price'];
     $paymentStatus = $paymentMethod === 'Cash' ? 'Pending' : 'Paid';
     $today = date('Y-m-d');
 
     $stmt = $pdo->prepare('INSERT INTO reservations
-        (student_id, type, dorm_id, cottage_id, payment_method, amount, reservation_date, payment_status, approval_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, \'Pending\')');
+        (student_id, type, dorm_id, cottage_id, payment_method, amount, reservation_date, payment_status, approval_status, reference_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?)');
     $stmt->execute([
         $studentId,
         $type,
@@ -138,6 +139,7 @@ try {
         $amount,
         $today,
         $paymentStatus,
+        $referenceNumber,
     ]);
     $reservationId = (int)$pdo->lastInsertId();
 
@@ -177,8 +179,8 @@ try {
         trim((string)($background['leisure'] ?? '')),
     ]);
 
-    $stmt = $pdo->prepare('INSERT INTO payments (reservation_id, method, amount, status, date) VALUES (?, ?, ?, ?, ?)');
-    $stmt->execute([$reservationId, $paymentMethod, $amount, $paymentStatus, $today]);
+    $stmt = $pdo->prepare('INSERT INTO payments (reservation_id, method, amount, status, date, reference_number) VALUES (?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$reservationId, $paymentMethod, $amount, $paymentStatus, $today, $referenceNumber]);
 
     if ($type === 'Dormitory') {
         $stmt = $pdo->prepare('UPDATE dormitories SET status = \'Occupied\' WHERE id = ?');

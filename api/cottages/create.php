@@ -11,6 +11,8 @@ $owner = trim((string)($_POST['owner'] ?? ''));
 $ownerPhone = trim((string)($_POST['ownerPhone'] ?? $_POST['owner_phone'] ?? ''));
 $ownerEmail = trim((string)($_POST['ownerEmail'] ?? $_POST['owner_email'] ?? ''));
 $ownerBio = trim((string)($_POST['ownerBio'] ?? $_POST['owner_bio'] ?? ''));
+$paymentAccountName = trim((string)($_POST['paymentAccountName'] ?? $_POST['payment_account_name'] ?? ''));
+$paymentAccountNumber = trim((string)($_POST['paymentAccountNumber'] ?? $_POST['payment_account_number'] ?? ''));
 $rooms = (int)($_POST['rooms'] ?? 0);
 $price = (float)($_POST['price'] ?? 0);
 $description = trim((string)($_POST['description'] ?? ''));
@@ -35,9 +37,16 @@ if (isset($_FILES['ownerPhoto'])) {
     $ownerPhoto = save_uploaded_image($_FILES['owner_photo'], 'owners');
 }
 
-$stmt = $pdo->prepare('INSERT INTO cottages (name, owner, owner_photo, owner_phone, owner_email, owner_bio, rooms, price, availability, description, image_path)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-$stmt->execute([$name, $owner, $ownerPhoto, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $availability, $description, $imagePath]);
+$paymentQr = null;
+if (isset($_FILES['paymentQr'])) {
+    $paymentQr = save_uploaded_image($_FILES['paymentQr'], 'qrcodes');
+} elseif (isset($_FILES['payment_qr'])) {
+    $paymentQr = save_uploaded_image($_FILES['payment_qr'], 'qrcodes');
+}
+
+$stmt = $pdo->prepare('INSERT INTO cottages (name, owner, owner_photo, owner_phone, owner_email, owner_bio, rooms, price, availability, description, image_path, payment_qr, payment_account_name, payment_account_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+$stmt->execute([$name, $owner, $ownerPhoto, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $availability, $description, $imagePath, $paymentQr, $paymentAccountName, $paymentAccountNumber]);
 
 $id = (int)$pdo->lastInsertId();
 $stmt = $pdo->prepare('SELECT * FROM cottages WHERE id = ?');

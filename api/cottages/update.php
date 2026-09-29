@@ -20,6 +20,8 @@ $description = trim((string)($_POST['description'] ?? ''));
 $ownerPhone = trim((string)($_POST['ownerPhone'] ?? $_POST['owner_phone'] ?? ''));
 $ownerEmail = trim((string)($_POST['ownerEmail'] ?? $_POST['owner_email'] ?? ''));
 $ownerBio = trim((string)($_POST['ownerBio'] ?? $_POST['owner_bio'] ?? ''));
+$paymentAccountName = trim((string)($_POST['paymentAccountName'] ?? $_POST['payment_account_name'] ?? ''));
+$paymentAccountNumber = trim((string)($_POST['paymentAccountNumber'] ?? $_POST['payment_account_number'] ?? ''));
 
 if ($name === '' || $rooms <= 0 || $price < 0) {
     fail('Please fill in all required fields.');
@@ -41,6 +43,13 @@ if (isset($_FILES['ownerPhoto'])) {
     $ownerPhoto = save_uploaded_image($_FILES['owner_photo'], 'owners');
 }
 
+$paymentQr = null;
+if (isset($_FILES['paymentQr'])) {
+    $paymentQr = save_uploaded_image($_FILES['paymentQr'], 'qrcodes');
+} elseif (isset($_FILES['payment_qr'])) {
+    $paymentQr = save_uploaded_image($_FILES['payment_qr'], 'qrcodes');
+}
+
 $fields = [
     'name = ?',
     'owner = ?',
@@ -50,8 +59,10 @@ $fields = [
     'rooms = ?',
     'price = ?',
     'description = ?',
+    'payment_account_name = ?',
+    'payment_account_number = ?',
 ];
-$params = [$name, $owner, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $description];
+$params = [$name, $owner, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $description, $paymentAccountName, $paymentAccountNumber];
 
 if ($imagePath) {
     $fields[] = 'image_path = ?';
@@ -60,6 +71,10 @@ if ($imagePath) {
 if ($ownerPhoto) {
     $fields[] = 'owner_photo = ?';
     $params[] = $ownerPhoto;
+}
+if ($paymentQr) {
+    $fields[] = 'payment_qr = ?';
+    $params[] = $paymentQr;
 }
 
 $params[] = $id;

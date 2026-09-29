@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const cottageViewModal = new bootstrap.Modal(document.getElementById("cottage-view-modal"));
   let uploadedFile = null;
   let uploadedPhoto = null;
+  let uploadedQrFile = null;
   let cottages = [];
 
   restrictToPhoneDigits(document.getElementById("cottage-owner-phone"), 11);
@@ -20,7 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>
           <div class="d-flex align-items-center gap-2">
             ${c.ownerPhoto ? `<img src="${resolveAsset(c.ownerPhoto)}" class="rounded-circle" style="width:28px;height:28px;object-fit:cover;">` : `<i class="fa-solid fa-circle-user text-muted fs-5"></i>`}
-            <span class="fw-semibold">${escapeHtml(c.owner || "CSU Auxiliary")}</span>
+            <div>
+              <span class="fw-semibold d-block">${escapeHtml(c.owner || "CSU Auxiliary")}</span>
+              ${c.paymentQr ? `<span class="badge bg-success-subtle text-success border border-success-subtle small"><i class="fa-solid fa-qrcode me-1"></i>QR Active</span>` : `<span class="badge bg-secondary-subtle text-muted border small">No QR</span>`}
+            </div>
           </div>
         </td>
         <td>${escapeHtml(c.name)}</td>
@@ -44,8 +48,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cottage-id").value = "";
     document.getElementById("cottage-image-preview").style.display = "none";
     document.getElementById("cottage-owner-photo-preview").style.display = "none";
+    document.getElementById("cottage-qr-preview-container").style.display = "none";
     uploadedFile = null;
     uploadedPhoto = null;
+    uploadedQrFile = null;
   }
 
   document.getElementById("add-cottage-btn").addEventListener("click", () => {
@@ -80,6 +86,19 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.readAsDataURL(file);
   });
 
+  document.getElementById("cottage-qr-input").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    uploadedQrFile = file;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const preview = document.getElementById("cottage-qr-preview");
+      preview.src = reader.result;
+      document.getElementById("cottage-qr-preview-container").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
+
   function editCottage(id) {
     const c = cottages.find((x) => String(x.id) === String(id));
     if (!c) return;
@@ -91,6 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cottage-owner-phone").value = (c.ownerPhone || "").replace(/\D/g, "").slice(0, 11);
     document.getElementById("cottage-owner-email").value = c.ownerEmail || "";
     document.getElementById("cottage-owner-bio").value = c.ownerBio || "";
+    document.getElementById("cottage-account-name").value = c.paymentAccountName || "";
+    document.getElementById("cottage-account-number").value = c.paymentAccountNumber || "";
     document.getElementById("cottage-rooms").value = c.rooms;
     document.getElementById("cottage-price").value = c.price;
     document.getElementById("cottage-description").value = c.description;
@@ -107,6 +128,13 @@ document.addEventListener("DOMContentLoaded", () => {
       photoPreview.style.display = "block";
     }
 
+    const qrContainer = document.getElementById("cottage-qr-preview-container");
+    const qrPreview = document.getElementById("cottage-qr-preview");
+    if (c.paymentQr) {
+      qrPreview.src = resolveAsset(c.paymentQr);
+      qrContainer.style.display = "block";
+    }
+
     cottageModal.show();
   }
 
@@ -115,6 +143,24 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!c) return;
     const ownerName = c.owner || "CSU Auxiliary Services";
     const initials = ownerName.split(" ").map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+
+    let qrHtml = "";
+    if (c.paymentQr) {
+      qrHtml = `
+        <div class="card border p-3 mt-3 bg-light">
+          <div class="row align-items-center g-3">
+            <div class="col-auto">
+              <img src="${resolveAsset(c.paymentQr)}" class="border rounded shadow-sm bg-white p-1" style="width:100px;height:100px;object-fit:contain;">
+            </div>
+            <div class="col">
+              <h6 class="fw-bold text-primary mb-1"><i class="fa-solid fa-qrcode me-1"></i>Official Owner Payment QR Code</h6>
+              <div class="small text-muted"><strong>Payee:</strong> ${escapeHtml(c.paymentAccountName || c.owner || "Owner")}</div>
+              ${c.paymentAccountNumber ? `<div class="small text-muted"><strong>Account #:</strong> ${escapeHtml(c.paymentAccountNumber)}</div>` : ""}
+              ${c.ownerPhone ? `<div class="small text-muted"><strong>Owner Phone:</strong> ${escapeHtml(c.ownerPhone)}</div>` : ""}
+            </div>
+          </div>
+        </div>`;
+    }
 
     document.getElementById("cottage-view-body").innerHTML = `
       <!-- Owner Profile Card -->
@@ -143,7 +189,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <img src="${resolveAsset(c.image)}" class="w-100 rounded mb-3" style="max-height:240px;object-fit:cover;">
       <h5 class="fw-bold mb-1">${escapeHtml(c.name)}</h5>
       <p class="text-muted mb-2"><i class="fa-solid fa-bed me-1"></i>${c.rooms} rooms · <i class="fa-solid fa-tag me-1"></i>₱${Number(c.price || 0).toLocaleString()} / day · <span class="badge ${badgeClass(c.availability)}">${c.availability}</span></p>
-      <p class="mb-0 text-secondary">${escapeHtml(c.description)}</p>`;
+      <p class="mb-0 text-secondary">${escapeHtml(c.description)}</p>
+      ${qrHtml}`;
     cottageViewModal.show();
   }
 
@@ -164,11 +211,14 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("ownerPhone", phone);
     formData.append("ownerEmail", document.getElementById("cottage-owner-email").value.trim());
     formData.append("ownerBio", document.getElementById("cottage-owner-bio").value.trim());
+    formData.append("paymentAccountName", document.getElementById("cottage-account-name").value.trim());
+    formData.append("paymentAccountNumber", document.getElementById("cottage-account-number").value.trim());
     formData.append("rooms", document.getElementById("cottage-rooms").value);
     formData.append("price", document.getElementById("cottage-price").value);
     formData.append("description", document.getElementById("cottage-description").value.trim());
     if (uploadedFile) formData.append("image", uploadedFile);
     if (uploadedPhoto) formData.append("ownerPhoto", uploadedPhoto);
+    if (uploadedQrFile) formData.append("paymentQr", uploadedQrFile);
 
     withLoading(async () => {
       try {

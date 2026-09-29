@@ -14,6 +14,11 @@ function map_dorm(array $r, bool $reservedByMe = false): array {
         'status' => $r['status'],
         'description' => $r['description'],
         'image' => $r['image_path'] ?: '',
+        'ownerName' => $r['owner_name'] ?? '',
+        'ownerPhone' => $r['owner_phone'] ?? '',
+        'paymentQr' => $r['payment_qr'] ?: '',
+        'paymentAccountName' => $r['payment_account_name'] ?? '',
+        'paymentAccountNumber' => $r['payment_account_number'] ?? '',
         'reservedByMe' => $reservedByMe,
     ];
 }

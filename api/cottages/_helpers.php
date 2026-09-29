@@ -16,6 +16,9 @@ function map_cottage(array $r, bool $reservedByMe = false): array {
         'availability' => $r['availability'],
         'description' => $r['description'],
         'image' => $r['image_path'] ?: '',
+        'paymentQr' => $r['payment_qr'] ?: '',
+        'paymentAccountName' => $r['payment_account_name'] ?? '',
+        'paymentAccountNumber' => $r['payment_account_number'] ?? '',
         'reservedByMe' => $reservedByMe,
     ];
 }

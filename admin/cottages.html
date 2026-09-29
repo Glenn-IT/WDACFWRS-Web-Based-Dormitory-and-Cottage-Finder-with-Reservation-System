@@ -60,7 +60,7 @@
             </div>
 
             <!-- Owner Profile Section -->
-            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-id-badge me-2"></i>Owner Profile &amp; Contact Details</h6>
+            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-id-badge me-2"></i>Owner Profile, Contact &amp; Online Payment (QR Code)</h6>
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label small fw-semibold">Owner / Host Name</label>
@@ -82,6 +82,21 @@
               <div class="col-12">
                 <label class="form-label small fw-semibold">Owner Bio / Host Description</label>
                 <textarea class="form-control" id="cottage-owner-bio" rows="2" placeholder="Brief host background, availability hours, resident caretaker info..."></textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Account / Payee Name</label>
+                <input class="form-control" id="cottage-account-name" placeholder="e.g. Maria Fernandez (GCash/Maya)">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Account / Mobile Number</label>
+                <input class="form-control" id="cottage-account-number" placeholder="e.g. 0917-123-4567">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Owner Payment QR Code (GCash / Maya / Bank)</label>
+                <input type="file" accept="image/*" class="form-control" id="cottage-qr-input">
+                <div class="mt-2" id="cottage-qr-preview-container" style="display:none;">
+                  <img id="cottage-qr-preview" class="border rounded p-1" style="max-height:160px;object-fit:contain;background:#fff;">
+                </div>
               </div>
             </div>
           </div>

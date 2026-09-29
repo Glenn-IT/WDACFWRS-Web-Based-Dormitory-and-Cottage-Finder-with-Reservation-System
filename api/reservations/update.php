@@ -52,23 +52,27 @@ try {
         fail('Payment method cannot be empty.');
     }
 
+    $referenceNumber = isset($in['referenceNumber']) ? trim((string)$in['referenceNumber']) : ($res['reference_number'] ?? '');
+
     // Update reservation record
     $upd = $pdo->prepare('UPDATE reservations SET 
         reservation_date = ?, 
         amount = ?, 
         payment_method = ?, 
         payment_status = ?, 
-        approval_status = ? 
+        approval_status = ?,
+        reference_number = ?
         WHERE id = ?');
-    $upd->execute([$reservationDate, $amount, $paymentMethod, $newPaymentStatus, $newApproval, $id]);
+    $upd->execute([$reservationDate, $amount, $paymentMethod, $newPaymentStatus, $newApproval, $referenceNumber, $id]);
 
     // Update or insert matching payment record
     $updPay = $pdo->prepare('UPDATE payments SET 
         amount = ?, 
         method = ?, 
-        status = ? 
+        status = ?,
+        reference_number = ?
         WHERE reservation_id = ?');
-    $updPay->execute([$amount, $paymentMethod, $newPaymentStatus, $id]);
+    $updPay->execute([$amount, $paymentMethod, $newPaymentStatus, $referenceNumber, $id]);
 
     // Asset status synchronization if approval status transitioned
     if ($newApproval !== $oldApproval) {

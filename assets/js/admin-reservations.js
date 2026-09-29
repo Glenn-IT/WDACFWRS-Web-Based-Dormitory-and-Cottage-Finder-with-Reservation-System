@@ -60,13 +60,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!r) return;
     document.getElementById("reservation-view-body").innerHTML = `
       <div class="row g-3 mb-3">
-        <div class="col-md-5"><img src="${resolveAsset(r.image)}" class="w-100 rounded" style="max-height:200px;object-fit:cover;"></div>
+        <div class="col-md-5">
+          <img src="${resolveAsset(r.image)}" class="w-100 rounded" style="max-height:200px;object-fit:cover;">
+          ${r.paymentQr ? `
+            <div class="mt-2 text-center p-2 border rounded bg-light">
+              <span class="small fw-semibold d-block text-primary mb-1"><i class="fa-solid fa-qrcode me-1"></i>Accommodation QR Code</span>
+              <img src="${resolveAsset(r.paymentQr)}" class="border rounded bg-white p-1" style="max-height:100px;max-width:100px;object-fit:contain;">
+            </div>` : ""}
+        </div>
         <div class="col-md-7">
           <h5 class="fw-bold">${escapeHtml(r.assetLabel)} <span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></h5>
           <p class="mb-1"><strong>Reservation #:</strong> ${r.id}</p>
-          <p class="mb-1"><strong>Student:</strong> ${escapeHtml(r.studentName)}</p>
+          <p class="mb-1"><strong>Student:</strong> ${escapeHtml(r.studentName)} (ID: ${r.studentId})</p>
+          <p class="mb-1"><strong>Owner / Payee:</strong> ${escapeHtml(r.assetOwner || "CSU Auxiliary")} ${r.assetOwnerPhone ? `· <i class="fa-solid fa-phone ms-1 me-1 text-primary"></i>${escapeHtml(r.assetOwnerPhone)}` : ""}</p>
           <p class="mb-1"><strong>Date:</strong> ${r.reservationDate}</p>
           <p class="mb-1"><strong>Payment:</strong> ${r.paymentMethod} · ₱${r.amount.toLocaleString()} · <span class="badge ${badgeClass(r.paymentStatus)}">${r.paymentStatus}</span></p>
+          ${r.referenceNumber ? `<p class="mb-1"><strong>Payment Ref / Trans #:</strong> <span class="badge bg-secondary-subtle text-dark border font-monospace fs-6">${escapeHtml(r.referenceNumber)}</span></p>` : ""}
         </div>
       </div>
       <hr>
@@ -106,6 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("edit-res-payment-method").value = r.paymentMethod;
     document.getElementById("edit-res-payment-status").value = r.paymentStatus;
     document.getElementById("edit-res-approval-status").value = r.approvalStatus;
+    document.getElementById("edit-res-reference").value = r.referenceNumber || "";
     editModal.show();
   }
 
@@ -119,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
       paymentMethod: document.getElementById("edit-res-payment-method").value,
       paymentStatus: document.getElementById("edit-res-payment-status").value,
       approvalStatus: document.getElementById("edit-res-approval-status").value,
+      referenceNumber: document.getElementById("edit-res-reference").value.trim(),
     };
 
     withLoading(async () => {

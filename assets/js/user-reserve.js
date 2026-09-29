@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const wizardState = {
     paymentMethod: null,
+    referenceNumber: "",
   };
 
   function goToStep(n) {
@@ -153,24 +154,93 @@ document.addEventListener("DOMContentLoaded", async () => {
     goToStep(2);
   });
 
+  // Setup Copy Payee Number button
+  const copyBtn = document.getElementById("copy-number-btn");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", () => {
+      const numText = document.getElementById("payee-number-display").textContent.trim();
+      if (numText && numText !== "—" && numText !== "N/A") {
+        navigator.clipboard.writeText(numText);
+        showToast("Account number copied to clipboard!", "info");
+      }
+    });
+  }
+
+  // Click on QR image to view in new tab or popup
+  const qrImg = document.getElementById("owner-qr-image");
+  if (qrImg) {
+    qrImg.addEventListener("click", () => {
+      if (qrImg.src) window.open(qrImg.src, "_blank");
+    });
+  }
+
   // ---- Step 2: Payment ----
   document.querySelectorAll(".payment-option").forEach((el) => {
     el.addEventListener("click", () => {
       document.querySelectorAll(".payment-option").forEach((o) => o.classList.remove("border-primary", "border-2", "bg-light"));
       el.classList.add("border-primary", "border-2", "bg-light");
       wizardState.paymentMethod = el.dataset.method;
-      document.getElementById("qr-section").classList.remove("d-none");
-      document.getElementById("qr-caption").textContent =
-        wizardState.paymentMethod === "Cash"
-          ? "Please pay in cash at the Finance Office upon check-in."
-          : `Scan the QR code using your ${wizardState.paymentMethod} app to pay ₱${Number(price || 0).toLocaleString()}.`;
-      document.getElementById("to-step-3-btn").disabled = false;
+
+      const detailsContainer = document.getElementById("payment-details-container");
+      const cashInfo = document.getElementById("cash-payment-info");
+      const onlineInfo = document.getElementById("online-payment-info");
+      const toStep3Btn = document.getElementById("to-step-3-btn");
+
+      detailsContainer.classList.remove("d-none");
+
+      if (wizardState.paymentMethod === "Cash") {
+        cashInfo.classList.remove("d-none");
+        onlineInfo.classList.add("d-none");
+        document.getElementById("cash-amount-badge").textContent = `₱${Number(price || 0).toLocaleString()}`;
+        toStep3Btn.disabled = false;
+      } else {
+        cashInfo.classList.add("d-none");
+        onlineInfo.classList.remove("d-none");
+
+        document.getElementById("online-method-title").innerHTML = `<i class="fa-solid fa-qrcode me-2"></i>Pay via ${wizardState.paymentMethod}`;
+        document.getElementById("online-method-subtitle").textContent = `Scan the owner QR code or transfer using your ${wizardState.paymentMethod} app`;
+        document.getElementById("online-amount-badge").textContent = `₱${Number(price || 0).toLocaleString()}`;
+
+        // Payee details
+        const payeeName = asset.paymentAccountName || (type === "dorm" ? asset.ownerName : asset.owner) || "CSU Housing / Auxiliary";
+        const payeeNumber = asset.paymentAccountNumber || (type === "dorm" ? asset.ownerPhone : asset.ownerPhone) || "N/A";
+        document.getElementById("payee-name-display").textContent = payeeName;
+        document.getElementById("payee-number-display").textContent = payeeNumber;
+
+        // QR Code display
+        const qrAvailable = document.getElementById("qr-available-block");
+        const qrMissing = document.getElementById("qr-missing-block");
+        if (asset.paymentQr) {
+          qrAvailable.classList.remove("d-none");
+          qrMissing.classList.add("d-none");
+          const qrUrl = resolveAsset(asset.paymentQr);
+          document.getElementById("owner-qr-image").src = qrUrl;
+          document.getElementById("download-qr-btn").href = qrUrl;
+        } else {
+          qrAvailable.classList.add("d-none");
+          qrMissing.classList.remove("d-none");
+        }
+
+        toStep3Btn.disabled = false;
+      }
     });
   });
 
   document.getElementById("step2-to-step1-btn").addEventListener("click", () => goToStep(1));
 
   document.getElementById("to-step-3-btn").addEventListener("click", () => {
+    if (wizardState.paymentMethod !== "Cash") {
+      const refInput = document.getElementById("payment-reference-input");
+      const refVal = refInput ? refInput.value.trim() : "";
+      if (!refVal) {
+        showToast("Please enter your Payment Reference / Transaction Number from your payment app.", "warning");
+        if (refInput) refInput.focus();
+        return;
+      }
+      wizardState.referenceNumber = refVal;
+    } else {
+      wizardState.referenceNumber = "";
+    }
     buildReceipt();
     goToStep(3);
   });
@@ -187,6 +257,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
         <span class="text-muted">Payment Method</span><strong>${wizardState.paymentMethod}</strong>
       </div>
+      ${wizardState.referenceNumber ? `
+      <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+        <span class="text-muted">Reference / Transaction #</span><strong class="font-monospace text-primary">${escapeHtml(wizardState.referenceNumber)}</strong>
+      </div>` : ""}
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
         <span class="text-muted">Amount</span><strong>₱${Number(price || 0).toLocaleString()}</strong>
       </div>
@@ -224,6 +298,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           type: type === "dorm" ? "Dormitory" : "Cottage",
           assetId: asset.id,
           paymentMethod: wizardState.paymentMethod,
+          referenceNumber: wizardState.referenceNumber,
         });
         showToast("Reservation submitted successfully!", "success");
         setTimeout(() => (window.location.href = "my-reservations.html"), 900);
