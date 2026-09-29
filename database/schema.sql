@@ -7,7 +7,7 @@ USE wdacfwrs_db;
 -- ---------------------------------------------------------------
 -- Admins
 -- ---------------------------------------------------------------
-CREATE TABLE admins (
+CREATE TABLE IF NOT EXISTS admins (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
   email VARCHAR(150) NOT NULL UNIQUE,
@@ -21,7 +21,7 @@ CREATE TABLE admins (
 -- ---------------------------------------------------------------
 -- Students
 -- ---------------------------------------------------------------
-CREATE TABLE students (
+CREATE TABLE IF NOT EXISTS students (
   id INT AUTO_INCREMENT PRIMARY KEY,
   student_no VARCHAR(20) NOT NULL UNIQUE,
   first_name VARCHAR(100) NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS student_backgrounds (
 -- ---------------------------------------------------------------
 -- Dormitories
 -- ---------------------------------------------------------------
-CREATE TABLE dormitories (
+CREATE TABLE IF NOT EXISTS dormitories (
   id INT AUTO_INCREMENT PRIMARY KEY,
   room_no VARCHAR(150) NOT NULL,
   gender ENUM('Male','Female','Mixed') NOT NULL DEFAULT 'Male',
@@ -104,7 +104,7 @@ CREATE TABLE dormitories (
 -- ---------------------------------------------------------------
 -- Cottages
 -- ---------------------------------------------------------------
-CREATE TABLE cottages (
+CREATE TABLE IF NOT EXISTS cottages (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(150) NOT NULL UNIQUE,
   owner VARCHAR(150) DEFAULT '',
@@ -126,7 +126,7 @@ CREATE TABLE cottages (
 -- ---------------------------------------------------------------
 -- Reservations
 -- ---------------------------------------------------------------
-CREATE TABLE reservations (
+CREATE TABLE IF NOT EXISTS reservations (
   id INT AUTO_INCREMENT PRIMARY KEY,
   student_id INT NOT NULL,
   type ENUM('Dormitory','Cottage') NOT NULL,
@@ -151,7 +151,7 @@ CREATE TABLE reservations (
 -- ---------------------------------------------------------------
 -- Reservation parent/guardian info
 -- ---------------------------------------------------------------
-CREATE TABLE reservation_parent_info (
+CREATE TABLE IF NOT EXISTS reservation_parent_info (
   id INT AUTO_INCREMENT PRIMARY KEY,
   reservation_id INT NOT NULL UNIQUE,
   father_name VARCHAR(150) DEFAULT '',
@@ -169,7 +169,7 @@ CREATE TABLE reservation_parent_info (
 -- ---------------------------------------------------------------
 -- Reservation student background
 -- ---------------------------------------------------------------
-CREATE TABLE reservation_backgrounds (
+CREATE TABLE IF NOT EXISTS reservation_backgrounds (
   id INT AUTO_INCREMENT PRIMARY KEY,
   reservation_id INT NOT NULL UNIQUE,
   appliances VARCHAR(255) DEFAULT '',
@@ -189,7 +189,7 @@ CREATE TABLE reservation_backgrounds (
 -- ---------------------------------------------------------------
 -- Payments
 -- ---------------------------------------------------------------
-CREATE TABLE payments (
+CREATE TABLE IF NOT EXISTS payments (
   id INT AUTO_INCREMENT PRIMARY KEY,
   reservation_id INT NOT NULL,
   method VARCHAR(50) NOT NULL,
@@ -203,7 +203,7 @@ CREATE TABLE payments (
 -- ---------------------------------------------------------------
 -- Notifications
 -- ---------------------------------------------------------------
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
   id INT AUTO_INCREMENT PRIMARY KEY,
   student_id INT NOT NULL,
   message VARCHAR(255) NOT NULL,
@@ -220,7 +220,7 @@ CREATE TABLE notifications (
 --   security answer:   reyes (case-insensitive, stored lowercased+hashed)
 -- CHANGE THE PASSWORD AFTER FIRST LOGIN (Settings > Password tab).
 -- ---------------------------------------------------------------
-INSERT INTO admins (name, email, password_hash, security_question, security_answer_hash, role) VALUES (
+INSERT IGNORE INTO admins (name, email, password_hash, security_question, security_answer_hash, role) VALUES (
   'System Administrator',
   'admin@csupiat.edu.ph',
   '$2y$10$GRep99mI/zmnGCAjnM4DKuMiQxaGkMSi3M3EtPIGVmomLtHHicKWi',
