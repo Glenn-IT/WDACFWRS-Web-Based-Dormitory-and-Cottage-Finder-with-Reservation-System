@@ -24,7 +24,7 @@
 
 ## 2. Database Schema & Data Dictionary
 
-The database consists of **11 tables** with explicit foreign keys and check constraints:
+The database consists of **12 tables** with explicit foreign keys and check constraints:
 
 | Table | Primary Key | Foreign Keys / Constraints | Purpose |
 | :--- | :--- | :--- | :--- |
@@ -34,7 +34,8 @@ The database consists of **11 tables** with explicit foreign keys and check cons
 | `student_backgrounds` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE, UNIQUE) | Student profile habits, appliances, medical conditions, hobbies |
 | `dormitories` | `id INT AUTO_INCREMENT` | — | Dorm rooms (shared dorm names permitted, capacity, gender, price, status) |
 | `cottages` | `id INT AUTO_INCREMENT` | `name UNIQUE` | Cottages (unique name enforced, owner profile, rooms, price, availability) |
-| `reservations` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE)<br>`dorm_id -> dormitories(id)` (SET NULL)<br>`cottage_id -> cottages(id)` (SET NULL)<br>`chk_res_asset`: Exactly one asset ID per type | Core reservation records, payment status, approval status |
+| `kubotels` | `id INT AUTO_INCREMENT` | `name UNIQUE` | Kubotels / KUBO-HOTEL units (unique unit name enforced, host profile, rooms, price, availability) |
+| `reservations` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE)<br>`dorm_id -> dormitories(id)` (SET NULL)<br>`cottage_id -> cottages(id)` (SET NULL)<br>`kubotel_id -> kubotels(id)` (SET NULL)<br>`chk_res_asset`: Exactly one asset ID per type | Core reservation records, payment status, approval status |
 | `reservation_parent_info` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Parent/guardian background on specific reservation snapshot |
 | `reservation_backgrounds` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Student background on specific reservation snapshot |
 | `payments` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE) | Payment records tied to reservations |
@@ -85,16 +86,36 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | `payment_account_number`| `paymentAccountNumber`| Payee / Account number for payments |
 | Calculated | `reservedByMe` (bool) | Indicates if current logged student booked this |
 
-### C. Reservations (`api/reservations/_helpers.php` -> `map_reservation()`)
+### C. Kubotels (`api/kubotels/_helpers.php` -> `map_kubotel()`)
+| Database Column (`kubotels`) | JSON Field (`DataAPI`) | Frontend Usage |
+| :--- | :--- | :--- |
+| `id` | `id` (int) | Card ID, edit ID, delete ID, reservation assetId |
+| `name` | `name` | Kubotel unit title, search filter |
+| `owner` | `owner` | Host / Manager name in card, showcase & detail modal |
+| `owner_photo` | `ownerPhoto` | Host profile photo in showcase & detail modal |
+| `owner_phone` | `ownerPhone` | Host contact phone number |
+| `owner_email` | `ownerEmail` | Host email address |
+| `owner_bio` | `ownerBio` | Host biography / caretaker notes |
+| `rooms` | `rooms` (int) | Number of rooms badge |
+| `price` | `price` (float) | Price tag (₱ / day) |
+| `availability` | `availability` ('Available', 'Booked') | Availability badge, booking guard |
+| `description` | `description` | Description text |
+| `image_path` | `image` | Resolved via `resolveAsset(path)` |
+| `payment_qr` | `paymentQr` | Official host payment QR image path (GCash/Maya/Bank) |
+| `payment_account_name` | `paymentAccountName` | Payee / Account name for payments |
+| `payment_account_number`| `paymentAccountNumber`| Payee / Account number for payments |
+| Calculated | `reservedByMe` (bool) | Indicates if current logged student booked this |
+
+### D. Reservations (`api/reservations/_helpers.php` -> `map_reservation()`)
 | Database Column | JSON Field (`DataAPI`) | Frontend Usage |
 | :--- | :--- | :--- |
 | `r.id` | `id` (int) | Reservation #, modal lookups, approval targets |
 | `r.student_id` | `studentId` (int) | Student reference |
 | `s.first_name + s.last_name` | `studentName` | Student column in admin tables & print view |
-| `r.type` | `type` ('Dormitory', 'Cottage') | Type filter & asset type switch |
-| `r.dorm_id` / `r.cottage_id` | `assetId` (int) | Target asset reference |
-| `d.room_no` / `c.name` | `assetLabel` | Name shown on badge and table |
-| `d.image_path` / `c.image_path`| `image` | Asset thumbnail image |
+| `r.type` | `type` ('Dormitory', 'Cottage', 'Kubotel') | Type filter & asset type switch |
+| `r.dorm_id` / `r.cottage_id` / `r.kubotel_id` | `assetId` (int) | Target asset reference |
+| `d.room_no` / `c.name` / `k.name` | `assetLabel` | Name shown on badge and table |
+| `d.image_path` / `c.image_path` / `k.image_path`| `image` | Asset thumbnail image |
 | `r.payment_method` | `paymentMethod` | 'Cash', 'GCash', etc. |
 | `r.amount` | `amount` (float) | Reservation fee |
 | `r.reservation_date` | `reservationDate` | Scheduled date |
@@ -104,7 +125,7 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | `pi.*` (9 columns) | `parentInfo: { ... }` | View modal & printable slip |
 | `bg.*` (11 columns) | `studentBackground: { ... }` | View modal student details |
 
-### D. Students (`api/users/_helpers.php` -> `map_student()`)
+### E. Students (`api/users/_helpers.php` -> `map_student()`)
 | Database Column (`students`) | JSON Field (`DataAPI`) | Frontend Usage |
 | :--- | :--- | :--- |
 | `id` | `id` (int) | Student ID |
@@ -174,6 +195,19 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 │   ├── admin/cottages.html           <-- Admin cottage management UI
 │   ├── assets/js/admin-cottages.js   <-- Admin cottage CRUD controller
 │   └── user/rooms.html               <-- Student catalog tab for cottages
+│
+├── Kubotels Domain
+│   ├── api/kubotels/_helpers.php     <-- map_kubotel()
+│   ├── api/kubotels/list.php         <-- Filters by availability, search
+│   ├── api/kubotels/get.php          <-- Single kubotel details
+│   ├── api/kubotels/create.php       <-- Multipart create + image
+│   ├── api/kubotels/update.php       <-- Multipart update + image
+│   ├── api/kubotels/delete.php       <-- Delete kubotel
+│   ├── assets/js/data.js             <-- DataAPI.getKubotels, getKubotel, createKubotel, updateKubotel, deleteKubotel
+│   ├── admin/kubotels.html           <-- Admin kubotel management UI
+│   ├── assets/js/admin-kubotels.js   <-- Admin kubotel CRUD controller
+│   └── user/rooms.html               <-- Student catalog tab for kubotels
+│
 │
 ├── Reservations Domain
 │   ├── api/reservations/_helpers.php <-- RESERVATION_SELECT, JOINS, map_reservation()
@@ -330,7 +364,7 @@ When any change is made, use this matrix to locate and update **every connected 
    - **Backend Guard**: `api/reservations/create.php` queries the student's registered gender and compares it against the dormitory's accepted boarder restriction. For single-gender dorms (`Male` or `Female`), mismatched bookings are rejected. For `Mixed` dormitories, both male and female students are accepted.
    - **Frontend Guard**: `user/rooms.html` provides an Accepted Boarders filter (All, Male, Female, Mixed), clearly badges room allocations, and disables booking buttons for single-gender mismatches; `user/reserve.html` displays prominent gender restriction warnings and disables proceeding to payment for mismatched single-gender dorms while allowing Mixed dorms freely.
 8. **Owner Online Payment QR Code & Reference Verification Protocol**:
-   - Each Dormitory and Cottage unit supports an official owner/host payment QR code (`payment_qr`) and payee details (`payment_account_name`, `payment_account_number`) uploaded and managed by the administrator (`admin/dormitories.html` and `admin/cottages.html`).
+   - Each Dormitory, Cottage, and Kubotel unit supports an official owner/host payment QR code (`payment_qr`) and payee details (`payment_account_name`, `payment_account_number`) uploaded and managed by the administrator (`admin/dormitories.html`, `admin/cottages.html`, and `admin/kubotels.html`).
    - Images are validated, uniquely named, and saved in `assets/uploads/qrcodes/`.
    - **Student Booking Wizard (`user/reserve.html`)**: When a student selects an online payment method (`GCash`, `Maya`, or `Bank Transfer`), the system dynamically renders the owner's official payment QR code, payee name, and account/mobile number with 1-click clipboard copy. The student is required to enter their transaction reference number (`reference_number`) generated by the payment app.
    - For `Cash` payments, the QR code is omitted and check-in payment instructions are presented.
@@ -347,8 +381,8 @@ node tools/verify_system.js
 ```
 
 This performs 5 automated checks:
-1. **PHP Syntax**: Runs `php -l` on all 47 PHP backend scripts.
-2. **JavaScript Syntax**: Runs `node --check` on all 16 JavaScript scripts.
+1. **PHP Syntax**: Runs `php -l` on all 55 PHP backend scripts.
+2. **JavaScript Syntax**: Runs `node --check` on all 18 JavaScript scripts.
 3. **API Client Cross-References**: Ensures all `DataAPI` and `Auth` methods match between `data.js`/`auth.js` and all caller scripts.
 4. **HTML Asset Links**: Verifies all `<script src>` and `<link href>` tags across all HTML files resolve to existing files.
 5. **Database Connectivity**: Validates live PDO connection to MySQL/MariaDB.

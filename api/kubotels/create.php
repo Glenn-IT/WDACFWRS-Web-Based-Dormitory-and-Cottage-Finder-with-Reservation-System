@@ -1,0 +1,55 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__ . '/../_bootstrap.php';
+require_once __DIR__ . '/_helpers.php';
+
+require_role('admin');
+require_post();
+
+$name = trim((string)($_POST['name'] ?? ''));
+$owner = trim((string)($_POST['owner'] ?? ''));
+$ownerPhone = trim((string)($_POST['ownerPhone'] ?? $_POST['owner_phone'] ?? ''));
+$ownerEmail = trim((string)($_POST['ownerEmail'] ?? $_POST['owner_email'] ?? ''));
+$ownerBio = trim((string)($_POST['ownerBio'] ?? $_POST['owner_bio'] ?? ''));
+$paymentAccountName = trim((string)($_POST['paymentAccountName'] ?? $_POST['payment_account_name'] ?? ''));
+$paymentAccountNumber = trim((string)($_POST['paymentAccountNumber'] ?? $_POST['payment_account_number'] ?? ''));
+$rooms = (int)($_POST['rooms'] ?? 0);
+$price = (float)($_POST['price'] ?? 0);
+$description = trim((string)($_POST['description'] ?? ''));
+if ($name === '' || $rooms <= 0 || $price < 0) {
+    fail('Please fill in all required fields.');
+}
+
+$pdo = get_db();
+
+$checkStmt = $pdo->prepare('SELECT COUNT(*) FROM kubotels WHERE LOWER(name) = LOWER(?)');
+$checkStmt->execute([$name]);
+if ((int)$checkStmt->fetchColumn() > 0) {
+    fail('A Kubotel unit with this name already exists.');
+}
+
+$availability = 'Available';
+$imagePath = isset($_FILES['image']) ? save_uploaded_image($_FILES['image'], 'kubotels') : null;
+$ownerPhoto = null;
+if (isset($_FILES['ownerPhoto'])) {
+    $ownerPhoto = save_uploaded_image($_FILES['ownerPhoto'], 'owners');
+} elseif (isset($_FILES['owner_photo'])) {
+    $ownerPhoto = save_uploaded_image($_FILES['owner_photo'], 'owners');
+}
+
+$paymentQr = null;
+if (isset($_FILES['paymentQr'])) {
+    $paymentQr = save_uploaded_image($_FILES['paymentQr'], 'qrcodes');
+} elseif (isset($_FILES['payment_qr'])) {
+    $paymentQr = save_uploaded_image($_FILES['payment_qr'], 'qrcodes');
+}
+
+$stmt = $pdo->prepare('INSERT INTO kubotels (name, owner, owner_photo, owner_phone, owner_email, owner_bio, rooms, price, availability, description, image_path, payment_qr, payment_account_name, payment_account_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+$stmt->execute([$name, $owner, $ownerPhoto, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $availability, $description, $imagePath, $paymentQr, $paymentAccountName, $paymentAccountNumber]);
+
+$id = (int)$pdo->lastInsertId();
+$stmt = $pdo->prepare('SELECT * FROM kubotels WHERE id = ?');
+$stmt->execute([$id]);
+
+respond(['ok' => true, 'kubotel' => map_kubotel($stmt->fetch())]);

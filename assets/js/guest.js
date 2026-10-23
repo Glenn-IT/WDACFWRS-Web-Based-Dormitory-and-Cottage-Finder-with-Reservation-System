@@ -6,30 +6,36 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
-  let currentType = params.get("type") === "cottage" ? "cottage" : "dorm";
+  const rawType = params.get("type");
+  let currentType = rawType === "cottage" ? "cottage" : (rawType === "kubotel" ? "kubotel" : "dorm");
 
   const tabDorm = document.getElementById("tab-dorm");
   const tabCottage = document.getElementById("tab-cottage");
+  const tabKubotel = document.getElementById("tab-kubotel");
   const dormGenderCol = document.getElementById("dorm-gender-col");
   const grid = document.getElementById("guest-grid");
 
   const statTotalEl = document.getElementById("stat-total-avail");
   const statDormsEl = document.getElementById("stat-dorms-avail");
   const statCottagesEl = document.getElementById("stat-cottages-avail");
+  const statKubotelsEl = document.getElementById("stat-kubotels-avail");
 
   let dormsCache = [];
   let cottagesCache = [];
+  let kubotelsCache = [];
 
   function setType(type) {
     currentType = type;
     if (tabDorm) tabDorm.classList.toggle("active", type === "dorm");
     if (tabCottage) tabCottage.classList.toggle("active", type === "cottage");
+    if (tabKubotel) tabKubotel.classList.toggle("active", type === "kubotel");
     if (dormGenderCol) dormGenderCol.style.display = type === "dorm" ? "" : "none";
     render();
   }
 
   if (tabDorm) tabDorm.addEventListener("click", () => setType("dorm"));
   if (tabCottage) tabCottage.addEventListener("click", () => setType("cottage"));
+  if (tabKubotel) tabKubotel.addEventListener("click", () => setType("kubotel"));
 
   ["filter-status", "filter-gender"].forEach((id) => {
     const el = document.getElementById(id);
@@ -56,10 +62,12 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const availDorms = dormsCache.filter((d) => d.status === "Available").length;
       const availCottages = cottagesCache.filter((c) => c.availability === "Available").length;
+      const availKubotels = kubotelsCache.filter((k) => k.availability === "Available").length;
 
-      if (statTotalEl) statTotalEl.textContent = availDorms + availCottages;
+      if (statTotalEl) statTotalEl.textContent = availDorms + availCottages + availKubotels;
       if (statDormsEl) statDormsEl.textContent = availDorms;
       if (statCottagesEl) statCottagesEl.textContent = availCottages;
+      if (statKubotelsEl) statKubotelsEl.textContent = availKubotels;
     } catch (e) {
       console.warn("Could not calculate stats:", e);
     }
@@ -73,8 +81,10 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
     if (currentType === "dorm") {
       await renderDorms();
-    } else {
+    } else if (currentType === "cottage") {
       await renderCottages();
+    } else {
+      await renderKubotels();
     }
   }
   window.guestRender = render;
@@ -104,37 +114,23 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } catch (err) {
       console.error("renderDorms error:", err);
-      const isFileProtocol = window.location.protocol === "file:";
       grid.innerHTML = `
         <div class="col-12 empty-state text-danger">
           <i class="fa-solid fa-triangle-exclamation"></i>
           <div class="fw-bold fs-5 mb-1">Failed to load dormitory rooms</div>
           <p class="small text-muted mb-3">${escapeHtml(err.message || String(err))}</p>
-          ${
-            isFileProtocol
-              ? `<div class="alert alert-warning text-dark text-start small mb-3">
-                   <strong><i class="fa-solid fa-circle-exclamation me-1"></i> Running from local file:</strong>
-                   You opened this file via <code>file:///</code>. Browsers prevent local files from requesting API endpoints.
-                   Please open this page via your XAMPP local server:
-                   <br><br>
-                   👉 <a href="http://localhost/WDACFWRS-Web-Based-Dormitory-and-Cottage-Finder-with-Reservation-System/guest.html" class="fw-bold">http://localhost/WDACFWRS-.../guest.html</a>
-                   <br>
-                   or 👉 <a href="http://wdac.local/guest.html" class="fw-bold">http://wdac.local/guest.html</a>
-                 </div>`
-              : `<button class="btn btn-sm btn-outline-primary" onclick="window.guestRender()"><i class="fa-solid fa-rotate-right me-1"></i>Try Again</button>`
-          }
+          <button class="btn btn-sm btn-outline-primary" onclick="window.guestRender()"><i class="fa-solid fa-rotate-right me-1"></i>Try Again</button>
         </div>`;
     }
   }
 
   async function renderCottages() {
-    const status = document.getElementById("filter-status")?.value || "";
+    const statusRaw = document.getElementById("filter-status")?.value || "";
     const search = document.getElementById("filter-search")?.value.trim() || "";
-
-    const availability = status === "Occupied" ? "Booked" : (status === "Available" ? "Available" : "");
+    const status = statusRaw === "Occupied" ? "Booked" : statusRaw;
 
     try {
-      const data = await DataAPI.getCottages({ availability, search });
+      const data = await DataAPI.getCottages({ availability: status, search });
       cottagesCache = (data && data.cottages) ? data.cottages : [];
 
       if (!status && !search) {
@@ -153,25 +149,47 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } catch (err) {
       console.error("renderCottages error:", err);
-      const isFileProtocol = window.location.protocol === "file:";
       grid.innerHTML = `
         <div class="col-12 empty-state text-danger">
           <i class="fa-solid fa-triangle-exclamation"></i>
           <div class="fw-bold fs-5 mb-1">Failed to load cottages</div>
           <p class="small text-muted mb-3">${escapeHtml(err.message || String(err))}</p>
-          ${
-            isFileProtocol
-              ? `<div class="alert alert-warning text-dark text-start small mb-3">
-                   <strong><i class="fa-solid fa-circle-exclamation me-1"></i> Running from local file:</strong>
-                   You opened this file via <code>file:///</code>. Browsers prevent local files from requesting API endpoints.
-                   Please open this page via your XAMPP local server:
-                   <br><br>
-                   👉 <a href="http://localhost/WDACFWRS-Web-Based-Dormitory-and-Cottage-Finder-with-Reservation-System/guest.html" class="fw-bold">http://localhost/WDACFWRS-.../guest.html</a>
-                   <br>
-                   or 👉 <a href="http://wdac.local/guest.html" class="fw-bold">http://wdac.local/guest.html</a>
-                 </div>`
-              : `<button class="btn btn-sm btn-outline-primary" onclick="window.guestRender()"><i class="fa-solid fa-rotate-right me-1"></i>Try Again</button>`
-          }
+          <button class="btn btn-sm btn-outline-primary" onclick="window.guestRender()"><i class="fa-solid fa-rotate-right me-1"></i>Try Again</button>
+        </div>`;
+    }
+  }
+
+  async function renderKubotels() {
+    const statusRaw = document.getElementById("filter-status")?.value || "";
+    const search = document.getElementById("filter-search")?.value.trim() || "";
+    const status = statusRaw === "Occupied" ? "Booked" : statusRaw;
+
+    try {
+      const data = await DataAPI.getKubotels({ availability: status, search });
+      kubotelsCache = (data && data.kubotels) ? data.kubotels : [];
+
+      if (!status && !search) {
+        updateStats();
+      }
+
+      grid.innerHTML = kubotelsCache.length
+        ? kubotelsCache.map((k) => kubotelCard(k)).join("")
+        : `<div class="col-12 empty-state"><i class="fa-solid fa-hotel"></i>No Kubotel units match your search filters.</div>`;
+
+      grid.querySelectorAll("[data-view-kubotel]").forEach((btn) => {
+        btn.addEventListener("click", () => viewKubotel(btn.dataset.viewKubotel));
+      });
+      grid.querySelectorAll("[data-reserve-unit]").forEach((btn) => {
+        btn.addEventListener("click", () => promptReserve(btn.dataset.reserveUnit, btn.dataset.unitType, btn.dataset.unitName));
+      });
+    } catch (err) {
+      console.error("renderKubotels error:", err);
+      grid.innerHTML = `
+        <div class="col-12 empty-state text-danger">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div class="fw-bold fs-5 mb-1">Failed to load Kubotel units</div>
+          <p class="small text-muted mb-3">${escapeHtml(err.message || String(err))}</p>
+          <button class="btn btn-sm btn-outline-primary" onclick="window.guestRender()"><i class="fa-solid fa-rotate-right me-1"></i>Try Again</button>
         </div>`;
     }
   }
@@ -266,6 +284,51 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   }
 
+  function kubotelCard(k) {
+    const isAvail = k.availability === "Available";
+    const statusClass = badgeClass(k.availability);
+    return `
+      <div class="col-sm-6 col-lg-4 col-xl-3">
+        <div class="room-card h-100 d-flex flex-column">
+          <div class="position-relative">
+            <img src="${resolveAsset(k.image)}" alt="${escapeHtml(k.name)}" class="w-100" style="height: 180px; object-fit: cover;">
+            <span class="badge ${statusClass} position-absolute top-0 end-0 m-2 shadow-sm">${k.availability}</span>
+          </div>
+          <div class="room-body d-flex flex-column flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <h6 class="fw-bold mb-0 text-truncate" title="${escapeHtml(k.name)}">${escapeHtml(k.name)}</h6>
+            </div>
+            <div class="text-muted small mb-2 d-flex align-items-center gap-1">
+              ${k.ownerPhoto ? `<img src="${resolveAsset(k.ownerPhoto)}" class="rounded-circle border" style="width:20px;height:20px;object-fit:cover;">` : `<i class="fa-solid fa-hotel text-primary"></i>`}
+              <span class="text-truncate">${escapeHtml(k.owner || "CSU Auxiliary")}</span>
+              <span class="ms-auto"><i class="fa-solid fa-bed me-1"></i>${k.rooms} Room(s)</span>
+            </div>
+            <p class="small text-muted mb-3 flex-grow-1" style="min-height: 38px;">
+              ${escapeHtml(k.description ? k.description.slice(0, 85) + (k.description.length > 85 ? "..." : "") : "No description provided.")}
+            </p>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <span class="fw-bold text-primary fs-5">₱${Number(k.price || 0).toLocaleString()}</span>
+                <span class="text-muted small">/day</span>
+              </div>
+              <button class="btn btn-sm btn-outline-secondary" data-view-kubotel="${k.id}" title="View Details">
+                <i class="fa-solid fa-eye me-1"></i>Details
+              </button>
+            </div>
+            ${
+              isAvail
+                ? `<button class="btn btn-primary w-100" data-reserve-unit="${k.id}" data-unit-type="kubotel" data-unit-name="${escapeHtml(k.name)}">
+                     <i class="fa-solid fa-calendar-check me-1"></i>Reserve Kubotel
+                   </button>`
+                : `<button class="btn btn-secondary w-100" disabled>
+                     <i class="fa-solid fa-ban me-1"></i>${k.availability}
+                   </button>`
+            }
+          </div>
+        </div>
+      </div>`;
+  }
+
   function viewDorm(id) {
     const d = dormsCache.find((x) => String(x.id) === String(id));
     if (!d) return;
@@ -321,7 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isAvail = c.availability === "Available";
     const body = document.getElementById("unit-detail-body");
     const ownerName = c.owner || "CSU Auxiliary Services";
-    const initials = ownerName.split(" ").map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+    const initials = ownerName.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 
     body.innerHTML = `
       <!-- Owner Profile Header -->
@@ -388,10 +451,85 @@ document.addEventListener("DOMContentLoaded", () => {
     new bootstrap.Modal(document.getElementById("unit-detail-modal")).show();
   }
 
+  function viewKubotel(id) {
+    const k = kubotelsCache.find((x) => String(x.id) === String(id));
+    if (!k) return;
+
+    const isAvail = k.availability === "Available";
+    const body = document.getElementById("unit-detail-body");
+    const ownerName = k.owner || "CSU Auxiliary Services";
+    const initials = ownerName.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+
+    body.innerHTML = `
+      <!-- Host Profile Header -->
+      <div class="card border p-3 mb-3 bg-light shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+          ${k.ownerPhoto
+            ? `<img src="${resolveAsset(k.ownerPhoto)}" class="rounded-circle border shadow-sm flex-shrink-0" style="width:52px;height:52px;object-fit:cover;">`
+            : `<div class="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width:52px;height:52px;background:var(--brand-gradient, linear-gradient(135deg,#ea580c,#f97316));font-size:1.15rem;">
+                ${initials || '<i class="fa-solid fa-user"></i>'}
+              </div>`
+          }
+          <div class="overflow-hidden flex-grow-1">
+            <div class="d-flex align-items-center gap-2">
+              <h6 class="fw-bold mb-0 text-dark">${escapeHtml(ownerName)}</h6>
+              <span class="badge bg-success-subtle text-success border border-success-subtle small"><i class="fa-solid fa-check me-1"></i>Verified Host</span>
+            </div>
+            <div class="small text-muted mt-1">
+              ${k.ownerPhone ? `<span class="me-3"><i class="fa-solid fa-phone me-1 text-primary"></i>${escapeHtml(k.ownerPhone)}</span>` : ""}
+              ${k.ownerEmail ? `<span><i class="fa-solid fa-envelope me-1 text-primary"></i>${escapeHtml(k.ownerEmail)}</span>` : ""}
+            </div>
+            ${k.ownerBio ? `<div class="small text-secondary mt-1 fst-italic">"${escapeHtml(k.ownerBio)}"</div>` : ""}
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-5">
+          <img src="${resolveAsset(k.image)}" class="w-100 rounded shadow-sm" style="max-height: 240px; object-fit: cover;">
+        </div>
+        <div class="col-md-7">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="fw-bold mb-0">${escapeHtml(k.name)}</h5>
+            <span class="badge ${badgeClass(k.availability)}">${k.availability}</span>
+          </div>
+          <p class="text-primary fw-bold fs-5 mb-2">₱${Number(k.price || 0).toLocaleString()} <span class="text-muted small fs-6">/ day</span></p>
+          <ul class="list-unstyled small mb-3">
+            <li class="mb-1"><i class="fa-solid fa-bed text-primary me-2"></i><strong>Rooms:</strong> ${k.rooms} room(s)</li>
+            <li class="mb-1"><i class="fa-solid fa-hotel text-primary me-2"></i><strong>Manager / Host:</strong> ${escapeHtml(k.owner || "CSU Housing")}</li>
+            <li class="mb-1"><i class="fa-solid fa-campground text-primary me-2"></i><strong>Type:</strong> Kubotel (KUBO-HOTEL Unit)</li>
+          </ul>
+          <h6 class="fw-semibold small text-uppercase text-muted">Description &amp; Amenities</h6>
+          <p class="small text-secondary mb-0">${escapeHtml(k.description || "No specific details provided.")}</p>
+        </div>
+      </div>
+    `;
+
+    const ctaBtn = document.getElementById("detail-reserve-cta");
+    if (ctaBtn) {
+      if (isAvail) {
+        ctaBtn.className = "btn btn-primary";
+        ctaBtn.disabled = false;
+        ctaBtn.innerHTML = `<i class="fa-solid fa-calendar-check me-1"></i>Reserve Kubotel`;
+        ctaBtn.onclick = () => {
+          bootstrap.Modal.getInstance(document.getElementById("unit-detail-modal")).hide();
+          promptReserve(k.id, "kubotel", k.name);
+        };
+      } else {
+        ctaBtn.className = "btn btn-secondary";
+        ctaBtn.disabled = true;
+        ctaBtn.innerHTML = `<i class="fa-solid fa-ban me-1"></i>${k.availability}`;
+      }
+    }
+
+    new bootstrap.Modal(document.getElementById("unit-detail-modal")).show();
+  }
+
   function promptReserve(id, type, name) {
     const promptNameEl = document.getElementById("prompt-unit-name");
     if (promptNameEl) {
-      promptNameEl.textContent = `${type === "dorm" ? "Dormitory: " : "Cottage: "}${name}`;
+      const typePrefix = type === "dorm" ? "Dormitory: " : (type === "cottage" ? "Cottage: " : "Kubotel: ");
+      promptNameEl.textContent = `${typePrefix}${name}`;
     }
     const modalEl = document.getElementById("guest-reserve-prompt-modal");
     if (modalEl) {
@@ -402,14 +540,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Pre-load global stats quietly
   (async function initStats() {
     try {
-      const [dRes, cRes] = await Promise.all([DataAPI.getDorms(), DataAPI.getCottages()]);
+      const [dRes, cRes, kRes] = await Promise.all([DataAPI.getDorms(), DataAPI.getCottages(), DataAPI.getKubotels()]);
       const dList = dRes?.dorms || [];
       const cList = cRes?.cottages || [];
+      const kList = kRes?.kubotels || [];
       const availD = dList.filter((x) => x.status === "Available").length;
       const availC = cList.filter((x) => x.availability === "Available").length;
-      if (statTotalEl) statTotalEl.textContent = availD + availC;
+      const availK = kList.filter((x) => x.availability === "Available").length;
+      if (statTotalEl) statTotalEl.textContent = availD + availC + availK;
       if (statDormsEl) statDormsEl.textContent = availD;
       if (statCottagesEl) statCottagesEl.textContent = availC;
+      if (statKubotelsEl) statKubotelsEl.textContent = availK;
     } catch (e) {
       /* ignore stats error */
     }

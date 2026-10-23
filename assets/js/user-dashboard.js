@@ -27,23 +27,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await DataAPI.getReservations({ mine: 1 });
     reservations = data.reservations || [];
   } catch (e) {
-    /* reservations endpoint lands in Phase 3 */
+    /* reservations */
   }
   let notifications = [];
   try {
     const data = await DataAPI.getNotifications();
     notifications = data.notifications || [];
   } catch (e) {
-    /* notifications endpoint lands in Phase 4 */
+    /* notifications */
   }
 
-  // Available rooms preview (mix of dorms + cottages, available only)
-  const [dormsData, cottagesData] = await Promise.all([
+  // Available rooms preview (mix of dorms + cottages + kubotels, available only)
+  const [dormsData, cottagesData, kubotelsData] = await Promise.all([
     DataAPI.getDorms({ status: "Available" }),
     DataAPI.getCottages({ availability: "Available" }),
+    DataAPI.getKubotels({ availability: "Available" }),
   ]);
   const dorms = (dormsData.dorms || []).slice(0, 2);
   const cottages = (cottagesData.cottages || []).slice(0, 1);
+  const kubotels = (kubotelsData.kubotels || []).slice(0, 1);
   const previewHost = document.getElementById("available-rooms-preview");
 
   const previewItems = [
@@ -62,6 +64,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       price: c.price,
       status: c.availability,
       link: `rooms.html?type=cottage`,
+    })),
+    ...kubotels.map((k) => ({
+      image: k.image,
+      title: k.name,
+      subtitle: `Kubotel · ${k.rooms} room(s)`,
+      price: k.price,
+      status: k.availability,
+      link: `rooms.html?type=kubotel`,
     })),
   ];
 
@@ -87,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       </div>`
         )
         .join("")
-    : `<div class="empty-state w-100"><i class="fa-solid fa-door-closed"></i>No rooms available right now.</div>`;
+    : `<div class="empty-state w-100"><i class="fa-solid fa-door-closed"></i>No accommodations available right now.</div>`;
 
   // Recent reservations
   const recentHost = document.getElementById("recent-reservations-list");
@@ -98,30 +108,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         <tbody>${recent
           .map(
             (r) => `<tr>
-              <td>${r.id}</td>
-              <td>${r.type} — ${escapeHtml(r.assetLabel)}</td>
-              <td>${r.reservationDate}</td>
-              <td><span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></td>
-            </tr>`
+          <td>${r.id}</td>
+          <td>${r.type}</td>
+          <td>${r.reservationDate}</td>
+          <td><span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></td>
+        </tr>`
           )
-          .join("")}</tbody>
-      </table></div>`
-    : `<div class="empty-state"><i class="fa-solid fa-clipboard"></i>You have no reservations yet.<br><a href="rooms.html" class="btn btn-sm btn-primary mt-2">Browse Rooms</a></div>`;
+          .join("")}</tbody></table></div>`
+    : `<div class="empty-state"><i class="fa-solid fa-clipboard"></i>No reservations yet.</div>`;
 
-  // Notifications
+  // Dashboard notifications
   const notifHost = document.getElementById("dashboard-notifications-list");
   notifHost.innerHTML = notifications.length
     ? notifications
-        .slice(0, 5)
+        .slice(0, 4)
         .map(
-          (n) => `<div class="d-flex gap-2 border-bottom py-2">
-            <i class="fa-solid fa-circle-info text-primary mt-1"></i>
-            <div>
-              <div class="small ${n.read ? "" : "fw-semibold"}">${escapeHtml(n.message)}</div>
-              <div class="text-muted" style="font-size:0.75rem;">${n.date}</div>
-            </div>
-          </div>`
+          (n) => `
+      <div class="d-flex align-items-start gap-2 border-bottom py-2">
+        <i class="fa-solid fa-bell text-primary mt-1"></i>
+        <div>
+          <div class="small">${escapeHtml(n.message)}</div>
+          <div class="text-muted" style="font-size:0.75rem;">${n.date}</div>
+        </div>
+      </div>`
         )
         .join("")
-    : `<div class="empty-state"><i class="fa-solid fa-bell-slash"></i>No notifications.</div>`;
+    : `<div class="text-muted small">No notifications</div>`;
 });

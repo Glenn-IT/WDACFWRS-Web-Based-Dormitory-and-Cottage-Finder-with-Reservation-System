@@ -10,7 +10,15 @@ $studentId = (int)$session['id'];
 require_post();
 $in = json_input();
 
-$type = ($in['type'] ?? '') === 'Cottage' ? 'Cottage' : 'Dormitory';
+$rawType = trim((string)($in['type'] ?? ''));
+if ($rawType === 'Cottage') {
+    $type = 'Cottage';
+} elseif ($rawType === 'Kubotel') {
+    $type = 'Kubotel';
+} else {
+    $type = 'Dormitory';
+}
+
 $assetId = (int)($in['assetId'] ?? 0);
 $paymentMethod = trim((string)($in['paymentMethod'] ?? ''));
 
@@ -110,7 +118,7 @@ try {
         if ($dormGender !== 'Mixed' && $dormGender !== '' && $studentGender !== '' && strcasecmp($dormGender, $studentGender) !== 0) {
             throw new RuntimeException("This dormitory strictly accepts {$dormGender} boarders only. Your registered profile gender is {$studentGender}.");
         }
-    } else {
+    } elseif ($type === 'Cottage') {
         $stmt = $pdo->prepare('SELECT id, price, availability FROM cottages WHERE id = ? FOR UPDATE');
         $stmt->execute([$assetId]);
         $asset = $stmt->fetch();
@@ -120,6 +128,16 @@ try {
         if ($asset['availability'] !== 'Available') {
             throw new RuntimeException('This cottage is no longer available.');
         }
+    } else {
+        $stmt = $pdo->prepare('SELECT id, price, availability FROM kubotels WHERE id = ? FOR UPDATE');
+        $stmt->execute([$assetId]);
+        $asset = $stmt->fetch();
+        if (!$asset) {
+            throw new RuntimeException('Kubotel unit not found.');
+        }
+        if ($asset['availability'] !== 'Available') {
+            throw new RuntimeException('This Kubotel unit is no longer available.');
+        }
     }
 
     $referenceNumber = trim((string)($in['referenceNumber'] ?? $in['reference_number'] ?? ''));
@@ -128,13 +146,14 @@ try {
     $today = date('Y-m-d');
 
     $stmt = $pdo->prepare('INSERT INTO reservations
-        (student_id, type, dorm_id, cottage_id, payment_method, amount, reservation_date, payment_status, approval_status, reference_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?)');
+        (student_id, type, dorm_id, cottage_id, kubotel_id, payment_method, amount, reservation_date, payment_status, approval_status, reference_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?)');
     $stmt->execute([
         $studentId,
         $type,
         $type === 'Dormitory' ? $assetId : null,
         $type === 'Cottage' ? $assetId : null,
+        $type === 'Kubotel' ? $assetId : null,
         $paymentMethod,
         $amount,
         $today,
@@ -185,8 +204,11 @@ try {
     if ($type === 'Dormitory') {
         $stmt = $pdo->prepare('UPDATE dormitories SET status = \'Occupied\' WHERE id = ?');
         $stmt->execute([$assetId]);
-    } else {
+    } elseif ($type === 'Cottage') {
         $stmt = $pdo->prepare('UPDATE cottages SET availability = \'Booked\' WHERE id = ?');
+        $stmt->execute([$assetId]);
+    } else {
+        $stmt = $pdo->prepare('UPDATE kubotels SET availability = \'Booked\' WHERE id = ?');
         $stmt->execute([$assetId]);
     }
 

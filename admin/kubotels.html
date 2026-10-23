@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1366">
+  <title>Manage Kubotels | CSU-Piat Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../img/CSU-Logo.png">
+  <link href="../assets/css/style.css" rel="stylesheet">
+</head>
+<body data-role="admin" data-page="kubotels">
+  <aside class="app-sidebar" id="app-sidebar"></aside>
+  <header class="app-topbar" id="app-topbar"></header>
+
+  <main class="app-main">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="fw-bold mb-0">Manage Kubotels (KUBO-HOTEL)</h4>
+        <span class="text-muted small">Manage traditional bamboo kubo-hotel units, host contacts, and online payment QR codes</span>
+      </div>
+      <button class="btn btn-primary" id="add-kubotel-btn"><i class="fa-solid fa-plus me-1"></i>Add Kubotel</button>
+    </div>
+
+    <div class="section-card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle table-responsive-card">
+          <thead>
+            <tr>
+              <th>Image</th><th>Owner / Host</th><th>Kubotel Unit Name</th><th>Rooms</th><th>Price (₱ / day)</th><th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="kubotels-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal fade" id="kubotel-modal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <form id="kubotel-form">
+          <div class="modal-header">
+            <h5 class="modal-title" id="kubotel-modal-title">Add Kubotel</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="kubotel-id">
+            
+            <!-- Kubotel Unit Details -->
+            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-hotel me-2"></i>Kubotel Unit Details</h6>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6"><label class="form-label small fw-semibold">Kubotel Unit Name</label><input class="form-control" id="kubotel-name" required placeholder="e.g. Kubotel Unit 1 - Bamboo Breeze"></div>
+              <div class="col-md-3"><label class="form-label small fw-semibold">Number of Rooms</label><input type="number" min="1" class="form-control" id="kubotel-rooms" required placeholder="1"></div>
+              <div class="col-md-3"><label class="form-label small fw-semibold">Price (₱ / day)</label><input type="number" min="0" step="0.01" class="form-control" id="kubotel-price" required placeholder="450.00"></div>
+              <div class="col-12"><label class="form-label small fw-semibold">Description &amp; Amenities</label><textarea class="form-control" id="kubotel-description" rows="2" required placeholder="Describe kubotel features, native bamboo beds, electric fan / aircon, veranda..."></textarea></div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Kubotel Facility Image</label>
+                <input type="file" accept="image/*" class="form-control" id="kubotel-image-input">
+                <img id="kubotel-image-preview" class="mt-2 rounded" style="max-height:140px;display:none;">
+              </div>
+            </div>
+
+            <!-- Owner Profile Section -->
+            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-id-badge me-2"></i>Owner Profile, Contact &amp; Online Payment (QR Code)</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Owner / Host Name</label>
+                <input class="form-control" id="kubotel-owner" required placeholder="e.g. Ronaldo Maggay">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Owner Contact Phone</label>
+                <input type="tel" class="form-control" id="kubotel-owner-phone" placeholder="09XXXXXXXXX" pattern="09[0-9]{9}" maxlength="11" minlength="11" inputmode="numeric" title="Enter an 11-digit PH mobile number starting with 09 (e.g. 09123456789)">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Owner Email Address</label>
+                <input type="email" class="form-control" id="kubotel-owner-email" placeholder="owner@gmail.com">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Owner Profile Picture</label>
+                <input type="file" accept="image/*" class="form-control" id="kubotel-owner-photo-input">
+                <img id="kubotel-owner-photo-preview" class="mt-2 rounded-circle border" style="width:60px;height:60px;object-fit:cover;display:none;">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Owner Bio / Host Description</label>
+                <textarea class="form-control" id="kubotel-owner-bio" rows="2" placeholder="Brief host background, availability hours, caretaker notes..."></textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Account / Payee Name</label>
+                <input class="form-control" id="kubotel-account-name" placeholder="e.g. Ronaldo Maggay (GCash/Maya)">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Account / Mobile Number</label>
+                <input class="form-control" id="kubotel-account-number" placeholder="e.g. 0917-123-4567">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Owner Payment QR Code (GCash / Maya / Bank)</label>
+                <input type="file" accept="image/*" class="form-control" id="kubotel-qr-input">
+                <div class="mt-2" id="kubotel-qr-preview-container" style="display:none;">
+                  <img id="kubotel-qr-preview" class="border rounded p-1" style="max-height:160px;object-fit:contain;background:#fff;">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Kubotel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Modal -->
+  <div class="modal fade" id="kubotel-view-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Kubotel Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="kubotel-view-body"></div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="../assets/js/admin-kubotels.js"></script>
+</body>
+</html>

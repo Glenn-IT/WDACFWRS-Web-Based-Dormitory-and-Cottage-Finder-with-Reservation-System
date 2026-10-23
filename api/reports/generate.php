@@ -4,6 +4,7 @@ require_once __DIR__ . '/../_bootstrap.php';
 require_once __DIR__ . '/../reservations/_helpers.php';
 require_once __DIR__ . '/../dorms/_helpers.php';
 require_once __DIR__ . '/../cottages/_helpers.php';
+require_once __DIR__ . '/../kubotels/_helpers.php';
 
 require_role('admin');
 
@@ -31,6 +32,19 @@ if ($type === 'dorm-occupancy') {
 if ($type === 'cottage-occupancy') {
     $rows = array_map('map_cottage', $pdo->query('SELECT * FROM cottages ORDER BY name')->fetchAll());
     $available = count(array_filter($rows, fn($c) => $c['availability'] === 'Available'));
+    respond([
+        'ok' => true,
+        'type' => $type,
+        'rows' => $rows,
+        'total' => count($rows),
+        'available' => $available,
+        'booked' => count($rows) - $available,
+    ]);
+}
+
+if ($type === 'kubotel-occupancy') {
+    $rows = array_map('map_kubotel', $pdo->query('SELECT * FROM kubotels ORDER BY name')->fetchAll());
+    $available = count(array_filter($rows, fn($k) => $k['availability'] === 'Available'));
     respond([
         'ok' => true,
         'type' => $type,

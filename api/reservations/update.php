@@ -88,6 +88,12 @@ try {
             } elseif (in_array($newApproval, ['Declined', 'Cancelled'], true)) {
                 $pdo->prepare("UPDATE cottages SET availability = 'Available' WHERE id = ?")->execute([$res['cottage_id']]);
             }
+        } elseif ($res['type'] === 'Kubotel' && !empty($res['kubotel_id'])) {
+            if ($newApproval === 'Approved') {
+                $pdo->prepare("UPDATE kubotels SET availability = 'Booked' WHERE id = ?")->execute([$res['kubotel_id']]);
+            } elseif (in_array($newApproval, ['Declined', 'Cancelled'], true)) {
+                $pdo->prepare("UPDATE kubotels SET availability = 'Available' WHERE id = ?")->execute([$res['kubotel_id']]);
+            }
         }
 
         // Notify student of the status change

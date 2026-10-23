@@ -124,14 +124,37 @@ CREATE TABLE IF NOT EXISTS cottages (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------
+-- Kubotels (KUBO-HOTEL units)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS kubotels (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL UNIQUE,
+  owner VARCHAR(150) DEFAULT '',
+  owner_photo VARCHAR(255) DEFAULT NULL,
+  owner_phone VARCHAR(50) DEFAULT '',
+  owner_email VARCHAR(100) DEFAULT '',
+  owner_bio TEXT DEFAULT NULL,
+  rooms INT NOT NULL DEFAULT 1,
+  price DECIMAL(10,2) NOT NULL DEFAULT 0,
+  availability ENUM('Available','Booked') NOT NULL DEFAULT 'Available',
+  description TEXT,
+  image_path VARCHAR(255) DEFAULT NULL,
+  payment_qr VARCHAR(255) DEFAULT NULL,
+  payment_account_name VARCHAR(150) DEFAULT '',
+  payment_account_number VARCHAR(100) DEFAULT '',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------
 -- Reservations
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS reservations (
   id INT AUTO_INCREMENT PRIMARY KEY,
   student_id INT NOT NULL,
-  type ENUM('Dormitory','Cottage') NOT NULL,
+  type ENUM('Dormitory','Cottage','Kubotel') NOT NULL,
   dorm_id INT NULL,
   cottage_id INT NULL,
+  kubotel_id INT NULL,
   payment_method VARCHAR(50) NOT NULL,
   amount DECIMAL(10,2) NOT NULL DEFAULT 0,
   reservation_date DATE NOT NULL,
@@ -142,8 +165,12 @@ CREATE TABLE IF NOT EXISTS reservations (
   CONSTRAINT fk_res_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
   CONSTRAINT fk_res_dorm FOREIGN KEY (dorm_id) REFERENCES dormitories(id) ON DELETE SET NULL,
   CONSTRAINT fk_res_cottage FOREIGN KEY (cottage_id) REFERENCES cottages(id) ON DELETE SET NULL,
+  CONSTRAINT fk_res_kubotel FOREIGN KEY (kubotel_id) REFERENCES kubotels(id) ON DELETE SET NULL,
   CONSTRAINT chk_res_asset CHECK (
-    (type = 'Dormitory' AND dorm_id IS NOT NULL AND cottage_id IS NULL) OR
+    (type = 'Dormitory' AND dorm_id IS NOT NULL AND cottage_id IS NULL AND kubotel_id IS NULL) OR
+    (type = 'Cottage' AND cottage_id IS NOT NULL AND dorm_id IS NULL AND kubotel_id IS NULL) OR
+    (type = 'Kubotel' AND kubotel_id IS NOT NULL AND dorm_id IS NULL AND cottage_id IS NULL)
+  ) OR
     (type = 'Cottage' AND cottage_id IS NOT NULL AND dorm_id IS NULL)
   )
 ) ENGINE=InnoDB;

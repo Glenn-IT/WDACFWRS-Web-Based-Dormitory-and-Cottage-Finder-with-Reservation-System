@@ -65,6 +65,13 @@ const DataAPI = {
   updateCottage: (formData) => apiFetch("cottages/update.php", { method: "POST", body: formData }),
   deleteCottage: (id) => apiFetch("cottages/delete.php", { method: "POST", body: JSON.stringify({ id }) }),
 
+  // ---- Kubotels ----
+  getKubotels: (params = {}) => apiFetch(`kubotels/list.php${qs(params)}`),
+  getKubotel: (id) => apiFetch(`kubotels/get.php${qs({ id })}`),
+  createKubotel: (formData) => apiFetch("kubotels/create.php", { method: "POST", body: formData }),
+  updateKubotel: (formData) => apiFetch("kubotels/update.php", { method: "POST", body: formData }),
+  deleteKubotel: (id) => apiFetch("kubotels/delete.php", { method: "POST", body: JSON.stringify({ id }) }),
+
   // ---- Reservations ----
   getReservations: (params = {}) => apiFetch(`reservations/list.php${qs(params)}`),
   getReservation: (id) => apiFetch(`reservations/get.php${qs({ id })}`),

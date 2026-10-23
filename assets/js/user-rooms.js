@@ -1,9 +1,11 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
-  let currentType = params.get("type") === "cottage" ? "cottage" : "dorm";
+  const rawType = params.get("type");
+  let currentType = rawType === "cottage" ? "cottage" : (rawType === "kubotel" ? "kubotel" : "dorm");
 
   const tabDorm = document.getElementById("tab-dorm");
   const tabCottage = document.getElementById("tab-cottage");
+  const tabKubotel = document.getElementById("tab-kubotel");
   const thead = document.getElementById("rooms-table-head");
   const tbody = document.getElementById("rooms-table-body");
   const searchInput = document.getElementById("filter-search");
@@ -13,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let dormsCache = [];
   let cottagesCache = [];
+  let kubotelsCache = [];
   let selectedOwnerFilter = "";
   let hasApprovedReservation = false;
 
@@ -52,24 +55,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   function setType(type) {
     currentType = type;
     selectedOwnerFilter = "";
-    tabDorm.classList.toggle("active", type === "dorm");
-    tabCottage.classList.toggle("active", type === "cottage");
+    if (tabDorm) tabDorm.classList.toggle("active", type === "dorm");
+    if (tabCottage) tabCottage.classList.toggle("active", type === "cottage");
+    if (tabKubotel) tabKubotel.classList.toggle("active", type === "kubotel");
+
     const dormGenderCol = document.getElementById("dorm-gender-col");
     if (dormGenderCol) dormGenderCol.style.display = type === "dorm" ? "" : "none";
+
     if (searchInput) {
-      searchInput.placeholder = type === "dorm" ? "Search dormitory name..." : "Search cottage name or owner...";
+      searchInput.placeholder = type === "dorm"
+        ? "Search dormitory name..."
+        : (type === "cottage" ? "Search cottage name or owner..." : "Search Kubotel unit or host...");
     }
+
     if (ownersSection) {
-      ownersSection.classList.toggle("d-none", type !== "cottage");
+      ownersSection.classList.toggle("d-none", type === "dorm");
     }
+
     if (sectionHeading) {
-      sectionHeading.textContent = type === "dorm" ? "Dormitory Rooms" : "Cottage Unit & Room Details";
+      sectionHeading.textContent = type === "dorm"
+        ? "Dormitory Rooms"
+        : (type === "cottage" ? "Cottage Unit & Room Details" : "Kubotel Units (KUBO-HOTEL)");
     }
     render();
   }
 
-  tabDorm.addEventListener("click", () => setType("dorm"));
-  tabCottage.addEventListener("click", () => setType("cottage"));
+  if (tabDorm) tabDorm.addEventListener("click", () => setType("dorm"));
+  if (tabCottage) tabCottage.addEventListener("click", () => setType("cottage"));
+  if (tabKubotel) tabKubotel.addEventListener("click", () => setType("kubotel"));
 
   ["filter-status", "filter-gender", "filter-search"].forEach((id) => {
     const el = document.getElementById(id);
@@ -87,7 +100,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function render() {
     if (currentType === "dorm") await renderDorms();
-    else await renderCottages();
+    else if (currentType === "cottage") await renderCottages();
+    else await renderKubotels();
   }
 
   async function renderDorms() {
@@ -127,7 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       <tr>
         <th>Image</th>
         <th>Cottage Name</th>
-        <th>Owner</th>
+        <th>Owner / Host</th>
         <th>Rooms</th>
         <th>Price</th>
         <th>Availability</th>
@@ -142,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     cottagesCache = data.cottages || [];
 
     // Render Owners with Profiles first
-    renderCottageOwners(cottagesCache);
+    renderPropertyHosts(cottagesCache, "Cottage");
 
     let filteredCottages = cottagesCache;
     if (selectedOwnerFilter) {
@@ -163,37 +177,78 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  function renderCottageOwners(cottages) {
+  async function renderKubotels() {
+    thead.innerHTML = `
+      <tr>
+        <th>Image</th>
+        <th>Kubotel Unit Name</th>
+        <th>Owner / Host</th>
+        <th>Rooms</th>
+        <th>Price (₱ / day)</th>
+        <th>Availability</th>
+        <th class="text-end">Actions</th>
+      </tr>`;
+
+    const status = document.getElementById("filter-status")?.value || "";
+    const search = document.getElementById("filter-search")?.value.trim() || "";
+    const availability = status === "Occupied" ? "Booked" : (status === "Available" ? "Available" : "");
+
+    const data = await DataAPI.getKubotels({ availability, search });
+    kubotelsCache = data.kubotels || [];
+
+    // Render Hosts with Profiles first
+    renderPropertyHosts(kubotelsCache, "Kubotel");
+
+    let filteredKubotels = kubotelsCache;
+    if (selectedOwnerFilter) {
+      filteredKubotels = kubotelsCache.filter((k) => (k.owner || "CSU Auxiliary Services") === selectedOwnerFilter);
+    }
+
+    if (countLabel) countLabel.textContent = `${filteredKubotels.length} Kubotel unit(s) shown`;
+
+    tbody.innerHTML = filteredKubotels.length
+      ? filteredKubotels.map((k) => kubotelRow(k)).join("")
+      : `<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-hotel"></i>No Kubotel units match your filters.</div></td></tr>`;
+
+    tbody.querySelectorAll("[data-reserve-kubotel]").forEach((btn) => {
+      btn.addEventListener("click", () => goReserve("kubotel", btn.dataset.reserveKubotel));
+    });
+    tbody.querySelectorAll("[data-view-kubotel]").forEach((btn) => {
+      btn.addEventListener("click", () => viewKubotel(btn.dataset.viewKubotel));
+    });
+  }
+
+  function renderPropertyHosts(units, categoryLabel) {
     if (!ownersSection) return;
 
-    // Aggregate cottages by owner
+    // Aggregate units by owner
     const ownersMap = new Map();
-    cottages.forEach((c) => {
-      const ownerName = c.owner || "CSU Auxiliary Services";
+    units.forEach((u) => {
+      const ownerName = u.owner || "CSU Auxiliary Services";
       if (!ownersMap.has(ownerName)) {
         ownersMap.set(ownerName, {
           name: ownerName,
-          photo: c.ownerPhoto || "",
-          phone: c.ownerPhone || "",
-          email: c.ownerEmail || "",
-          bio: c.ownerBio || "",
-          cottages: [],
+          photo: u.ownerPhoto || "",
+          phone: u.ownerPhone || "",
+          email: u.ownerEmail || "",
+          bio: u.ownerBio || "",
+          units: [],
           totalRooms: 0,
-          minPrice: c.price || 0,
-          maxPrice: c.price || 0,
+          minPrice: u.price || 0,
+          maxPrice: u.price || 0,
           availableCount: 0,
         });
       }
       const item = ownersMap.get(ownerName);
-      if (!item.photo && c.ownerPhoto) item.photo = c.ownerPhoto;
-      if (!item.phone && c.ownerPhone) item.phone = c.ownerPhone;
-      if (!item.email && c.ownerEmail) item.email = c.ownerEmail;
-      if (!item.bio && c.ownerBio) item.bio = c.ownerBio;
-      item.cottages.push(c);
-      item.totalRooms += Number(c.rooms || 1);
-      if (c.price < item.minPrice) item.minPrice = c.price;
-      if (c.price > item.maxPrice) item.maxPrice = c.price;
-      if (c.availability === "Available") item.availableCount++;
+      if (!item.photo && u.ownerPhoto) item.photo = u.ownerPhoto;
+      if (!item.phone && u.ownerPhone) item.phone = u.ownerPhone;
+      if (!item.email && u.ownerEmail) item.email = u.ownerEmail;
+      if (!item.bio && u.ownerBio) item.bio = u.ownerBio;
+      item.units.push(u);
+      item.totalRooms += Number(u.rooms || 1);
+      if (u.price < item.minPrice) item.minPrice = u.price;
+      if (u.price > item.maxPrice) item.maxPrice = u.price;
+      if (u.availability === "Available") item.availableCount++;
     });
 
     const ownersList = Array.from(ownersMap.values());
@@ -207,15 +262,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="section-card border shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-id-badge text-primary me-2"></i>Cottage Owners &amp; Property Managers</h6>
-            <div class="text-muted small">Select an owner profile below to view their units, or browse all units below.</div>
+            <h6 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-id-badge text-primary me-2"></i>${categoryLabel} Owners &amp; Property Managers</h6>
+            <div class="text-muted small">Select a host profile below to view their units, or browse all units below.</div>
           </div>
-          ${selectedOwnerFilter ? `<button class="btn btn-sm btn-outline-secondary" id="clear-owner-filter-btn"><i class="fa-solid fa-xmark me-1"></i>Show All Owners</button>` : ""}
+          ${selectedOwnerFilter ? `<button class="btn btn-sm btn-outline-secondary" id="clear-owner-filter-btn"><i class="fa-solid fa-xmark me-1"></i>Show All Hosts</button>` : ""}
         </div>
         <div class="row g-3">
           ${ownersList.map((o) => {
             const isSelected = selectedOwnerFilter === o.name;
-            const initials = o.name.split(" ").map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+            const initials = o.name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
             return `
               <div class="col-md-4">
                 <div class="card h-100 p-3 clickable border ${isSelected ? "border-primary border-2 shadow-sm bg-light" : ""}" data-owner-card="${escapeHtml(o.name)}">
@@ -238,12 +293,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </div>` : ""}
                   ${o.bio ? `<div class="small text-secondary mb-2 fst-italic text-truncate" title="${escapeHtml(o.bio)}">"${escapeHtml(o.bio)}"</div>` : ""}
                   <div class="small text-muted mb-2">
-                    <div><i class="fa-solid fa-house-chimney me-1 text-primary"></i>${o.cottages.length} cottage property(ies) · ${o.totalRooms} rooms</div>
+                    <div><i class="fa-solid fa-house-chimney me-1 text-primary"></i>${o.units.length} unit(s) · ${o.totalRooms} room(s)</div>
                     <div><i class="fa-solid fa-tags me-1 text-primary"></i>₱${Number(o.minPrice).toLocaleString()} - ₱${Number(o.maxPrice).toLocaleString()}/rate</div>
                   </div>
                   <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
                     <span class="badge ${o.availableCount > 0 ? "bg-success" : "bg-secondary"}">${o.availableCount > 0 ? `${o.availableCount} Available` : "Fully Booked"}</span>
-                    <span class="text-primary small fw-semibold">${isSelected ? "Viewing Units <i class=\"fa-solid fa-chevron-down ms-1\"></i>" : "View Rooms <i class=\"fa-solid fa-arrow-right ms-1\"></i>"}</span>
+                    <span class="text-primary small fw-semibold">${isSelected ? "Viewing Units <i class=\"fa-solid fa-chevron-down ms-1\"></i>" : "View Units <i class=\"fa-solid fa-arrow-right ms-1\"></i>"}</span>
                   </div>
                 </div>
               </div>`;
@@ -255,7 +310,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       card.addEventListener("click", () => {
         const ownerName = card.dataset.ownerCard;
         selectedOwnerFilter = selectedOwnerFilter === ownerName ? "" : ownerName;
-        renderCottages();
+        if (currentType === "cottage") renderCottages();
+        else renderKubotels();
       });
     });
 
@@ -263,7 +319,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
         selectedOwnerFilter = "";
-        renderCottages();
+        if (currentType === "cottage") renderCottages();
+        else renderKubotels();
       });
     }
   }
@@ -280,30 +337,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isFemale = dormGender === "Female";
     const badgeClassStyle = isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : (isMixed ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle');
     const badgeIcon = isFemale ? 'venus' : (isMixed ? 'venus-mars' : 'mars');
-    const badgeText = isMixed ? 'Mixed Gender' : `${escapeHtml(dormGender)} Only`;
-    const genderBadge = `<span class="badge ${badgeClassStyle}"><i class="fa-solid fa-${badgeIcon} me-1"></i>${badgeText}</span>`;
-
-    let btnLabel = "Reserve";
-    let btnTitle = "";
-    if (hasApprovedReservation) {
-      btnLabel = "Booking Locked";
-      btnTitle = "You already have an active approved reservation";
-    } else if (d.reservedByMe) {
-      btnLabel = "Reserved";
-    } else if (isGenderMismatch) {
-      btnLabel = `${escapeHtml(dormGender)} Only`;
-      btnTitle = `This dormitory strictly accepts ${escapeHtml(dormGender)} boarders only. Your registered gender is ${escapeHtml(studentGender)}.`;
-    } else if (isParentIncomplete) {
-      btnLabel = "Profile Incomplete";
-      btnTitle = "You must complete Parent / Guardian details first";
-    }
+    const badgeLabelText = isMixed ? 'Mixed Gender (Male & Female)' : `${escapeHtml(dormGender)} Boarders Only`;
+    const btnLabel = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Reserved" : (isGenderMismatch ? `${escapeHtml(dormGender)} Only` : (isParentIncomplete ? "Profile Incomplete" : "Reserve")));
+    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isGenderMismatch ? `This dormitory strictly accepts ${dormGender} boarders only` : (isParentIncomplete ? "You must complete Parent / Guardian details first" : ""));
 
     return `
       <tr>
         <td><img src="${resolveAsset(d.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
         <td>
           <div class="fw-bold">${escapeHtml(d.roomNumber)}</div>
-          <div class="mt-1">${genderBadge}</div>
+          <span class="badge ${badgeClassStyle} small mt-1">
+            <i class="fa-solid fa-${badgeIcon} me-1"></i>${badgeLabelText}
+          </span>
         </td>
         <td>${d.capacity} pax</td>
         <td>₱${Number(d.price || 0).toLocaleString()} <span class="text-muted small">/mo</span></td>
@@ -338,6 +383,33 @@ document.addEventListener("DOMContentLoaded", async () => {
         <td class="text-end text-nowrap">
           <button class="btn btn-sm btn-outline-secondary me-1" data-view-cottage="${c.id}"><i class="fa-solid fa-eye me-1"></i>View</button>
           <button class="btn btn-sm btn-primary" data-reserve-cottage="${c.id}" ${disabled} title="${btnTitle}"><i class="fa-solid fa-calendar-check me-1"></i>${btnLabel}</button>
+        </td>
+      </tr>`;
+  }
+
+  function kubotelRow(k) {
+    const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
+    const isLocked = k.reservedByMe || k.availability !== "Available" || hasApprovedReservation;
+    const disabled = isLocked ? "disabled" : "";
+    const badgeLabel = k.reservedByMe ? "Room/Unit Reserved" : k.availability;
+    const btnLabel = hasApprovedReservation ? "Booking Locked" : (k.reservedByMe ? "Reserved" : (isParentIncomplete ? "Profile Incomplete" : "Reserve"));
+    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isParentIncomplete ? "You must complete Parent / Guardian details first" : "");
+    return `
+      <tr>
+        <td><img src="${resolveAsset(k.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
+        <td class="fw-bold">${escapeHtml(k.name)}</td>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            ${k.ownerPhoto ? `<img src="${resolveAsset(k.ownerPhoto)}" class="rounded-circle border" style="width:26px;height:26px;object-fit:cover;">` : `<i class="fa-solid fa-circle-user text-muted fs-5"></i>`}
+            <span class="badge bg-light text-dark border">${escapeHtml(k.owner || "CSU Auxiliary")}</span>
+          </div>
+        </td>
+        <td>${k.rooms} room(s)</td>
+        <td>₱${Number(k.price || 0).toLocaleString()} <span class="text-muted small">/day</span></td>
+        <td><span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></td>
+        <td class="text-end text-nowrap">
+          <button class="btn btn-sm btn-outline-secondary me-1" data-view-kubotel="${k.id}"><i class="fa-solid fa-eye me-1"></i>View</button>
+          <button class="btn btn-sm btn-primary" data-reserve-kubotel="${k.id}" ${disabled} title="${btnTitle}"><i class="fa-solid fa-calendar-check me-1"></i>${btnLabel}</button>
         </td>
       </tr>`;
   }
@@ -415,7 +487,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!c) return;
     const badgeLabel = c.reservedByMe ? "Room/Unit Reserved" : c.availability;
     const ownerName = c.owner || "CSU Auxiliary Services";
-    const initials = ownerName.split(" ").map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+    const initials = ownerName.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 
     document.getElementById("room-detail-body").innerHTML = `
       <!-- Owner Profile Section -->
@@ -452,6 +524,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     reserveCottageBtn.disabled = c.reservedByMe || c.availability !== "Available" || hasApprovedReservation;
     reserveCottageBtn.textContent = hasApprovedReservation ? "Booking Locked" : (c.reservedByMe ? "Room/Unit Reserved" : (isParentIncompleteCottage ? "Complete Profile to Reserve" : "Reserve Cottage"));
     reserveCottageBtn.onclick = () => goReserve("cottage", c.id);
+    new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
+  }
+
+  function viewKubotel(id) {
+    const k = kubotelsCache.find((x) => String(x.id) === String(id));
+    if (!k) return;
+    const badgeLabel = k.reservedByMe ? "Room/Unit Reserved" : k.availability;
+    const ownerName = k.owner || "CSU Auxiliary Services";
+    const initials = ownerName.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+
+    document.getElementById("room-detail-body").innerHTML = `
+      <!-- Host Profile Section -->
+      <div class="card border p-3 mb-3 bg-light shadow-sm">
+        <div class="d-flex align-items-start gap-3">
+          ${k.ownerPhoto
+            ? `<img src="${resolveAsset(k.ownerPhoto)}" class="rounded-circle border shadow-sm flex-shrink-0" style="width:58px;height:58px;object-fit:cover;">`
+            : `<div class="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width:58px;height:58px;background:var(--brand-gradient, linear-gradient(135deg,#ea580c,#f97316));font-size:1.25rem;">
+                ${initials || '<i class="fa-solid fa-user"></i>'}
+              </div>`
+          }
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h6 class="fw-bold text-dark fs-6 mb-0">${escapeHtml(ownerName)}</h6>
+              <span class="badge bg-success-subtle text-success border border-success-subtle small"><i class="fa-solid fa-circle-check me-1"></i>Verified Host</span>
+            </div>
+            <div class="text-muted small mt-1">
+              ${k.ownerPhone ? `<span class="me-3"><i class="fa-solid fa-phone me-1 text-primary"></i>${escapeHtml(k.ownerPhone)}</span>` : ""}
+              ${k.ownerEmail ? `<span><i class="fa-solid fa-envelope me-1 text-primary"></i>${escapeHtml(k.ownerEmail)}</span>` : ""}
+            </div>
+            ${k.ownerBio ? `<div class="small text-secondary mt-2 fst-italic">"${escapeHtml(k.ownerBio)}"</div>` : `<div class="text-muted small mt-1">CSU-Piat registered Kubotel facility manager.</div>`}
+          </div>
+        </div>
+      </div>
+
+      <!-- Kubotel Details -->
+      <img src="${resolveAsset(k.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
+      <h5 class="fw-bold">${escapeHtml(k.name)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
+      <p class="text-muted mb-2"><i class="fa-solid fa-bed me-1"></i>${k.rooms} room(s) · <i class="fa-solid fa-tag me-1"></i>Native Kubo-Hotel (₱ / day)</p>
+      <p>${escapeHtml(k.description)}</p>
+      <h5 class="text-primary fw-bold">₱${Number(k.price || 0).toLocaleString()} / day</h5>`;
+    const isParentIncompleteKubotel = profileStatus && !profileStatus.parentComplete;
+    const reserveKubotelBtn = document.getElementById("room-detail-reserve-btn");
+    reserveKubotelBtn.disabled = k.reservedByMe || k.availability !== "Available" || hasApprovedReservation;
+    reserveKubotelBtn.textContent = hasApprovedReservation ? "Booking Locked" : (k.reservedByMe ? "Room/Unit Reserved" : (isParentIncompleteKubotel ? "Complete Profile to Reserve" : "Reserve Kubotel"));
+    reserveKubotelBtn.onclick = () => goReserve("kubotel", k.id);
     new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
   }
 

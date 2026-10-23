@@ -12,7 +12,7 @@ if (!$id) {
 }
 
 $pdo = get_db();
-$stmt = $pdo->prepare('SELECT student_id, type, dorm_id, cottage_id, approval_status FROM reservations WHERE id = ?');
+$stmt = $pdo->prepare('SELECT student_id, type, dorm_id, cottage_id, kubotel_id, approval_status FROM reservations WHERE id = ?');
 $stmt->execute([$id]);
 $row = $stmt->fetch();
 
@@ -32,8 +32,10 @@ try {
 
     if ($row['type'] === 'Dormitory' && $row['dorm_id']) {
         $pdo->prepare('UPDATE dormitories SET status = \'Available\' WHERE id = ?')->execute([$row['dorm_id']]);
-    } elseif ($row['cottage_id']) {
+    } elseif ($row['type'] === 'Cottage' && $row['cottage_id']) {
         $pdo->prepare('UPDATE cottages SET availability = \'Available\' WHERE id = ?')->execute([$row['cottage_id']]);
+    } elseif ($row['type'] === 'Kubotel' && !empty($row['kubotel_id'])) {
+        $pdo->prepare('UPDATE kubotels SET availability = \'Available\' WHERE id = ?')->execute([$row['kubotel_id']]);
     }
 
     $pdo->commit();

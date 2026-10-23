@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     reservations: "Reservations Report",
     "dorm-occupancy": "Dormitory Occupancy Report",
     "cottage-occupancy": "Cottage Occupancy Report",
+    "kubotel-occupancy": "Kubotel Occupancy Report",
     revenue: "Revenue Summary Report",
     registrations: "User Registrations Report",
   };
@@ -179,6 +180,31 @@ document.addEventListener("DOMContentLoaded", () => {
                   <td>${c.rooms} room(s)</td>
                   <td class="fw-semibold">₱${Number(c.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / day</td>
                   <td class="text-center"><span class="badge ${badgeClass(c.availability)}">${c.availability}</span></td>
+                </tr>`).join("")
+              : emptyRow(5)}
+          </tbody>
+        </table>`;
+    } else if (type === "kubotel-occupancy") {
+      tableEl.innerHTML = `
+        <table class="table table-hover table-bordered align-middle table-sm mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Kubotel Unit Name</th>
+              <th>Managing Owner / Host</th>
+              <th>Rooms</th>
+              <th>Daily Rate</th>
+              <th class="text-center">Availability Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length
+              ? rows.map((k) => `
+                <tr>
+                  <td class="fw-bold">${escapeHtml(k.name)}</td>
+                  <td>${escapeHtml(k.owner || 'CSU-Piat')}</td>
+                  <td>${k.rooms} room(s)</td>
+                  <td class="fw-semibold">₱${Number(k.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / day</td>
+                  <td class="text-center"><span class="badge ${badgeClass(k.availability)}">${k.availability}</span></td>
                 </tr>`).join("")
               : emptyRow(5)}
           </tbody>

@@ -3,19 +3,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!session) return;
 
   const params = new URLSearchParams(window.location.search);
-  const type = params.get("type") === "cottage" ? "cottage" : "dorm";
+  const rawType = params.get("type");
+  const type = rawType === "cottage" ? "cottage" : (rawType === "kubotel" ? "kubotel" : "dorm");
   const assetId = params.get("id");
 
   let asset = null;
   try {
-    const data = type === "dorm" ? await DataAPI.getDorm(assetId) : await DataAPI.getCottage(assetId);
-    asset = data.dorm || data.cottage || null;
+    let data;
+    if (type === "dorm") data = await DataAPI.getDorm(assetId);
+    else if (type === "cottage") data = await DataAPI.getCottage(assetId);
+    else data = await DataAPI.getKubotel(assetId);
+
+    asset = data.dorm || data.cottage || data.kubotel || null;
   } catch (e) {
     asset = null;
   }
 
   if (!asset) {
-    document.querySelector("main.app-main").innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>Room or cottage not found.<br><a href="rooms.html" class="btn btn-primary mt-2">Back to Rooms</a></div>`;
+    document.querySelector("main.app-main").innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>Accommodation unit not found.<br><a href="rooms.html" class="btn btn-primary mt-2">Back to Rooms</a></div>`;
     return;
   }
 
@@ -125,13 +130,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       </div>`;
   }
 
+  const subtitleText = type === "dorm"
+    ? `Dormitory · Capacity ${asset.capacity} pax`
+    : (type === "cottage"
+        ? `Cottage · Owner: ${escapeHtml(asset.owner)} · ${asset.rooms} rooms`
+        : `Kubotel (KUBO-HOTEL) · Host: ${escapeHtml(asset.owner)} · ${asset.rooms} room(s)`);
+
   document.getElementById("selected-asset-card").innerHTML = `
     <div class="row g-3 align-items-center">
       <div class="col-md-4"><img src="${resolveAsset(asset.image)}" class="w-100 rounded" style="height:160px;object-fit:cover;"></div>
       <div class="col-md-8">
         <h5 class="fw-bold mb-1">${escapeHtml(label)}</h5>
         <div class="mb-2">${genderBadge}</div>
-        <p class="text-muted mb-1">${type === "dorm" ? `Dormitory · Capacity ${asset.capacity} pax` : `Owner: ${escapeHtml(asset.owner)} · ${asset.rooms} rooms`}</p>
+        <p class="text-muted mb-1">${subtitleText}</p>
         <h5 class="text-primary fw-bold">₱${Number(price || 0).toLocaleString()} ${type === "dorm" ? "/ month" : "/ day"}</h5>
         ${genderMismatchAlert}
       </div>
@@ -154,38 +165,35 @@ document.addEventListener("DOMContentLoaded", async () => {
     goToStep(2);
   });
 
-  // Setup Copy Payee Number button
-  const copyBtn = document.getElementById("copy-number-btn");
-  if (copyBtn) {
-    copyBtn.addEventListener("click", () => {
-      const numText = document.getElementById("payee-number-display").textContent.trim();
-      if (numText && numText !== "—" && numText !== "N/A") {
-        navigator.clipboard.writeText(numText);
-        showToast("Account number copied to clipboard!", "info");
-      }
-    });
-  }
-
-  // Click on QR image to view in new tab or popup
-  const qrImg = document.getElementById("owner-qr-image");
-  if (qrImg) {
-    qrImg.addEventListener("click", () => {
-      if (qrImg.src) window.open(qrImg.src, "_blank");
-    });
-  }
-
   // ---- Step 2: Payment ----
-  document.querySelectorAll(".payment-option").forEach((el) => {
-    el.addEventListener("click", () => {
-      document.querySelectorAll(".payment-option").forEach((o) => o.classList.remove("border-primary", "border-2", "bg-light"));
-      el.classList.add("border-primary", "border-2", "bg-light");
-      wizardState.paymentMethod = el.dataset.method;
+  const paymentOptions = document.querySelectorAll(".payment-option");
+  const detailsContainer = document.getElementById("payment-details-container");
+  const cashInfo = document.getElementById("cash-payment-info");
+  const onlineInfo = document.getElementById("online-payment-info");
+  const toStep3Btn = document.getElementById("to-step-3-btn");
 
-      const detailsContainer = document.getElementById("payment-details-container");
-      const cashInfo = document.getElementById("cash-payment-info");
-      const onlineInfo = document.getElementById("online-payment-info");
-      const toStep3Btn = document.getElementById("to-step-3-btn");
+  // Copy buttons
+  const copyPayeeBtn = document.getElementById("copy-payee-name-btn");
+  if (copyPayeeBtn) {
+    copyPayeeBtn.addEventListener("click", () => {
+      const txt = document.getElementById("payee-name-display").textContent.trim();
+      navigator.clipboard.writeText(txt).then(() => showToast("Payee name copied to clipboard!", "success"));
+    });
+  }
+  const copyNumberBtn = document.getElementById("copy-payee-number-btn");
+  if (copyNumberBtn) {
+    copyNumberBtn.addEventListener("click", () => {
+      const txt = document.getElementById("payee-number-display").textContent.trim();
+      navigator.clipboard.writeText(txt).then(() => showToast("Account / Mobile number copied!", "success"));
+    });
+  }
 
+  paymentOptions.forEach((opt) => {
+    opt.addEventListener("click", () => {
+      paymentOptions.forEach((o) => o.classList.remove("border-primary", "bg-light", "border-2"));
+      opt.classList.add("border-primary", "bg-light", "border-2");
+
+      wizardState.paymentMethod = opt.dataset.method;
       detailsContainer.classList.remove("d-none");
 
       if (wizardState.paymentMethod === "Cash") {
@@ -249,10 +257,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   function buildReceipt() {
     const today = new Date().toISOString().slice(0, 10);
     const paymentStatus = wizardState.paymentMethod === "Cash" ? "Pending" : "Paid";
+    const typeLabel = type === "dorm" ? "Dormitory" : (type === "cottage" ? "Cottage" : "Kubotel (KUBO-HOTEL)");
 
     document.getElementById("receipt-card").innerHTML = `
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-        <span class="text-muted">${type === "dorm" ? "Dormitory" : "Cottage"}</span><strong>${escapeHtml(label)}</strong>
+        <span class="text-muted">${typeLabel}</span><strong>${escapeHtml(label)}</strong>
       </div>
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
         <span class="text-muted">Payment Method</span><strong>${wizardState.paymentMethod}</strong>
@@ -295,7 +304,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     withLoading(async () => {
       try {
         await DataAPI.createReservation({
-          type: type === "dorm" ? "Dormitory" : "Cottage",
+          type: type === "dorm" ? "Dormitory" : (type === "cottage" ? "Cottage" : "Kubotel"),
           assetId: asset.id,
           paymentMethod: wizardState.paymentMethod,
           referenceNumber: wizardState.referenceNumber,

@@ -8,6 +8,7 @@ $pdo = get_db();
 $totalUsers = (int)$pdo->query('SELECT COUNT(*) FROM students')->fetchColumn();
 $totalDorms = (int)$pdo->query('SELECT COUNT(*) FROM dormitories')->fetchColumn();
 $totalCottages = (int)$pdo->query('SELECT COUNT(*) FROM cottages')->fetchColumn();
+$totalKubotels = (int)$pdo->query('SELECT COUNT(*) FROM kubotels')->fetchColumn();
 
 $statusCounts = ['Pending' => 0, 'Approved' => 0, 'Declined' => 0, 'Cancelled' => 0];
 foreach ($pdo->query('SELECT approval_status, COUNT(*) c FROM reservations GROUP BY approval_status') as $row) {
@@ -22,6 +23,11 @@ foreach ($pdo->query('SELECT status, COUNT(*) c FROM dormitories GROUP BY status
 $cottageStatusCounts = ['Available' => 0, 'Booked' => 0];
 foreach ($pdo->query('SELECT availability, COUNT(*) c FROM cottages GROUP BY availability') as $row) {
     $cottageStatusCounts[$row['availability']] = (int)$row['c'];
+}
+
+$kubotelStatusCounts = ['Available' => 0, 'Booked' => 0];
+foreach ($pdo->query('SELECT availability, COUNT(*) c FROM kubotels GROUP BY availability') as $row) {
+    $kubotelStatusCounts[$row['availability']] = (int)$row['c'];
 }
 
 $revenue = (float)$pdo->query("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'Paid'")->fetchColumn();
@@ -41,6 +47,7 @@ respond([
     'totalUsers' => $totalUsers,
     'totalDorms' => $totalDorms,
     'totalCottages' => $totalCottages,
+    'totalKubotels' => $totalKubotels,
     'pendingReservations' => $statusCounts['Pending'],
     'approvedReservations' => $statusCounts['Approved'],
     'availableRooms' => $dormStatusCounts['Available'],
@@ -49,5 +56,6 @@ respond([
     'statusCounts' => $statusCounts,
     'dormStatusCounts' => $dormStatusCounts,
     'cottageStatusCounts' => $cottageStatusCounts,
+    'kubotelStatusCounts' => $kubotelStatusCounts,
     'monthly' => $monthly,
 ]);

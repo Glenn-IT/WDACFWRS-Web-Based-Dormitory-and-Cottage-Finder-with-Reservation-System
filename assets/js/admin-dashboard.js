@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("stat-total-users").textContent = stats.totalUsers;
   document.getElementById("stat-total-dorms").textContent = stats.totalDorms;
   document.getElementById("stat-total-cottages").textContent = stats.totalCottages;
+  const kubotelEl = document.getElementById("stat-total-kubotels");
+  if (kubotelEl) kubotelEl.textContent = stats.totalKubotels ?? 0;
   document.getElementById("stat-pending-reservations").textContent = stats.pendingReservations;
   document.getElementById("stat-approved-reservations").textContent = stats.approvedReservations;
   document.getElementById("stat-available-rooms").textContent = stats.availableRooms;
@@ -51,6 +53,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     },
     options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } },
   });
+
+  // Kubotel Occupancy
+  const kubotelChartCanvas = document.getElementById("chart-kubotel-occupancy");
+  if (kubotelChartCanvas && stats.kubotelStatusCounts) {
+    new Chart(kubotelChartCanvas, {
+      type: "pie",
+      data: {
+        labels: Object.keys(stats.kubotelStatusCounts),
+        datasets: [{ data: Object.values(stats.kubotelStatusCounts), backgroundColor: [chartColors.green, chartColors.amber] }],
+      },
+      options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } },
+    });
+  }
 
   // Monthly Reservations (last 6 months)
   new Chart(document.getElementById("chart-monthly"), {
