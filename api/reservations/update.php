@@ -26,13 +26,13 @@ try {
 
     $oldApproval = $res['approval_status'];
     $newApproval = trim((string)($in['approvalStatus'] ?? $res['approval_status']));
-    $allowedApprovals = ['Pending', 'Approved', 'Declined', 'Cancelled'];
+    $allowedApprovals = ['Pending', 'Approved', 'Declined', 'Cancelled', 'Refunded'];
     if (!in_array($newApproval, $allowedApprovals, true)) {
         fail('Invalid approval status.');
     }
 
     $newPaymentStatus = trim((string)($in['paymentStatus'] ?? $res['payment_status']));
-    $allowedPaymentStatuses = ['Pending', 'Paid'];
+    $allowedPaymentStatuses = ['Pending', 'Paid', 'Refund Requested', 'Refunded'];
     if (!in_array($newPaymentStatus, $allowedPaymentStatuses, true)) {
         fail('Invalid payment status.');
     }
@@ -79,19 +79,19 @@ try {
         if ($res['type'] === 'Dormitory' && $res['dorm_id']) {
             if ($newApproval === 'Approved') {
                 $pdo->prepare("UPDATE dormitories SET status = 'Occupied' WHERE id = ?")->execute([$res['dorm_id']]);
-            } elseif (in_array($newApproval, ['Declined', 'Cancelled'], true)) {
+            } elseif (in_array($newApproval, ['Declined', 'Cancelled', 'Refunded'], true)) {
                 $pdo->prepare("UPDATE dormitories SET status = 'Available' WHERE id = ?")->execute([$res['dorm_id']]);
             }
         } elseif ($res['type'] === 'Cottage' && $res['cottage_id']) {
             if ($newApproval === 'Approved') {
                 $pdo->prepare("UPDATE cottages SET availability = 'Booked' WHERE id = ?")->execute([$res['cottage_id']]);
-            } elseif (in_array($newApproval, ['Declined', 'Cancelled'], true)) {
+            } elseif (in_array($newApproval, ['Declined', 'Cancelled', 'Refunded'], true)) {
                 $pdo->prepare("UPDATE cottages SET availability = 'Available' WHERE id = ?")->execute([$res['cottage_id']]);
             }
         } elseif ($res['type'] === 'Kubotel' && !empty($res['kubotel_id'])) {
             if ($newApproval === 'Approved') {
                 $pdo->prepare("UPDATE kubotels SET availability = 'Booked' WHERE id = ?")->execute([$res['kubotel_id']]);
-            } elseif (in_array($newApproval, ['Declined', 'Cancelled'], true)) {
+            } elseif (in_array($newApproval, ['Declined', 'Cancelled', 'Refunded'], true)) {
                 $pdo->prepare("UPDATE kubotels SET availability = 'Available' WHERE id = ?")->execute([$res['kubotel_id']]);
             }
         }

@@ -32,6 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <td><span class="badge ${badgeClass(r.paymentStatus)}">${r.paymentStatus}</span></td>
         <td><span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></td>
         <td class="text-end text-nowrap">
+          ${r.refundStatus === "Pending" ? `
+            <a href="payments.html?search=${r.id}" class="btn btn-sm btn-danger me-1" title="Review Student Refund Request">
+              <i class="fa-solid fa-hand-holding-dollar me-1"></i>Refund
+            </a>` : ""}
           ${r.receiptImage ? `
             <button class="btn btn-sm btn-outline-success me-1" data-receipt="${r.id}" title="View Payment Proof Receipt">
               <i class="fa-solid fa-receipt me-1"></i>Receipt
@@ -110,6 +114,17 @@ document.addEventListener("DOMContentLoaded", () => {
           <p class="mb-1"><strong>Date:</strong> ${r.reservationDate}</p>
           <p class="mb-1"><strong>Payment:</strong> ${r.paymentMethod} · ₱${r.amount.toLocaleString()} · <span class="badge ${badgeClass(r.paymentStatus)}">${r.paymentStatus}</span></p>
           ${r.referenceNumber ? `<p class="mb-1"><strong>Payment Ref / Trans #:</strong> <span class="badge bg-secondary-subtle text-dark border font-monospace fs-6">${escapeHtml(r.referenceNumber)}</span></p>` : ""}
+          ${r.refundStatus && r.refundStatus !== "None" ? `
+            <div class="mt-2 p-2 border rounded ${r.refundStatus === "Pending" ? "border-warning-subtle bg-warning-subtle" : (r.refundStatus === "Approved" ? "border-success-subtle bg-success-subtle" : "border-danger-subtle bg-danger-subtle")} bg-opacity-10 small">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong><i class="fa-solid fa-hand-holding-dollar me-1"></i>Refund Status: <span class="badge ${r.refundStatus === "Pending" ? "bg-warning text-dark" : (r.refundStatus === "Approved" ? "bg-success" : "bg-danger")}">${r.refundStatus}</span></strong>
+                <a href="payments.html?search=${r.id}" class="btn btn-xs btn-outline-dark py-0 px-2" style="font-size:0.75rem;">Manage in Payments</a>
+              </div>
+              <div><strong>Channel:</strong> ${escapeHtml(r.refundMethod)} · ${escapeHtml(r.refundAccountName)} (${escapeHtml(r.refundAccountNumber)})</div>
+              <div class="mt-1"><strong>Reason:</strong> ${escapeHtml(r.refundReason || "None provided")}</div>
+              ${r.refundProcessedDate ? `<div class="mt-1"><strong>Processed:</strong> ${r.refundProcessedDate} ${r.refundReferenceNumber ? `· Ref: <span class="font-monospace">${escapeHtml(r.refundReferenceNumber)}</span>` : ""}</div>` : ""}
+              ${r.refundAdminNotes ? `<div class="mt-1"><strong>Admin Notes:</strong> ${escapeHtml(r.refundAdminNotes)}</div>` : ""}
+            </div>` : ""}
         </div>
       </div>
       <hr>

@@ -26,11 +26,11 @@
         </div>
         <div class="col-md-3">
           <label class="form-label small">Approval Status</label>
-          <select class="form-select" id="filter-approval"><option value="">All</option><option>Pending</option><option>Approved</option><option>Declined</option><option>Cancelled</option></select>
+          <select class="form-select" id="filter-approval"><option value="">All</option><option>Pending</option><option>Approved</option><option>Declined</option><option>Cancelled</option><option>Refunded</option></select>
         </div>
         <div class="col-md-3">
           <label class="form-label small">Payment Status</label>
-          <select class="form-select" id="filter-payment"><option value="">All</option><option>Paid</option><option>Pending</option></select>
+          <select class="form-select" id="filter-payment"><option value="">All</option><option>Paid</option><option>Pending</option><option>Refund Requested</option><option>Refunded</option></select>
         </div>
         <div class="col-md-3">
           <label class="form-label small">Search Student</label>
@@ -114,6 +114,8 @@
                 <select class="form-select" id="edit-res-payment-status" required>
                   <option value="Pending">Pending</option>
                   <option value="Paid">Paid</option>
+                  <option value="Refund Requested">Refund Requested</option>
+                  <option value="Refunded">Refunded</option>
                 </select>
               </div>
             </div>
@@ -125,6 +127,7 @@
                   <option value="Approved">Approved</option>
                   <option value="Declined">Declined</option>
                   <option value="Cancelled">Cancelled</option>
+                  <option value="Refunded">Refunded</option>
                 </select>
               </div>
               <div class="col-md-6">

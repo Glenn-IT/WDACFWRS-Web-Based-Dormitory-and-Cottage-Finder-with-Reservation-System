@@ -25,6 +25,10 @@ if ($session['role'] === 'admin') {
         $where[] = 'r.payment_status = ?';
         $params[] = $_GET['paymentStatus'];
     }
+    if (!empty($_GET['refundStatus'])) {
+        $where[] = 'r.refund_status = ?';
+        $params[] = $_GET['refundStatus'];
+    }
     if (!empty($_GET['search'])) {
         $where[] = "CONCAT(s.first_name, ' ', s.last_name) LIKE ?";
         $params[] = '%' . $_GET['search'] . '%';

@@ -80,6 +80,12 @@ const DataAPI = {
   approveReservation: (id) => apiFetch("reservations/approve.php", { method: "POST", body: JSON.stringify({ id }) }),
   declineReservation: (id) => apiFetch("reservations/decline.php", { method: "POST", body: JSON.stringify({ id }) }),
   cancelReservation: (id) => apiFetch("reservations/cancel.php", { method: "POST", body: JSON.stringify({ id }) }),
+  requestRefund: (payload) => apiFetch("reservations/request_refund.php", { method: "POST", body: JSON.stringify(payload) }),
+  approveRefund: (payload) => apiFetch("reservations/approve_refund.php", { method: "POST", body: (typeof FormData !== "undefined" && payload instanceof FormData) ? payload : JSON.stringify(payload) }),
+  denyRefund: (payload) => apiFetch("reservations/deny_refund.php", { method: "POST", body: JSON.stringify(payload) }),
+
+  // ---- Payments & Transactions ----
+  getPayments: (params = {}) => apiFetch(`payments/list.php${qs(params)}`),
 
   // ---- Notifications ----
   getNotifications: () => apiFetch("notifications/list.php"),

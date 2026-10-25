@@ -41,6 +41,63 @@
     </div>
   </div>
 
+  <!-- Request Refund Modal -->
+  <div class="modal fade" id="request-refund-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="student-refund-form">
+          <div class="modal-header bg-light">
+            <h5 class="modal-title"><i class="fa-solid fa-hand-holding-dollar me-2 text-primary"></i>Request Cancellation &amp; Refund</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="student-refund-res-id">
+
+            <div class="alert alert-light border small mb-3">
+              <div class="d-flex justify-content-between mb-1">
+                <span class="text-muted">Reservation:</span>
+                <strong id="refund-modal-res-label">—</strong>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span class="text-muted">Paid Amount to Refund:</span>
+                <strong class="text-primary font-monospace" id="refund-modal-amount">₱0.00</strong>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="student-refund-method">Preferred Refund Method <span class="text-danger">*</span></label>
+              <select class="form-select" id="student-refund-method" required>
+                <option value="GCash">GCash</option>
+                <option value="Maya">Maya</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+              </select>
+              <div class="form-text small">Select the payment account where you wish to receive the refunded money.</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="student-refund-name">Account / Beneficiary Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="student-refund-name" placeholder="e.g. Juan Dela Cruz" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="student-refund-number">Account / Mobile Number <span class="text-danger">*</span></label>
+              <input type="text" class="form-control font-monospace" id="student-refund-number" placeholder="e.g. 09123456789 or Bank Account #" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="student-refund-reason">Reason for Cancellation &amp; Refund <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="student-refund-reason" rows="3" placeholder="Please explain why you need to cancel and request a refund..." required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane me-1"></i>Submit Refund Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
   <script src="../assets/js/ui.js"></script>

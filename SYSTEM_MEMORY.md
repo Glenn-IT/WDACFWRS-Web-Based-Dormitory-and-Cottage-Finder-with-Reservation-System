@@ -35,10 +35,10 @@ The database consists of **12 tables** with explicit foreign keys and check cons
 | `dormitories` | `id INT AUTO_INCREMENT` | — | Dorm rooms (shared dorm names permitted, capacity, gender, price, status) |
 | `cottages` | `id INT AUTO_INCREMENT` | `name UNIQUE` | Cottages (unique name enforced, owner profile, rooms, price, availability) |
 | `kubotels` | `id INT AUTO_INCREMENT` | `name UNIQUE` | Kubotels / KUBO-HOTEL units (unique unit name enforced, host profile, rooms, price, availability) |
-| `reservations` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE)<br>`dorm_id -> dormitories(id)` (SET NULL)<br>`cottage_id -> cottages(id)` (SET NULL)<br>`kubotel_id -> kubotels(id)` (SET NULL)<br>`chk_res_asset`: Exactly one asset ID per type | Core reservation records, payment status, approval status, reference_number, receipt_image |
+| `reservations` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE)<br>`dorm_id -> dormitories(id)` (SET NULL)<br>`cottage_id -> cottages(id)` (SET NULL)<br>`kubotel_id -> kubotels(id)` (SET NULL)<br>`chk_res_asset`: Exactly one asset ID per type | Core reservation records, payment status, approval status, reference_number, receipt_image, refund tracking |
 | `reservation_parent_info` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Parent/guardian background on specific reservation snapshot |
 | `reservation_backgrounds` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Student background on specific reservation snapshot |
-| `payments` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE) | Payment records tied to reservations, reference_number, receipt_image |
+| `payments` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE) | Payment records tied to reservations, reference_number, receipt_image, refund tracking & proof |
 | `notifications` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE) | In-app student alerts with `is_read` status |
 
 ---
@@ -127,12 +127,39 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | `r.payment_method` | `paymentMethod` | 'Cash', 'GCash', etc. |
 | `r.amount` | `amount` (float) | Reservation fee |
 | `r.reservation_date` | `reservationDate` | Scheduled date |
-| `r.payment_status` | `paymentStatus` | 'Pending', 'Paid' |
-| `r.approval_status` | `approvalStatus` | 'Pending', 'Approved', 'Declined', 'Cancelled' |
+| `r.payment_status` | `paymentStatus` | 'Pending', 'Paid', 'Refund Requested', 'Refunded' |
+| `r.approval_status` | `approvalStatus` | 'Pending', 'Approved', 'Declined', 'Cancelled', 'Refunded' |
 | `r.reference_number` | `referenceNumber` | Student's GCash/Maya/Bank transaction reference code |
 | `r.receipt_image` | `receiptImage` | Uploaded payment proof slip / receipt image path (assets/uploads/receipts/...) |
+| `r.refund_status` | `refundStatus` | 'None', 'Pending', 'Approved', 'Denied' |
+| `r.refund_reason` | `refundReason` | Student's cancellation reason |
+| `r.refund_method` | `refundMethod` | Student's payout channel ('GCash', 'Maya', 'Bank Transfer') |
+| `r.refund_account_name` | `refundAccountName` | Payout beneficiary name |
+| `r.refund_account_number` | `refundAccountNumber`| Payout account / mobile number |
+| `r.refund_reference_number`| `refundReferenceNumber`| Admin transfer transaction reference code |
+| `r.refund_receipt_image`| `refundReceiptImage` | Admin proof of resent refund slip path |
 | `pi.*` (9 columns) | `parentInfo: { ... }` | View modal & printable slip |
 | `bg.*` (11 columns) | `studentBackground: { ... }` | View modal student details |
+
+### E. Payments (`api/payments/_helpers.php` -> `map_payment()`)
+| Database Column (`payments`) | JSON Field (`DataAPI`) | Frontend Usage |
+| :--- | :--- | :--- |
+| `id` | `id` (int) | Payment transaction ID |
+| `reservation_id` | `reservationId` (int) | Linked reservation # |
+| `method` | `method` | Payment method ('Cash', 'GCash', 'Maya', 'Bank Transfer') |
+| `amount` | `amount` (float) | Paid amount |
+| `status` | `status` | 'Pending', 'Paid', 'Refund Requested', 'Refunded' |
+| `date` | `date` | Payment date |
+| `reference_number` | `referenceNumber` | Student transaction reference |
+| `receipt_image` | `receiptImage` | Uploaded proof of payment image |
+| `refund_status` | `refundStatus` | 'None', 'Pending', 'Approved', 'Denied' |
+| `refund_reason` | `refundReason` | Student cancellation reason |
+| `refund_method` | `refundMethod` | Payout channel ('GCash', 'Maya', 'Bank Transfer') |
+| `refund_account_name` | `refundAccountName` | Payout beneficiary name |
+| `refund_account_number` | `refundAccountNumber`| Payout account number |
+| `refund_reference_number`| `refundReferenceNumber`| Admin resent funds transaction ref # |
+| `refund_receipt_image` | `refundReceiptImage` | Admin proof of resent refund slip |
+| `refund_admin_notes` | `refundAdminNotes` | Admin notes or denial reason |
 
 ### E. Students (`api/users/_helpers.php` -> `map_student()`)
 | Database Column (`students`) | JSON Field (`DataAPI`) | Frontend Usage |
