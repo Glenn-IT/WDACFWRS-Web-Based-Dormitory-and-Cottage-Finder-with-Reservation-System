@@ -381,7 +381,7 @@ When any change is made, use this matrix to locate and update **every connected 
    - On student view (`user/rooms.html`) and public guest view (`guest.html`), accommodations display an interactive 5-picture Bootstrap Carousel in the unit details modal.
 10. **CSU-Piat Campus Google Map Location & Directions**:
    - Location: Cagayan State University - Piat Campus · Baung, Piat, Cagayan 3527, Philippines.
-   - Coordinates: `17.797431° N`, `121.477439° E` (Plus Code: `QGQ9+JWW, Piat, Cagayan`).
+   - Plus Code: `QGV6+26H, Piat, Cagayan` (Coordinates: ~`17.7925° N`, `121.5105° E`).
    - Integrated as an interactive Google Maps iframe with a direct Google Maps Directions navigation button on both the student accommodations explorer (`user/rooms.html`) and the guest view page (`guest.html`).
 11. **Dormitory 'Not Available' Status**:
    - In addition to `'Available'`, `'Occupied'`, and `'Full'`, dormitory status supports `'Not Available'`.
