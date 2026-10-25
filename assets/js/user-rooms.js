@@ -524,7 +524,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       </p>
       ${mismatchAlert}
       <p>${escapeHtml(d.description)}</p>
-      <h5 class="text-primary fw-bold">₱${Number(d.price || 0).toLocaleString()} / month</h5>`;
+      <h5 class="text-primary fw-bold mb-3">₱${Number(d.price || 0).toLocaleString()} / month</h5>
+      ${typeof renderUnitMapCard === "function" ? renderUnitMapCard({ latitude: d.latitude, longitude: d.longitude, mapAddress: d.mapAddress, unitName: d.roomNumber, height: "200px" }) : ""}`;
 
     const reserveBtn = document.getElementById("room-detail-reserve-btn");
     reserveBtn.disabled = d.reservedByMe || d.status !== "Available" || hasApprovedReservation || isGenderMismatch;
@@ -570,7 +571,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       <h5 class="fw-bold">${escapeHtml(c.name)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
       <p class="text-muted mb-2"><i class="fa-solid fa-bed me-1"></i>${c.rooms} rooms total · <i class="fa-solid fa-tag me-1"></i>Daily Rate Accommodation</p>
       <p>${escapeHtml(c.description)}</p>
-      <h5 class="text-primary fw-bold">₱${Number(c.price || 0).toLocaleString()} / rate</h5>`;
+      <h5 class="text-primary fw-bold mb-3">₱${Number(c.price || 0).toLocaleString()} / rate</h5>
+      ${typeof renderUnitMapCard === "function" ? renderUnitMapCard({ latitude: c.latitude, longitude: c.longitude, mapAddress: c.mapAddress, unitName: c.name, height: "200px" }) : ""}`;
     const isParentIncompleteCottage = profileStatus && !profileStatus.parentComplete;
     const reserveCottageBtn = document.getElementById("room-detail-reserve-btn");
     reserveCottageBtn.disabled = c.reservedByMe || c.availability !== "Available" || hasApprovedReservation;
@@ -616,7 +618,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       <h5 class="fw-bold">${escapeHtml(k.name)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
       <p class="text-muted mb-2"><i class="fa-solid fa-bed me-1"></i>${k.rooms} room(s) · <i class="fa-solid fa-tag me-1"></i>Native Kubo-Hotel (₱ / day)</p>
       <p>${escapeHtml(k.description)}</p>
-      <h5 class="text-primary fw-bold">₱${Number(k.price || 0).toLocaleString()} / day</h5>`;
+      <h5 class="text-primary fw-bold mb-3">₱${Number(k.price || 0).toLocaleString()} / day</h5>
+      ${typeof renderUnitMapCard === "function" ? renderUnitMapCard({ latitude: k.latitude, longitude: k.longitude, mapAddress: k.mapAddress, unitName: k.name, height: "200px" }) : ""}`;
     const isParentIncompleteKubotel = profileStatus && !profileStatus.parentComplete;
     const reserveKubotelBtn = document.getElementById("room-detail-reserve-btn");
     reserveKubotelBtn.disabled = k.reservedByMe || k.availability !== "Available" || hasApprovedReservation;

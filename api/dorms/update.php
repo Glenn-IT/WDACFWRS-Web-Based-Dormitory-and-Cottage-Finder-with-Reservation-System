@@ -18,6 +18,10 @@ $price = (float)($_POST['price'] ?? 0);
 $status = in_array($_POST['status'] ?? '', ['Available', 'Occupied', 'Full', 'Not Available'], true) ? $_POST['status'] : 'Available';
 $description = trim((string)($_POST['description'] ?? ''));
 
+$latitude = isset($_POST['latitude']) && $_POST['latitude'] !== '' ? (float)$_POST['latitude'] : null;
+$longitude = isset($_POST['longitude']) && $_POST['longitude'] !== '' ? (float)$_POST['longitude'] : null;
+$mapAddress = isset($_POST['mapAddress']) ? trim((string)$_POST['mapAddress']) : (isset($_POST['map_address']) ? trim((string)$_POST['map_address']) : null);
+
 $ownerName = trim((string)($_POST['ownerName'] ?? $_POST['owner_name'] ?? ''));
 $ownerPhone = trim((string)($_POST['ownerPhone'] ?? $_POST['owner_phone'] ?? ''));
 $paymentAccountName = trim((string)($_POST['paymentAccountName'] ?? $_POST['payment_account_name'] ?? ''));
@@ -66,6 +70,19 @@ $fields = [
     'payment_account_number = ?',
 ];
 $params = [$roomNumber, $gender, $capacity, $price, $status, $description, $ownerName, $ownerPhone, $paymentAccountName, $paymentAccountNumber];
+
+if ($latitude !== null) {
+    $fields[] = 'latitude = ?';
+    $params[] = $latitude;
+}
+if ($longitude !== null) {
+    $fields[] = 'longitude = ?';
+    $params[] = $longitude;
+}
+if ($mapAddress !== null) {
+    $fields[] = 'map_address = ?';
+    $params[] = $mapAddress;
+}
 
 if (!empty($images)) {
     $fields[] = 'image_path = ?';

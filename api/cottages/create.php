@@ -16,6 +16,14 @@ $paymentAccountNumber = trim((string)($_POST['paymentAccountNumber'] ?? $_POST['
 $rooms = (int)($_POST['rooms'] ?? 0);
 $price = (float)($_POST['price'] ?? 0);
 $description = trim((string)($_POST['description'] ?? ''));
+
+$latitude = isset($_POST['latitude']) && $_POST['latitude'] !== '' ? (float)$_POST['latitude'] : 17.79250300;
+$longitude = isset($_POST['longitude']) && $_POST['longitude'] !== '' ? (float)$_POST['longitude'] : 121.51050500;
+$mapAddress = trim((string)($_POST['mapAddress'] ?? $_POST['map_address'] ?? ''));
+if ($mapAddress === '') {
+    $mapAddress = 'CSU-Piat, Baung, Piat, Cagayan (QGV6+26H)';
+}
+
 if ($name === '' || $rooms <= 0 || $price < 0) {
     fail('Please fill in all required fields.');
 }
@@ -47,9 +55,9 @@ if (isset($_FILES['paymentQr'])) {
     $paymentQr = save_uploaded_image($_FILES['payment_qr'], 'qrcodes');
 }
 
-$stmt = $pdo->prepare('INSERT INTO cottages (name, owner, owner_photo, owner_phone, owner_email, owner_bio, rooms, price, availability, description, image_path, images, payment_qr, payment_account_name, payment_account_number)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-$stmt->execute([$name, $owner, $ownerPhoto, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $availability, $description, $imagePath, $imagesJson, $paymentQr, $paymentAccountName, $paymentAccountNumber]);
+$stmt = $pdo->prepare('INSERT INTO cottages (name, owner, owner_photo, owner_phone, owner_email, owner_bio, rooms, price, availability, description, latitude, longitude, map_address, image_path, images, payment_qr, payment_account_name, payment_account_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+$stmt->execute([$name, $owner, $ownerPhoto, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $availability, $description, $latitude, $longitude, $mapAddress, $imagePath, $imagesJson, $paymentQr, $paymentAccountName, $paymentAccountNumber]);
 
 $id = (int)$pdo->lastInsertId();
 $stmt = $pdo->prepare('SELECT * FROM cottages WHERE id = ?');

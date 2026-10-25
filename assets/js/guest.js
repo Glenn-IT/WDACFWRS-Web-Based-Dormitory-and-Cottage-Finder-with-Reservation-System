@@ -449,6 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p class="small text-secondary mb-0">${escapeHtml(d.description || "No specific details provided.")}</p>
         </div>
       </div>
+      ${typeof renderUnitMapCard === "function" ? renderUnitMapCard({ latitude: d.latitude, longitude: d.longitude, mapAddress: d.mapAddress, unitName: d.roomNumber, height: "180px" }) : ""}
     `;
 
     const ctaBtn = document.getElementById("detail-reserve-cta");
@@ -523,6 +524,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p class="small text-secondary mb-0">${escapeHtml(c.description || "No specific details provided.")}</p>
         </div>
       </div>
+      ${typeof renderUnitMapCard === "function" ? renderUnitMapCard({ latitude: c.latitude, longitude: c.longitude, mapAddress: c.mapAddress, unitName: c.name, height: "180px" }) : ""}
     `;
 
     const ctaBtn = document.getElementById("detail-reserve-cta");
@@ -597,6 +599,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p class="small text-secondary mb-0">${escapeHtml(k.description || "No specific details provided.")}</p>
         </div>
       </div>
+      ${typeof renderUnitMapCard === "function" ? renderUnitMapCard({ latitude: k.latitude, longitude: k.longitude, mapAddress: k.mapAddress, unitName: k.name, height: "180px" }) : ""}
     `;
 
     const ctaBtn = document.getElementById("detail-reserve-cta");

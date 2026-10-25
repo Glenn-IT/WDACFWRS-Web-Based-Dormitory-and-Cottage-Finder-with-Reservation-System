@@ -10,6 +10,16 @@ document.addEventListener("DOMContentLoaded", () => {
     restrictToPhoneDigits(document.getElementById("dorm-owner-phone"), 11);
   }
 
+  // Interactive Location Pin Picker
+  const mapPicker = typeof initAdminMapPicker === "function" ? initAdminMapPicker({
+    containerId: "dorm-map-picker",
+    latInputId: "dorm-latitude",
+    lngInputId: "dorm-longitude",
+    addressInputId: "dorm-map-address",
+    modalId: "dorm-modal",
+    previewLinkId: "dorm-map-preview-link",
+  }) : null;
+
   const photoInputs = [
     { input: document.getElementById("dorm-image-input"), preview: document.getElementById("dorm-image-preview"), slot: 0 },
     { input: document.getElementById("dorm-image-1"), preview: document.getElementById("dorm-image-preview-1"), slot: 1 },
@@ -46,6 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="fw-semibold">${escapeHtml(d.roomNumber)}</div>
           ${d.paymentQr ? `<span class="badge bg-success-subtle text-success border border-success-subtle small"><i class="fa-solid fa-qrcode me-1"></i>QR Active</span>` : `<span class="badge bg-secondary-subtle text-muted border small">No QR</span>`}
           ${d.images && d.images.length > 1 ? `<span class="badge bg-light text-dark border small ms-1"><i class="fa-solid fa-images me-1"></i>${d.images.length} photos</span>` : ""}
+          <span class="badge bg-light text-muted border small ms-1" title="${escapeHtml(d.mapAddress || 'CSU-Piat')}"><i class="fa-solid fa-location-dot text-danger me-1"></i>Map Pin</span>
         </td>
         <td>
           <span class="badge ${d.gender === 'Female' ? 'bg-danger-subtle text-danger border border-danger-subtle' : (d.gender === 'Mixed' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle')}">
@@ -83,6 +94,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("dorm-qr-preview-container").style.display = "none";
     uploadedFiles = [null, null, null, null, null];
     uploadedQrFile = null;
+
+    if (mapPicker) {
+      mapPicker.setPosition(17.792503, 121.510505, "CSU-Piat, Baung, Piat, Cagayan (QGV6+26H)");
+    }
   }
 
   document.getElementById("add-dorm-btn").addEventListener("click", () => {
@@ -121,6 +136,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("dorm-owner-phone").value = (d.ownerPhone || "").replace(/\D/g, "").slice(0, 11);
     document.getElementById("dorm-account-name").value = d.paymentAccountName || "";
     document.getElementById("dorm-account-number").value = d.paymentAccountNumber || "";
+
+    if (mapPicker) {
+      mapPicker.setPosition(d.latitude, d.longitude, d.mapAddress);
+    } else {
+      document.getElementById("dorm-latitude").value = d.latitude || 17.792503;
+      document.getElementById("dorm-longitude").value = d.longitude || 121.510505;
+      document.getElementById("dorm-map-address").value = d.mapAddress || "";
+    }
 
     const images = (Array.isArray(d.images) && d.images.length) ? d.images : (d.image ? [d.image] : []);
     photoInputs.forEach(({ preview, slot }) => {
@@ -198,6 +221,14 @@ document.addEventListener("DOMContentLoaded", () => {
       galleryHtml = `<img src="${resolveAsset(images[0])}" class="w-100 rounded mb-3 shadow-sm" style="max-height:240px;object-fit:cover;">`;
     }
 
+    const mapCardHtml = typeof renderUnitMapCard === "function" ? renderUnitMapCard({
+      latitude: d.latitude,
+      longitude: d.longitude,
+      mapAddress: d.mapAddress,
+      unitName: d.roomNumber,
+      height: "200px",
+    }) : "";
+
     document.getElementById("dorm-view-body").innerHTML = `
       ${galleryHtml}
       <h5 class="fw-bold">${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(d.status)}">${d.status}</span></h5>
@@ -209,6 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </p>
       ${d.ownerName ? `<p class="small text-secondary mb-1"><strong>Owner / Landlord:</strong> ${escapeHtml(d.ownerName)} ${d.ownerPhone ? `(${escapeHtml(d.ownerPhone)})` : ""}</p>` : ""}
       <p>${escapeHtml(d.description)}</p>
+      ${mapCardHtml}
       ${qrHtml}`;
     dormViewModal.show();
   }
@@ -225,6 +257,10 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("price", document.getElementById("dorm-price").value);
     formData.append("status", document.getElementById("dorm-status").value);
     formData.append("description", document.getElementById("dorm-description").value.trim());
+
+    formData.append("latitude", document.getElementById("dorm-latitude").value.trim());
+    formData.append("longitude", document.getElementById("dorm-longitude").value.trim());
+    formData.append("mapAddress", document.getElementById("dorm-map-address").value.trim());
 
     formData.append("ownerName", document.getElementById("dorm-owner-name").value.trim());
     formData.append("ownerPhone", document.getElementById("dorm-owner-phone").value.trim());

@@ -9,6 +9,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   restrictToPhoneDigits(document.getElementById("cottage-owner-phone"), 11);
 
+  // Interactive Location Pin Picker
+  const mapPicker = typeof initAdminMapPicker === "function" ? initAdminMapPicker({
+    containerId: "cottage-map-picker",
+    latInputId: "cottage-latitude",
+    lngInputId: "cottage-longitude",
+    addressInputId: "cottage-map-address",
+    modalId: "cottage-modal",
+    previewLinkId: "cottage-map-preview-link",
+  }) : null;
+
   const photoInputs = [
     { input: document.getElementById("cottage-image-input"), preview: document.getElementById("cottage-image-preview"), slot: 0 },
     { input: document.getElementById("cottage-image-1"), preview: document.getElementById("cottage-image-preview-1"), slot: 1 },
@@ -48,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="fw-semibold d-block">${escapeHtml(c.owner || "CSU Auxiliary")}</span>
               ${c.paymentQr ? `<span class="badge bg-success-subtle text-success border border-success-subtle small"><i class="fa-solid fa-qrcode me-1"></i>QR Active</span>` : `<span class="badge bg-secondary-subtle text-muted border small">No QR</span>`}
               ${c.images && c.images.length > 1 ? `<span class="badge bg-light text-dark border small ms-1"><i class="fa-solid fa-images me-1"></i>${c.images.length} photos</span>` : ""}
+              <span class="badge bg-light text-muted border small ms-1" title="${escapeHtml(c.mapAddress || 'CSU-Piat')}"><i class="fa-solid fa-location-dot text-danger me-1"></i>Map Pin</span>
             </div>
           </div>
         </td>
@@ -82,6 +93,10 @@ document.addEventListener("DOMContentLoaded", () => {
     uploadedFiles = [null, null, null, null, null];
     uploadedPhoto = null;
     uploadedQrFile = null;
+
+    if (mapPicker) {
+      mapPicker.setPosition(17.792503, 121.510505, "CSU-Piat, Baung, Piat, Cagayan (QGV6+26H)");
+    }
   }
 
   document.getElementById("add-cottage-btn").addEventListener("click", () => {
@@ -132,6 +147,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cottage-rooms").value = c.rooms;
     document.getElementById("cottage-price").value = c.price;
     document.getElementById("cottage-description").value = c.description;
+
+    if (mapPicker) {
+      mapPicker.setPosition(c.latitude, c.longitude, c.mapAddress);
+    } else {
+      document.getElementById("cottage-latitude").value = c.latitude || 17.792503;
+      document.getElementById("cottage-longitude").value = c.longitude || 121.510505;
+      document.getElementById("cottage-map-address").value = c.mapAddress || "";
+    }
 
     const images = (Array.isArray(c.images) && c.images.length) ? c.images : (c.image ? [c.image] : []);
     photoInputs.forEach(({ preview, slot }) => {
@@ -207,6 +230,14 @@ document.addEventListener("DOMContentLoaded", () => {
       galleryHtml = `<img src="${resolveAsset(images[0])}" class="w-100 rounded mb-3 shadow-sm" style="max-height:240px;object-fit:cover;">`;
     }
 
+    const mapCardHtml = typeof renderUnitMapCard === "function" ? renderUnitMapCard({
+      latitude: c.latitude,
+      longitude: c.longitude,
+      mapAddress: c.mapAddress,
+      unitName: c.name,
+      height: "200px",
+    }) : "";
+
     document.getElementById("cottage-view-body").innerHTML = `
       <!-- Owner Profile Card -->
       <div class="card border p-3 mb-3 bg-light">
@@ -235,6 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <h5 class="fw-bold mb-1">${escapeHtml(c.name)}</h5>
       <p class="text-muted mb-2"><i class="fa-solid fa-bed me-1"></i>${c.rooms} rooms · <i class="fa-solid fa-tag me-1"></i>₱${Number(c.price || 0).toLocaleString()} / day · <span class="badge ${badgeClass(c.availability)}">${c.availability}</span></p>
       <p class="mb-0 text-secondary">${escapeHtml(c.description)}</p>
+      ${mapCardHtml}
       ${qrHtml}`;
     cottageViewModal.show();
   }
@@ -262,6 +294,10 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("rooms", document.getElementById("cottage-rooms").value);
     formData.append("price", document.getElementById("cottage-price").value);
     formData.append("description", document.getElementById("cottage-description").value.trim());
+
+    formData.append("latitude", document.getElementById("cottage-latitude").value.trim());
+    formData.append("longitude", document.getElementById("cottage-longitude").value.trim());
+    formData.append("mapAddress", document.getElementById("cottage-map-address").value.trim());
 
     for (let i = 0; i < 5; i++) {
       if (uploadedFiles[i]) {

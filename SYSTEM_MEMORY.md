@@ -58,6 +58,9 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | `price` | `price` (float) | Price tag (₱/month) |
 | `status` | `status` ('Available', 'Occupied', 'Full', 'Not Available') | Status badge, booking guard, filter option |
 | `description` | `description` | Modal detail, card summary |
+| `latitude` | `latitude` (float) | Pinned map latitude coordinate |
+| `longitude` | `longitude` (float) | Pinned map longitude coordinate |
+| `map_address` | `mapAddress` | Landmark / Digital address (Plus code) |
 | `image_path` | `image` | Primary/cover image, resolved via `resolveAsset(path)` |
 | `images` | `images` (array) | 5-picture gallery JSON array for carousels & multi-photo view |
 | `owner_name` | `ownerName` | Owner / Landlord name |
@@ -81,6 +84,9 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | `price` | `price` (float) | Price tag (₱) |
 | `availability` | `availability` ('Available', 'Booked') | Availability badge, booking guard |
 | `description` | `description` | Description text |
+| `latitude` | `latitude` (float) | Pinned map latitude coordinate |
+| `longitude` | `longitude` (float) | Pinned map longitude coordinate |
+| `map_address` | `mapAddress` | Landmark / Digital address (Plus code) |
 | `image_path` | `image` | Primary/cover image, resolved via `resolveAsset(path)` |
 | `images` | `images` (array) | 5-picture gallery JSON array for carousels & multi-photo view |
 | `payment_qr` | `paymentQr` | Official owner payment QR image path (GCash/Maya/Bank) |
@@ -387,6 +393,14 @@ When any change is made, use this matrix to locate and update **every connected 
    - In addition to `'Available'`, `'Occupied'`, and `'Full'`, dormitory status supports `'Not Available'`.
    - Admin modals (`admin/dormitories.html`) support adding and editing units with `'Not Available'`.
    - On student (`user/rooms.html`) and guest (`guest.html`) pages, any unit marked `'Not Available'` has booking disabled with a red badge and button labeled `"Not Available"`.
+
+---
+
+12. **Unit Map Location Pinning & Navigation Protocol**:
+    - Each Dormitory, Cottage, and Kubotel unit supports custom geographical location coordinates (`latitude`, `longitude`, and `map_address` landmark description).
+    - **Admin Modal Pinning**: When adding or editing units (`admin/dormitories.html`, `admin/cottages.html`, `admin/kubotels.html`), administrators use an interactive map picker (`assets/js/map-picker.js` using Leaflet + OpenStreetMap) with a draggable marker to click/drag and pinpoint the exact unit location. Coordinates and address are saved via `create.php` and `update.php`.
+    - Default coordinates initialize to CSU-Piat Campus (`17.792503`, `121.510505`, Plus Code: `QGV6+26H, Piat, Cagayan`) with a 1-click "Reset to CSU-Piat" button.
+    - **Student & Guest Unit Navigation**: On student views (`user/rooms.html`) and guest views (`guest.html`), each unit detail modal renders a dedicated interactive Google Map card showing the unit's exact pinned position, coordinates, landmark, and a 1-click "Directions via Google Maps" button.
 
 ---
 

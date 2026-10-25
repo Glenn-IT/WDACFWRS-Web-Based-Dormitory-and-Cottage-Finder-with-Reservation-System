@@ -7,6 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
   <link rel="icon" type="image/png" href="../img/CSU-Logo.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link href="../assets/css/style.css" rel="stylesheet">
 </head>
 <body data-role="admin" data-page="cottages">
@@ -84,6 +85,39 @@
               </div>
             </div>
 
+            
+              <!-- Unit Location Pinning Section -->
+              <div class="col-12 mt-3">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                  <h6 class="fw-bold text-primary mb-0"><i class="fa-solid fa-map-location-dot me-2"></i>Unit Map Pin Location (Google Maps)</h6>
+                  <div>
+                    <span class="badge bg-light text-dark border small pin-coords-badge"><i class="fa-solid fa-location-dot text-danger me-1"></i>Pin: 17.792503, 121.510505</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-1 reset-pin-btn" title="Reset Pin to CSU-Piat Campus Center"><i class="fa-solid fa-rotate-left me-1"></i>Reset to CSU-Piat</button>
+                  </div>
+                </div>
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Location / Landmark Description</label>
+                    <input class="form-control form-control-sm" id="cottage-map-address" placeholder="e.g. Near CSU-Piat Agriculture Quad / Baung, Piat">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Latitude</label>
+                    <input type="number" step="any" class="form-control form-control-sm" id="cottage-latitude" value="17.792503" required>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Longitude</label>
+                    <input type="number" step="any" class="form-control form-control-sm" id="cottage-longitude" value="121.510505" required>
+                  </div>
+                </div>
+                <div class="border rounded-3 overflow-hidden shadow-sm position-relative" style="height:210px;" id="cottage-map-picker"></div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                  <span class="small text-muted"><i class="fa-solid fa-hand-pointer text-primary me-1"></i>Click anywhere on the map or drag the pin to set unit location.</span>
+                  <a href="https://www.google.com/maps?q=17.792503,121.510505" target="_blank" rel="noopener noreferrer" class="small text-primary text-decoration-none" id="cottage-map-preview-link">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Preview in Google Maps
+                  </a>
+                </div>
+              </div>
+
             <!-- Owner Profile Section -->
             <h6 class="fw-bold text-primary mb-3 border-bottom pb-2"><i class="fa-solid fa-id-badge me-2"></i>Owner Profile, Contact &amp; Online Payment (QR Code)</h6>
             <div class="row g-3">
@@ -153,6 +187,8 @@
   <script src="../assets/js/ui.js"></script>
   <script src="../assets/js/auth.js"></script>
   <script src="../assets/js/layout.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="../assets/js/map-picker.js"></script>
   <script src="../assets/js/admin-cottages.js"></script>
 </body>
 </html>

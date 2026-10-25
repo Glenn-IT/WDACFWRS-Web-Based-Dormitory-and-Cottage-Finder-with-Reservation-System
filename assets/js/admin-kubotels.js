@@ -9,6 +9,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   restrictToPhoneDigits(document.getElementById("kubotel-owner-phone"), 11);
 
+  // Interactive Location Pin Picker
+  const mapPicker = typeof initAdminMapPicker === "function" ? initAdminMapPicker({
+    containerId: "kubotel-map-picker",
+    latInputId: "kubotel-latitude",
+    lngInputId: "kubotel-longitude",
+    addressInputId: "kubotel-map-address",
+    modalId: "kubotel-modal",
+    previewLinkId: "kubotel-map-preview-link",
+  }) : null;
+
   const photoInputs = [
     { input: document.getElementById("kubotel-image-input"), preview: document.getElementById("kubotel-image-preview"), slot: 0 },
     { input: document.getElementById("kubotel-image-1"), preview: document.getElementById("kubotel-image-preview-1"), slot: 1 },
@@ -48,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="fw-semibold d-block">${escapeHtml(k.owner || "CSU Auxiliary")}</span>
               ${k.paymentQr ? `<span class="badge bg-success-subtle text-success border border-success-subtle small"><i class="fa-solid fa-qrcode me-1"></i>QR Active</span>` : `<span class="badge bg-secondary-subtle text-muted border small">No QR</span>`}
               ${k.images && k.images.length > 1 ? `<span class="badge bg-light text-dark border small ms-1"><i class="fa-solid fa-images me-1"></i>${k.images.length} photos</span>` : ""}
+              <span class="badge bg-light text-muted border small ms-1" title="${escapeHtml(k.mapAddress || 'CSU-Piat')}"><i class="fa-solid fa-location-dot text-danger me-1"></i>Map Pin</span>
             </div>
           </div>
         </td>
@@ -84,6 +95,10 @@ document.addEventListener("DOMContentLoaded", () => {
     uploadedFiles = [null, null, null, null, null];
     uploadedPhoto = null;
     uploadedQrFile = null;
+
+    if (mapPicker) {
+      mapPicker.setPosition(17.792503, 121.510505, "CSU-Piat, Baung, Piat, Cagayan (QGV6+26H)");
+    }
   }
 
   document.getElementById("add-kubotel-btn").addEventListener("click", () => {
@@ -134,6 +149,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("kubotel-rooms").value = k.rooms;
     document.getElementById("kubotel-price").value = k.price;
     document.getElementById("kubotel-description").value = k.description;
+
+    if (mapPicker) {
+      mapPicker.setPosition(k.latitude, k.longitude, k.mapAddress);
+    } else {
+      document.getElementById("kubotel-latitude").value = k.latitude || 17.792503;
+      document.getElementById("kubotel-longitude").value = k.longitude || 121.510505;
+      document.getElementById("kubotel-map-address").value = k.mapAddress || "";
+    }
 
     const images = (Array.isArray(k.images) && k.images.length) ? k.images : (k.image ? [k.image] : []);
     photoInputs.forEach(({ preview, slot }) => {
@@ -209,6 +232,14 @@ document.addEventListener("DOMContentLoaded", () => {
       galleryHtml = `<img src="${resolveAsset(images[0])}" class="w-100 rounded mb-3 shadow-sm" style="max-height:240px;object-fit:cover;">`;
     }
 
+    const mapCardHtml = typeof renderUnitMapCard === "function" ? renderUnitMapCard({
+      latitude: k.latitude,
+      longitude: k.longitude,
+      mapAddress: k.mapAddress,
+      unitName: k.name,
+      height: "200px",
+    }) : "";
+
     document.getElementById("kubotel-view-body").innerHTML = `
       <!-- Owner Profile Card -->
       <div class="card border p-3 mb-3 bg-light">
@@ -237,6 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <h5 class="fw-bold mb-1">${escapeHtml(k.name)}</h5>
       <p class="text-muted mb-2"><i class="fa-solid fa-bed me-1"></i>${k.rooms} room(s) · <i class="fa-solid fa-tag me-1"></i>₱${Number(k.price || 0).toLocaleString()} / day · <span class="badge ${badgeClass(k.availability)}">${k.availability}</span></p>
       <p class="mb-0 text-secondary">${escapeHtml(k.description)}</p>
+      ${mapCardHtml}
       ${qrHtml}`;
     kubotelViewModal.show();
   }
@@ -285,6 +317,10 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("rooms", document.getElementById("kubotel-rooms").value);
     formData.append("price", document.getElementById("kubotel-price").value);
     formData.append("description", document.getElementById("kubotel-description").value.trim());
+
+    formData.append("latitude", document.getElementById("kubotel-latitude").value.trim());
+    formData.append("longitude", document.getElementById("kubotel-longitude").value.trim());
+    formData.append("mapAddress", document.getElementById("kubotel-map-address").value.trim());
 
     for (let i = 0; i < 5; i++) {
       if (uploadedFiles[i]) {
