@@ -2,13 +2,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.getElementById("dorms-table-body");
   const dormModal = new bootstrap.Modal(document.getElementById("dorm-modal"));
   const dormViewModal = new bootstrap.Modal(document.getElementById("dorm-view-modal"));
-  let uploadedFile = null;
+  let uploadedFiles = [null, null, null, null, null];
   let uploadedQrFile = null;
   let dorms = [];
 
   if (typeof restrictToPhoneDigits === "function") {
     restrictToPhoneDigits(document.getElementById("dorm-owner-phone"), 11);
   }
+
+  const photoInputs = [
+    { input: document.getElementById("dorm-image-input"), preview: document.getElementById("dorm-image-preview"), slot: 0 },
+    { input: document.getElementById("dorm-image-1"), preview: document.getElementById("dorm-image-preview-1"), slot: 1 },
+    { input: document.getElementById("dorm-image-2"), preview: document.getElementById("dorm-image-preview-2"), slot: 2 },
+    { input: document.getElementById("dorm-image-3"), preview: document.getElementById("dorm-image-preview-3"), slot: 3 },
+    { input: document.getElementById("dorm-image-4"), preview: document.getElementById("dorm-image-preview-4"), slot: 4 },
+  ];
+
+  photoInputs.forEach(({ input, preview, slot }) => {
+    if (!input || !preview) return;
+    input.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      uploadedFiles[slot] = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        preview.src = reader.result;
+        preview.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    });
+  });
 
   async function render() {
     const data = await DataAPI.getDorms();
@@ -18,10 +41,11 @@ document.addEventListener("DOMContentLoaded", () => {
           .map(
             (d) => `
       <tr>
-        <td><img src="${resolveAsset(d.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
+        <td><img src="${resolveAsset(d.image || (d.images && d.images[0]))}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
         <td>
           <div class="fw-semibold">${escapeHtml(d.roomNumber)}</div>
           ${d.paymentQr ? `<span class="badge bg-success-subtle text-success border border-success-subtle small"><i class="fa-solid fa-qrcode me-1"></i>QR Active</span>` : `<span class="badge bg-secondary-subtle text-muted border small">No QR</span>`}
+          ${d.images && d.images.length > 1 ? `<span class="badge bg-light text-dark border small ms-1"><i class="fa-solid fa-images me-1"></i>${d.images.length} photos</span>` : ""}
         </td>
         <td>
           <span class="badge ${d.gender === 'Female' ? 'bg-danger-subtle text-danger border border-danger-subtle' : (d.gender === 'Mixed' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle')}">
@@ -48,9 +72,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("dorm-form").reset();
     document.getElementById("dorm-id").value = "";
     document.getElementById("dorm-gender").value = "Male";
-    document.getElementById("dorm-image-preview").style.display = "none";
+    document.getElementById("dorm-status").value = "Available";
+    photoInputs.forEach(({ input, preview }) => {
+      if (input) input.value = "";
+      if (preview) {
+        preview.src = "";
+        preview.style.display = "none";
+      }
+    });
     document.getElementById("dorm-qr-preview-container").style.display = "none";
-    uploadedFile = null;
+    uploadedFiles = [null, null, null, null, null];
     uploadedQrFile = null;
   }
 
@@ -58,19 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
     resetForm();
     document.getElementById("dorm-modal-title").textContent = "Add Dormitory";
     dormModal.show();
-  });
-
-  document.getElementById("dorm-image-input").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    uploadedFile = file;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const preview = document.getElementById("dorm-image-preview");
-      preview.src = reader.result;
-      preview.style.display = "block";
-    };
-    reader.readAsDataURL(file);
   });
 
   document.getElementById("dorm-qr-input").addEventListener("change", (e) => {
@@ -104,11 +122,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("dorm-account-name").value = d.paymentAccountName || "";
     document.getElementById("dorm-account-number").value = d.paymentAccountNumber || "";
 
-    const preview = document.getElementById("dorm-image-preview");
-    if (d.image) {
-      preview.src = resolveAsset(d.image);
-      preview.style.display = "block";
-    }
+    const images = (Array.isArray(d.images) && d.images.length) ? d.images : (d.image ? [d.image] : []);
+    photoInputs.forEach(({ preview, slot }) => {
+      if (images[slot]) {
+        preview.src = resolveAsset(images[slot]);
+        preview.style.display = "block";
+      }
+    });
 
     const qrContainer = document.getElementById("dorm-qr-preview-container");
     const qrPreview = document.getElementById("dorm-qr-preview");
@@ -152,8 +172,34 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>`;
     }
 
+    const images = (Array.isArray(d.images) && d.images.length) ? d.images : (d.image ? [d.image] : []);
+    let galleryHtml = "";
+    if (images.length > 1) {
+      const carouselId = `dorm-view-carousel-${d.id}`;
+      galleryHtml = `
+        <div id="${carouselId}" class="carousel slide mb-3 rounded overflow-hidden shadow-sm" data-bs-ride="carousel">
+          <div class="carousel-indicators">
+            ${images.map((_, idx) => `<button type="button" data-bs-target="#${carouselId}" data-bs-slide-to="${idx}" class="${idx === 0 ? 'active' : ''}"></button>`).join('')}
+          </div>
+          <div class="carousel-inner" style="max-height:260px;background:#000;">
+            ${images.map((img, idx) => `
+              <div class="carousel-item ${idx === 0 ? 'active' : ''}">
+                <img src="${resolveAsset(img)}" class="d-block w-100" style="height:260px;object-fit:cover;">
+              </div>`).join('')}
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+          </button>
+        </div>`;
+    } else if (images.length === 1) {
+      galleryHtml = `<img src="${resolveAsset(images[0])}" class="w-100 rounded mb-3 shadow-sm" style="max-height:240px;object-fit:cover;">`;
+    }
+
     document.getElementById("dorm-view-body").innerHTML = `
-      <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:220px;object-fit:cover;">
+      ${galleryHtml}
       <h5 class="fw-bold">${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(d.status)}">${d.status}</span></h5>
       <p class="text-muted mb-2">
         <span class="badge ${genderBadgeClass} me-2">
@@ -185,7 +231,11 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("paymentAccountName", document.getElementById("dorm-account-name").value.trim());
     formData.append("paymentAccountNumber", document.getElementById("dorm-account-number").value.trim());
 
-    if (uploadedFile) formData.append("image", uploadedFile);
+    for (let i = 0; i < 5; i++) {
+      if (uploadedFiles[i]) {
+        formData.append(i === 0 ? "image" : `image_${i}`, uploadedFiles[i]);
+      }
+    }
     if (uploadedQrFile) formData.append("paymentQr", uploadedQrFile);
 
     withLoading(async () => {

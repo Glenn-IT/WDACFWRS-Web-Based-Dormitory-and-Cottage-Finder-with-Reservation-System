@@ -10,7 +10,7 @@ $roomNumber = trim((string)($_POST['dormitoryName'] ?? $_POST['dormName'] ?? $_P
 $gender = in_array($_POST['gender'] ?? '', ['Male', 'Female', 'Mixed'], true) ? $_POST['gender'] : 'Male';
 $capacity = (int)($_POST['capacity'] ?? 0);
 $price = (float)($_POST['price'] ?? 0);
-$status = in_array($_POST['status'] ?? '', ['Available', 'Occupied', 'Full'], true) ? $_POST['status'] : 'Available';
+$status = in_array($_POST['status'] ?? '', ['Available', 'Occupied', 'Full', 'Not Available'], true) ? $_POST['status'] : 'Available';
 $description = trim((string)($_POST['description'] ?? ''));
 
 $ownerName = trim((string)($_POST['ownerName'] ?? $_POST['owner_name'] ?? ''));
@@ -24,7 +24,10 @@ if ($roomNumber === '' || $capacity <= 0 || $price < 0) {
 
 $pdo = get_db();
 
-$imagePath = isset($_FILES['image']) ? save_uploaded_image($_FILES['image'], 'dorms') : null;
+$images = handle_gallery_uploads('dorms');
+$imagePath = $images[0] ?? null;
+$imagesJson = !empty($images) ? json_encode($images) : null;
+
 $paymentQr = null;
 if (isset($_FILES['paymentQr'])) {
     $paymentQr = save_uploaded_image($_FILES['paymentQr'], 'qrcodes');
@@ -32,9 +35,9 @@ if (isset($_FILES['paymentQr'])) {
     $paymentQr = save_uploaded_image($_FILES['payment_qr'], 'qrcodes');
 }
 
-$stmt = $pdo->prepare('INSERT INTO dormitories (room_no, gender, capacity, price, status, description, image_path, owner_name, owner_phone, payment_qr, payment_account_name, payment_account_number)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-$stmt->execute([$roomNumber, $gender, $capacity, $price, $status, $description, $imagePath, $ownerName, $ownerPhone, $paymentQr, $paymentAccountName, $paymentAccountNumber]);
+$stmt = $pdo->prepare('INSERT INTO dormitories (room_no, gender, capacity, price, status, description, image_path, images, owner_name, owner_phone, payment_qr, payment_account_name, payment_account_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+$stmt->execute([$roomNumber, $gender, $capacity, $price, $status, $description, $imagePath, $imagesJson, $ownerName, $ownerPhone, $paymentQr, $paymentAccountName, $paymentAccountNumber]);
 
 $id = (int)$pdo->lastInsertId();
 $stmt = $pdo->prepare('SELECT * FROM dormitories WHERE id = ?');

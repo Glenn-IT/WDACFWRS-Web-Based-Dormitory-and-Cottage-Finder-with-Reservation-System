@@ -29,7 +29,10 @@ if ((int)$checkStmt->fetchColumn() > 0) {
 }
 
 $availability = 'Available';
-$imagePath = isset($_FILES['image']) ? save_uploaded_image($_FILES['image'], 'cottages') : null;
+$images = handle_gallery_uploads('cottages');
+$imagePath = $images[0] ?? null;
+$imagesJson = !empty($images) ? json_encode($images) : null;
+
 $ownerPhoto = null;
 if (isset($_FILES['ownerPhoto'])) {
     $ownerPhoto = save_uploaded_image($_FILES['ownerPhoto'], 'owners');
@@ -44,9 +47,9 @@ if (isset($_FILES['paymentQr'])) {
     $paymentQr = save_uploaded_image($_FILES['payment_qr'], 'qrcodes');
 }
 
-$stmt = $pdo->prepare('INSERT INTO cottages (name, owner, owner_photo, owner_phone, owner_email, owner_bio, rooms, price, availability, description, image_path, payment_qr, payment_account_name, payment_account_number)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-$stmt->execute([$name, $owner, $ownerPhoto, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $availability, $description, $imagePath, $paymentQr, $paymentAccountName, $paymentAccountNumber]);
+$stmt = $pdo->prepare('INSERT INTO cottages (name, owner, owner_photo, owner_phone, owner_email, owner_bio, rooms, price, availability, description, image_path, images, payment_qr, payment_account_name, payment_account_number)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+$stmt->execute([$name, $owner, $ownerPhoto, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $availability, $description, $imagePath, $imagesJson, $paymentQr, $paymentAccountName, $paymentAccountNumber]);
 
 $id = (int)$pdo->lastInsertId();
 $stmt = $pdo->prepare('SELECT * FROM cottages WHERE id = ?');

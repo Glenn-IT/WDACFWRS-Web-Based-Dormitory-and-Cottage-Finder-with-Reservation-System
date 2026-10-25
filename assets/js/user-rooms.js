@@ -52,6 +52,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     mandatoryBanner.classList.remove("d-none");
   }
 
+  function renderGalleryCarousel(images, carouselId, defaultImg) {
+    const list = (Array.isArray(images) && images.length) ? images : (defaultImg ? [defaultImg] : []);
+    if (list.length > 1) {
+      return `
+        <div id="${carouselId}" class="carousel slide rounded shadow-sm overflow-hidden mb-3" data-bs-ride="carousel">
+          <div class="carousel-indicators">
+            ${list.map((_, idx) => `<button type="button" data-bs-target="#${carouselId}" data-bs-slide-to="${idx}" class="${idx === 0 ? 'active' : ''}"></button>`).join('')}
+          </div>
+          <div class="carousel-inner" style="height: 280px; background: #000;">
+            ${list.map((img, idx) => `
+              <div class="carousel-item h-100 ${idx === 0 ? 'active' : ''}">
+                <img src="${resolveAsset(img)}" class="d-block w-100 h-100" style="object-fit: cover;" alt="Photo ${idx + 1}">
+              </div>`).join('')}
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+          </button>
+        </div>`;
+    }
+    return `<img src="${resolveAsset(list[0] || defaultImg)}" class="w-100 rounded mb-3 shadow-sm" style="max-height: 280px; object-fit: cover;">`;
+  }
+
   function setType(type) {
     currentType = type;
     selectedOwnerFilter = "";
@@ -331,6 +356,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dormGender = d.gender || "Male";
     const isMixed = dormGender === "Mixed";
     const isGenderMismatch = Boolean(!isMixed && studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
+    const isNotAvailable = d.status === "Not Available";
     const isLocked = d.reservedByMe || d.status !== "Available" || hasApprovedReservation || isGenderMismatch;
     const disabled = isLocked ? "disabled" : "";
     const badgeLabel = d.reservedByMe ? "Room/Unit Reserved" : d.status;
@@ -338,12 +364,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const badgeClassStyle = isFemale ? 'bg-danger-subtle text-danger border border-danger-subtle' : (isMixed ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle');
     const badgeIcon = isFemale ? 'venus' : (isMixed ? 'venus-mars' : 'mars');
     const badgeLabelText = isMixed ? 'Mixed Gender (Male & Female)' : `${escapeHtml(dormGender)} Boarders Only`;
-    const btnLabel = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Reserved" : (isGenderMismatch ? `${escapeHtml(dormGender)} Only` : (isParentIncomplete ? "Profile Incomplete" : "Reserve")));
-    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isGenderMismatch ? `This dormitory strictly accepts ${dormGender} boarders only` : (isParentIncomplete ? "You must complete Parent / Guardian details first" : ""));
+    const btnLabel = hasApprovedReservation ? "Booking Locked" : (isNotAvailable ? "Not Available" : (d.reservedByMe ? "Reserved" : (isGenderMismatch ? `${escapeHtml(dormGender)} Only` : (isParentIncomplete ? "Profile Incomplete" : "Reserve"))));
+    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isNotAvailable ? "This dormitory is currently not available for reservation" : (isGenderMismatch ? `This dormitory strictly accepts ${dormGender} boarders only` : (isParentIncomplete ? "You must complete Parent / Guardian details first" : "")));
+    const photoCount = (d.images && d.images.length) ? d.images.length : 1;
 
     return `
       <tr>
-        <td><img src="${resolveAsset(d.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
+        <td>
+          <div class="position-relative d-inline-block">
+            <img src="${resolveAsset(d.image || (d.images && d.images[0]))}" class="rounded" style="width:64px;height:44px;object-fit:cover;">
+            ${photoCount > 1 ? `<span class="badge bg-dark bg-opacity-75 text-white position-absolute bottom-0 start-0 small" style="font-size:0.6rem;padding:1px 3px;"><i class="fa-solid fa-images"></i> ${photoCount}</span>` : ""}
+          </div>
+        </td>
         <td>
           <div class="fw-bold">${escapeHtml(d.roomNumber)}</div>
           <span class="badge ${badgeClassStyle} small mt-1">
@@ -362,14 +394,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function cottageRow(c) {
     const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
+    const isNotAvailable = c.availability === "Not Available";
     const isLocked = c.reservedByMe || c.availability !== "Available" || hasApprovedReservation;
     const disabled = isLocked ? "disabled" : "";
     const badgeLabel = c.reservedByMe ? "Room/Unit Reserved" : c.availability;
-    const btnLabel = hasApprovedReservation ? "Booking Locked" : (c.reservedByMe ? "Reserved" : (isParentIncomplete ? "Profile Incomplete" : "Reserve"));
-    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isParentIncomplete ? "You must complete Parent / Guardian details first" : "");
+    const btnLabel = hasApprovedReservation ? "Booking Locked" : (isNotAvailable ? "Not Available" : (c.reservedByMe ? "Reserved" : (isParentIncomplete ? "Profile Incomplete" : "Reserve")));
+    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isNotAvailable ? "This cottage is currently not available for reservation" : (isParentIncomplete ? "You must complete Parent / Guardian details first" : ""));
+    const photoCount = (c.images && c.images.length) ? c.images.length : 1;
     return `
       <tr>
-        <td><img src="${resolveAsset(c.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
+        <td>
+          <div class="position-relative d-inline-block">
+            <img src="${resolveAsset(c.image || (c.images && c.images[0]))}" class="rounded" style="width:64px;height:44px;object-fit:cover;">
+            ${photoCount > 1 ? `<span class="badge bg-dark bg-opacity-75 text-white position-absolute bottom-0 start-0 small" style="font-size:0.6rem;padding:1px 3px;"><i class="fa-solid fa-images"></i> ${photoCount}</span>` : ""}
+          </div>
+        </td>
         <td class="fw-bold">${escapeHtml(c.name)}</td>
         <td>
           <div class="d-flex align-items-center gap-2">
@@ -389,14 +428,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function kubotelRow(k) {
     const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
+    const isNotAvailable = k.availability === "Not Available";
     const isLocked = k.reservedByMe || k.availability !== "Available" || hasApprovedReservation;
     const disabled = isLocked ? "disabled" : "";
     const badgeLabel = k.reservedByMe ? "Room/Unit Reserved" : k.availability;
-    const btnLabel = hasApprovedReservation ? "Booking Locked" : (k.reservedByMe ? "Reserved" : (isParentIncomplete ? "Profile Incomplete" : "Reserve"));
-    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isParentIncomplete ? "You must complete Parent / Guardian details first" : "");
+    const btnLabel = hasApprovedReservation ? "Booking Locked" : (isNotAvailable ? "Not Available" : (k.reservedByMe ? "Reserved" : (isParentIncomplete ? "Profile Incomplete" : "Reserve")));
+    const btnTitle = hasApprovedReservation ? "You already have an active approved reservation" : (isNotAvailable ? "This Kubotel unit is currently not available for reservation" : (isParentIncomplete ? "You must complete Parent / Guardian details first" : ""));
+    const photoCount = (k.images && k.images.length) ? k.images.length : 1;
     return `
       <tr>
-        <td><img src="${resolveAsset(k.image)}" class="rounded" style="width:64px;height:44px;object-fit:cover;"></td>
+        <td>
+          <div class="position-relative d-inline-block">
+            <img src="${resolveAsset(k.image || (k.images && k.images[0]))}" class="rounded" style="width:64px;height:44px;object-fit:cover;">
+            ${photoCount > 1 ? `<span class="badge bg-dark bg-opacity-75 text-white position-absolute bottom-0 start-0 small" style="font-size:0.6rem;padding:1px 3px;"><i class="fa-solid fa-images"></i> ${photoCount}</span>` : ""}
+          </div>
+        </td>
         <td class="fw-bold">${escapeHtml(k.name)}</td>
         <td>
           <div class="d-flex align-items-center gap-2">
@@ -421,6 +467,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     if (type === "dorm") {
       const d = dormsCache.find((x) => String(x.id) === String(id));
+      if (d && d.status === "Not Available") {
+        showToast("This dormitory is currently not available for reservation.", "warning");
+        return;
+      }
       const studentGender = currentSession?.gender || "";
       const dormGender = d?.gender || "Male";
       if (dormGender !== "Mixed" && studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase()) {
@@ -447,6 +497,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isFemale = dormGender === "Female";
     const isMixed = dormGender === "Mixed";
     const isGenderMismatch = Boolean(!isMixed && studentGender && dormGender && studentGender.toLowerCase() !== dormGender.toLowerCase());
+    const isNotAvailable = d.status === "Not Available";
     const isParentIncomplete = profileStatus && !profileStatus.parentComplete;
 
     let mismatchAlert = "";
@@ -463,7 +514,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const badgeLabelText = isMixed ? 'Mixed Gender (Male & Female)' : `${escapeHtml(dormGender)} Boarders Only`;
 
     document.getElementById("room-detail-body").innerHTML = `
-      <img src="${resolveAsset(d.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
+      ${renderGalleryCarousel(d.images, `dorm-detail-carousel-${d.id}`, d.image)}
       <h5 class="fw-bold">${escapeHtml(d.roomNumber)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
       <p class="text-muted mb-2">
         <span class="badge ${badgeClassStyle} me-2">
@@ -477,7 +528,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const reserveBtn = document.getElementById("room-detail-reserve-btn");
     reserveBtn.disabled = d.reservedByMe || d.status !== "Available" || hasApprovedReservation || isGenderMismatch;
-    reserveBtn.textContent = hasApprovedReservation ? "Booking Locked" : (d.reservedByMe ? "Room/Unit Reserved" : (isGenderMismatch ? `${escapeHtml(dormGender)} Boarders Only` : (isParentIncomplete ? "Complete Profile to Reserve" : "Reserve Now")));
+    reserveBtn.textContent = hasApprovedReservation ? "Booking Locked" : (isNotAvailable ? "Not Available" : (d.reservedByMe ? "Room/Unit Reserved" : (isGenderMismatch ? `${escapeHtml(dormGender)} Boarders Only` : (isParentIncomplete ? "Complete Profile to Reserve" : "Reserve Now"))));
     reserveBtn.onclick = () => goReserve("dorm", d.id);
     new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
   }
@@ -486,6 +537,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const c = cottagesCache.find((x) => String(x.id) === String(id));
     if (!c) return;
     const badgeLabel = c.reservedByMe ? "Room/Unit Reserved" : c.availability;
+    const isNotAvailable = c.availability === "Not Available";
     const ownerName = c.owner || "CSU Auxiliary Services";
     const initials = ownerName.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 
@@ -514,7 +566,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       </div>
 
       <!-- Room Details -->
-      <img src="${resolveAsset(c.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
+      ${renderGalleryCarousel(c.images, `cottage-detail-carousel-${c.id}`, c.image)}
       <h5 class="fw-bold">${escapeHtml(c.name)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
       <p class="text-muted mb-2"><i class="fa-solid fa-bed me-1"></i>${c.rooms} rooms total · <i class="fa-solid fa-tag me-1"></i>Daily Rate Accommodation</p>
       <p>${escapeHtml(c.description)}</p>
@@ -522,7 +574,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isParentIncompleteCottage = profileStatus && !profileStatus.parentComplete;
     const reserveCottageBtn = document.getElementById("room-detail-reserve-btn");
     reserveCottageBtn.disabled = c.reservedByMe || c.availability !== "Available" || hasApprovedReservation;
-    reserveCottageBtn.textContent = hasApprovedReservation ? "Booking Locked" : (c.reservedByMe ? "Room/Unit Reserved" : (isParentIncompleteCottage ? "Complete Profile to Reserve" : "Reserve Cottage"));
+    reserveCottageBtn.textContent = hasApprovedReservation ? "Booking Locked" : (isNotAvailable ? "Not Available" : (c.reservedByMe ? "Room/Unit Reserved" : (isParentIncompleteCottage ? "Complete Profile to Reserve" : "Reserve Cottage")));
     reserveCottageBtn.onclick = () => goReserve("cottage", c.id);
     new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
   }
@@ -531,6 +583,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const k = kubotelsCache.find((x) => String(x.id) === String(id));
     if (!k) return;
     const badgeLabel = k.reservedByMe ? "Room/Unit Reserved" : k.availability;
+    const isNotAvailable = k.availability === "Not Available";
     const ownerName = k.owner || "CSU Auxiliary Services";
     const initials = ownerName.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 
@@ -559,7 +612,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       </div>
 
       <!-- Kubotel Details -->
-      <img src="${resolveAsset(k.image)}" class="w-100 rounded mb-3" style="max-height:280px;object-fit:cover;">
+      ${renderGalleryCarousel(k.images, `kubotel-detail-carousel-${k.id}`, k.image)}
       <h5 class="fw-bold">${escapeHtml(k.name)} <span class="badge ${badgeClass(badgeLabel)}">${badgeLabel}</span></h5>
       <p class="text-muted mb-2"><i class="fa-solid fa-bed me-1"></i>${k.rooms} room(s) · <i class="fa-solid fa-tag me-1"></i>Native Kubo-Hotel (₱ / day)</p>
       <p>${escapeHtml(k.description)}</p>
@@ -567,7 +620,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isParentIncompleteKubotel = profileStatus && !profileStatus.parentComplete;
     const reserveKubotelBtn = document.getElementById("room-detail-reserve-btn");
     reserveKubotelBtn.disabled = k.reservedByMe || k.availability !== "Available" || hasApprovedReservation;
-    reserveKubotelBtn.textContent = hasApprovedReservation ? "Booking Locked" : (k.reservedByMe ? "Room/Unit Reserved" : (isParentIncompleteKubotel ? "Complete Profile to Reserve" : "Reserve Kubotel"));
+    reserveKubotelBtn.textContent = hasApprovedReservation ? "Booking Locked" : (isNotAvailable ? "Not Available" : (k.reservedByMe ? "Room/Unit Reserved" : (isParentIncompleteKubotel ? "Complete Profile to Reserve" : "Reserve Kubotel")));
     reserveKubotelBtn.onclick = () => goReserve("kubotel", k.id);
     new bootstrap.Modal(document.getElementById("room-detail-modal")).show();
   }

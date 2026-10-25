@@ -140,6 +140,7 @@ function badgeClass(status) {
     Available: "bg-success",
     Occupied: "bg-warning text-dark",
     Full: "bg-secondary",
+    "Not Available": "bg-danger text-white",
     Booked: "bg-warning text-dark",
     Approved: "bg-success",
     Pending: "bg-warning text-dark",

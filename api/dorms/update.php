@@ -15,7 +15,7 @@ $roomNumber = trim((string)($_POST['dormitoryName'] ?? $_POST['dormName'] ?? $_P
 $gender = in_array($_POST['gender'] ?? '', ['Male', 'Female', 'Mixed'], true) ? $_POST['gender'] : 'Male';
 $capacity = (int)($_POST['capacity'] ?? 0);
 $price = (float)($_POST['price'] ?? 0);
-$status = in_array($_POST['status'] ?? '', ['Available', 'Occupied', 'Full'], true) ? $_POST['status'] : 'Available';
+$status = in_array($_POST['status'] ?? '', ['Available', 'Occupied', 'Full', 'Not Available'], true) ? $_POST['status'] : 'Available';
 $description = trim((string)($_POST['description'] ?? ''));
 
 $ownerName = trim((string)($_POST['ownerName'] ?? $_POST['owner_name'] ?? ''));
@@ -29,7 +29,23 @@ if ($roomNumber === '' || $capacity <= 0 || $price < 0) {
 
 $pdo = get_db();
 
-$imagePath = isset($_FILES['image']) ? save_uploaded_image($_FILES['image'], 'dorms') : null;
+$stmtOld = $pdo->prepare('SELECT * FROM dormitories WHERE id = ?');
+$stmtOld->execute([$id]);
+$existing = $stmtOld->fetch();
+if (!$existing) {
+    fail('Dormitory not found.');
+}
+
+$existingImages = [];
+if (!empty($existing['images'])) {
+    $existingImages = json_decode($existing['images'], true) ?: [];
+}
+if (empty($existingImages) && !empty($existing['image_path'])) {
+    $existingImages = [$existing['image_path']];
+}
+
+$images = handle_gallery_uploads('dorms', $existingImages);
+
 $paymentQr = null;
 if (isset($_FILES['paymentQr'])) {
     $paymentQr = save_uploaded_image($_FILES['paymentQr'], 'qrcodes');
@@ -51,9 +67,11 @@ $fields = [
 ];
 $params = [$roomNumber, $gender, $capacity, $price, $status, $description, $ownerName, $ownerPhone, $paymentAccountName, $paymentAccountNumber];
 
-if ($imagePath) {
+if (!empty($images)) {
     $fields[] = 'image_path = ?';
-    $params[] = $imagePath;
+    $params[] = $images[0];
+    $fields[] = 'images = ?';
+    $params[] = json_encode($images);
 }
 if ($paymentQr) {
     $fields[] = 'payment_qr = ?';
@@ -68,9 +86,5 @@ $stmt->execute($params);
 $stmt = $pdo->prepare('SELECT * FROM dormitories WHERE id = ?');
 $stmt->execute([$id]);
 $row = $stmt->fetch();
-
-if (!$row) {
-    fail('Dormitory not found.', 404);
-}
 
 respond(['ok' => true, 'dorm' => map_dorm($row)]);

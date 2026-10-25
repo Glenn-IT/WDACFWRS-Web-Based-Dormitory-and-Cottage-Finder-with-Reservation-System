@@ -73,6 +73,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function renderGalleryCarousel(images, carouselId, defaultImg) {
+    const list = (Array.isArray(images) && images.length) ? images : (defaultImg ? [defaultImg] : []);
+    if (list.length > 1) {
+      return `
+        <div id="${carouselId}" class="carousel slide rounded shadow-sm overflow-hidden mb-3" data-bs-ride="carousel">
+          <div class="carousel-indicators">
+            ${list.map((_, idx) => `<button type="button" data-bs-target="#${carouselId}" data-bs-slide-to="${idx}" class="${idx === 0 ? 'active' : ''}"></button>`).join('')}
+          </div>
+          <div class="carousel-inner" style="height: 250px; background: #000;">
+            ${list.map((img, idx) => `
+              <div class="carousel-item h-100 ${idx === 0 ? 'active' : ''}">
+                <img src="${resolveAsset(img)}" class="d-block w-100 h-100" style="object-fit: cover;" alt="Photo ${idx + 1}">
+              </div>`).join('')}
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+          </button>
+        </div>`;
+    }
+    return `<img src="${resolveAsset(list[0] || defaultImg)}" class="w-100 rounded shadow-sm mb-3" style="max-height: 250px; object-fit: cover;">`;
+  }
+
   async function render() {
     grid.innerHTML = `
       <div class="col-12 text-center py-5 text-muted">
@@ -98,111 +123,147 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await DataAPI.getDorms({ status, gender, search });
       dormsCache = (data && data.dorms) ? data.dorms : [];
 
-      if (!status && !gender && !search) {
-        updateStats();
+      let list = dormsCache;
+      if (status === "Available") {
+        list = list.filter((d) => d.status === "Available");
+      } else if (status === "Occupied") {
+        list = list.filter((d) => d.status === "Occupied" || d.status === "Full");
+      } else if (status === "Not Available") {
+        list = list.filter((d) => d.status === "Not Available");
       }
 
-      grid.innerHTML = dormsCache.length
-        ? dormsCache.map((d) => dormCard(d)).join("")
-        : `<div class="col-12 empty-state"><i class="fa-solid fa-door-closed"></i>No dormitory rooms match your search filters.</div>`;
+      if (search) {
+        const q = search.toLowerCase();
+        list = list.filter((d) =>
+          (d.roomNumber && d.roomNumber.toLowerCase().includes(q)) ||
+          (d.description && d.description.toLowerCase().includes(q)) ||
+          (d.ownerName && d.ownerName.toLowerCase().includes(q))
+        );
+      }
 
-      grid.querySelectorAll("[data-view-dorm]").forEach((btn) => {
-        btn.addEventListener("click", () => viewDorm(btn.dataset.viewDorm));
-      });
-      grid.querySelectorAll("[data-reserve-unit]").forEach((btn) => {
-        btn.addEventListener("click", () => promptReserve(btn.dataset.reserveUnit, btn.dataset.unitType, btn.dataset.unitName));
-      });
-    } catch (err) {
-      console.error("renderDorms error:", err);
-      grid.innerHTML = `
-        <div class="col-12 empty-state text-danger">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <div class="fw-bold fs-5 mb-1">Failed to load dormitory rooms</div>
-          <p class="small text-muted mb-3">${escapeHtml(err.message || String(err))}</p>
-          <button class="btn btn-sm btn-outline-primary" onclick="window.guestRender()"><i class="fa-solid fa-rotate-right me-1"></i>Try Again</button>
-        </div>`;
+      if (!list.length) {
+        grid.innerHTML = `
+          <div class="col-12">
+            <div class="empty-state text-center py-5">
+              <i class="fa-solid fa-door-closed fs-1 text-muted mb-2"></i>
+              <h5 class="fw-bold">No Dormitory Rooms Found</h5>
+              <p class="text-muted small">Try adjusting your filters or search keywords.</p>
+            </div>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map((d) => dormCard(d)).join("");
+      wireDormActions();
+      updateStats();
+    } catch (e) {
+      grid.innerHTML = `<div class="col-12"><div class="alert alert-danger">Error loading dormitories: ${escapeHtml(e.message)}</div></div>`;
     }
   }
 
   async function renderCottages() {
-    const statusRaw = document.getElementById("filter-status")?.value || "";
+    const status = document.getElementById("filter-status")?.value || "";
     const search = document.getElementById("filter-search")?.value.trim() || "";
-    const status = statusRaw === "Occupied" ? "Booked" : statusRaw;
 
     try {
-      const data = await DataAPI.getCottages({ availability: status, search });
+      const data = await DataAPI.getCottages({ search });
       cottagesCache = (data && data.cottages) ? data.cottages : [];
 
-      if (!status && !search) {
-        updateStats();
+      let list = cottagesCache;
+      if (status === "Available") {
+        list = list.filter((c) => c.availability === "Available");
+      } else if (status === "Occupied") {
+        list = list.filter((c) => c.availability === "Booked");
+      } else if (status === "Not Available") {
+        list = list.filter((c) => c.availability === "Not Available");
       }
 
-      grid.innerHTML = cottagesCache.length
-        ? cottagesCache.map((c) => cottageCard(c)).join("")
-        : `<div class="col-12 empty-state"><i class="fa-solid fa-house"></i>No cottages match your search filters.</div>`;
+      if (search) {
+        const q = search.toLowerCase();
+        list = list.filter((c) =>
+          (c.name && c.name.toLowerCase().includes(q)) ||
+          (c.owner && c.owner.toLowerCase().includes(q)) ||
+          (c.description && c.description.toLowerCase().includes(q))
+        );
+      }
 
-      grid.querySelectorAll("[data-view-cottage]").forEach((btn) => {
-        btn.addEventListener("click", () => viewCottage(btn.dataset.viewCottage));
-      });
-      grid.querySelectorAll("[data-reserve-unit]").forEach((btn) => {
-        btn.addEventListener("click", () => promptReserve(btn.dataset.reserveUnit, btn.dataset.unitType, btn.dataset.unitName));
-      });
-    } catch (err) {
-      console.error("renderCottages error:", err);
-      grid.innerHTML = `
-        <div class="col-12 empty-state text-danger">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <div class="fw-bold fs-5 mb-1">Failed to load cottages</div>
-          <p class="small text-muted mb-3">${escapeHtml(err.message || String(err))}</p>
-          <button class="btn btn-sm btn-outline-primary" onclick="window.guestRender()"><i class="fa-solid fa-rotate-right me-1"></i>Try Again</button>
-        </div>`;
+      if (!list.length) {
+        grid.innerHTML = `
+          <div class="col-12">
+            <div class="empty-state text-center py-5">
+              <i class="fa-solid fa-house fs-1 text-muted mb-2"></i>
+              <h5 class="fw-bold">No Cottages Found</h5>
+              <p class="text-muted small">Try adjusting your filters or search keywords.</p>
+            </div>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map((c) => cottageCard(c)).join("");
+      wireCottageActions();
+      updateStats();
+    } catch (e) {
+      grid.innerHTML = `<div class="col-12"><div class="alert alert-danger">Error loading cottages: ${escapeHtml(e.message)}</div></div>`;
     }
   }
 
   async function renderKubotels() {
-    const statusRaw = document.getElementById("filter-status")?.value || "";
+    const status = document.getElementById("filter-status")?.value || "";
     const search = document.getElementById("filter-search")?.value.trim() || "";
-    const status = statusRaw === "Occupied" ? "Booked" : statusRaw;
 
     try {
-      const data = await DataAPI.getKubotels({ availability: status, search });
+      const data = await DataAPI.getKubotels({ search });
       kubotelsCache = (data && data.kubotels) ? data.kubotels : [];
 
-      if (!status && !search) {
-        updateStats();
+      let list = kubotelsCache;
+      if (status === "Available") {
+        list = list.filter((k) => k.availability === "Available");
+      } else if (status === "Occupied") {
+        list = list.filter((k) => k.availability === "Booked");
+      } else if (status === "Not Available") {
+        list = list.filter((k) => k.availability === "Not Available");
       }
 
-      grid.innerHTML = kubotelsCache.length
-        ? kubotelsCache.map((k) => kubotelCard(k)).join("")
-        : `<div class="col-12 empty-state"><i class="fa-solid fa-hotel"></i>No Kubotel units match your search filters.</div>`;
+      if (search) {
+        const q = search.toLowerCase();
+        list = list.filter((k) =>
+          (k.name && k.name.toLowerCase().includes(q)) ||
+          (k.owner && k.owner.toLowerCase().includes(q)) ||
+          (k.description && k.description.toLowerCase().includes(q))
+        );
+      }
 
-      grid.querySelectorAll("[data-view-kubotel]").forEach((btn) => {
-        btn.addEventListener("click", () => viewKubotel(btn.dataset.viewKubotel));
-      });
-      grid.querySelectorAll("[data-reserve-unit]").forEach((btn) => {
-        btn.addEventListener("click", () => promptReserve(btn.dataset.reserveUnit, btn.dataset.unitType, btn.dataset.unitName));
-      });
-    } catch (err) {
-      console.error("renderKubotels error:", err);
-      grid.innerHTML = `
-        <div class="col-12 empty-state text-danger">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <div class="fw-bold fs-5 mb-1">Failed to load Kubotel units</div>
-          <p class="small text-muted mb-3">${escapeHtml(err.message || String(err))}</p>
-          <button class="btn btn-sm btn-outline-primary" onclick="window.guestRender()"><i class="fa-solid fa-rotate-right me-1"></i>Try Again</button>
-        </div>`;
+      if (!list.length) {
+        grid.innerHTML = `
+          <div class="col-12">
+            <div class="empty-state text-center py-5">
+              <i class="fa-solid fa-hotel fs-1 text-muted mb-2"></i>
+              <h5 class="fw-bold">No Kubotel Units Found</h5>
+              <p class="text-muted small">Try adjusting your filters or search keywords.</p>
+            </div>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map((k) => kubotelCard(k)).join("");
+      wireKubotelActions();
+      updateStats();
+    } catch (e) {
+      grid.innerHTML = `<div class="col-12"><div class="alert alert-danger">Error loading kubotels: ${escapeHtml(e.message)}</div></div>`;
     }
   }
 
   function dormCard(d) {
     const isAvail = d.status === "Available";
     const statusClass = badgeClass(d.status);
+    const photoCount = (d.images && d.images.length) ? d.images.length : 1;
     return `
       <div class="col-sm-6 col-lg-4 col-xl-3">
         <div class="room-card h-100 d-flex flex-column">
           <div class="position-relative">
-            <img src="${resolveAsset(d.image)}" alt="${escapeHtml(d.roomNumber)}" class="w-100" style="height: 180px; object-fit: cover;">
+            <img src="${resolveAsset(d.image || (d.images && d.images[0]))}" alt="${escapeHtml(d.roomNumber)}" class="w-100" style="height: 180px; object-fit: cover;">
             <span class="badge ${statusClass} position-absolute top-0 end-0 m-2 shadow-sm">${d.status}</span>
+            ${photoCount > 1 ? `<span class="badge bg-dark bg-opacity-75 text-white position-absolute bottom-0 start-0 m-2 small"><i class="fa-solid fa-images me-1"></i>${photoCount} photos</span>` : ""}
           </div>
           <div class="room-body d-flex flex-column flex-grow-1">
             <div class="d-flex justify-content-between align-items-start mb-1">
@@ -231,7 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
                      <i class="fa-solid fa-calendar-check me-1"></i>Reserve Room
                    </button>`
                 : `<button class="btn btn-secondary w-100" disabled>
-                     <i class="fa-solid fa-ban me-1"></i>${d.status}
+                     <i class="fa-solid fa-ban me-1"></i>${escapeHtml(d.status)}
                    </button>`
             }
           </div>
@@ -242,12 +303,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function cottageCard(c) {
     const isAvail = c.availability === "Available";
     const statusClass = badgeClass(c.availability);
+    const photoCount = (c.images && c.images.length) ? c.images.length : 1;
     return `
       <div class="col-sm-6 col-lg-4 col-xl-3">
         <div class="room-card h-100 d-flex flex-column">
           <div class="position-relative">
-            <img src="${resolveAsset(c.image)}" alt="${escapeHtml(c.name)}" class="w-100" style="height: 180px; object-fit: cover;">
+            <img src="${resolveAsset(c.image || (c.images && c.images[0]))}" alt="${escapeHtml(c.name)}" class="w-100" style="height: 180px; object-fit: cover;">
             <span class="badge ${statusClass} position-absolute top-0 end-0 m-2 shadow-sm">${c.availability}</span>
+            ${photoCount > 1 ? `<span class="badge bg-dark bg-opacity-75 text-white position-absolute bottom-0 start-0 m-2 small"><i class="fa-solid fa-images me-1"></i>${photoCount} photos</span>` : ""}
           </div>
           <div class="room-body d-flex flex-column flex-grow-1">
             <div class="d-flex justify-content-between align-items-start mb-1">
@@ -276,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
                      <i class="fa-solid fa-calendar-check me-1"></i>Reserve Cottage
                    </button>`
                 : `<button class="btn btn-secondary w-100" disabled>
-                     <i class="fa-solid fa-ban me-1"></i>${c.availability}
+                     <i class="fa-solid fa-ban me-1"></i>${escapeHtml(c.availability)}
                    </button>`
             }
           </div>
@@ -287,19 +350,21 @@ document.addEventListener("DOMContentLoaded", () => {
   function kubotelCard(k) {
     const isAvail = k.availability === "Available";
     const statusClass = badgeClass(k.availability);
+    const photoCount = (k.images && k.images.length) ? k.images.length : 1;
     return `
       <div class="col-sm-6 col-lg-4 col-xl-3">
         <div class="room-card h-100 d-flex flex-column">
           <div class="position-relative">
-            <img src="${resolveAsset(k.image)}" alt="${escapeHtml(k.name)}" class="w-100" style="height: 180px; object-fit: cover;">
+            <img src="${resolveAsset(k.image || (k.images && k.images[0]))}" alt="${escapeHtml(k.name)}" class="w-100" style="height: 180px; object-fit: cover;">
             <span class="badge ${statusClass} position-absolute top-0 end-0 m-2 shadow-sm">${k.availability}</span>
+            ${photoCount > 1 ? `<span class="badge bg-dark bg-opacity-75 text-white position-absolute bottom-0 start-0 m-2 small"><i class="fa-solid fa-images me-1"></i>${photoCount} photos</span>` : ""}
           </div>
           <div class="room-body d-flex flex-column flex-grow-1">
             <div class="d-flex justify-content-between align-items-start mb-1">
               <h6 class="fw-bold mb-0 text-truncate" title="${escapeHtml(k.name)}">${escapeHtml(k.name)}</h6>
             </div>
             <div class="text-muted small mb-2 d-flex align-items-center gap-1">
-              ${k.ownerPhoto ? `<img src="${resolveAsset(k.ownerPhoto)}" class="rounded-circle border" style="width:20px;height:20px;object-fit:cover;">` : `<i class="fa-solid fa-hotel text-primary"></i>`}
+              ${k.ownerPhoto ? `<img src="${resolveAsset(k.ownerPhoto)}" class="rounded-circle border" style="width:20px;height:20px;object-fit:cover;">` : `<i class="fa-solid fa-user text-primary"></i>`}
               <span class="text-truncate">${escapeHtml(k.owner || "CSU Auxiliary")}</span>
               <span class="ms-auto"><i class="fa-solid fa-bed me-1"></i>${k.rooms} Room(s)</span>
             </div>
@@ -321,12 +386,39 @@ document.addEventListener("DOMContentLoaded", () => {
                      <i class="fa-solid fa-calendar-check me-1"></i>Reserve Kubotel
                    </button>`
                 : `<button class="btn btn-secondary w-100" disabled>
-                     <i class="fa-solid fa-ban me-1"></i>${k.availability}
+                     <i class="fa-solid fa-ban me-1"></i>${escapeHtml(k.availability)}
                    </button>`
             }
           </div>
         </div>
       </div>`;
+  }
+
+  function wireDormActions() {
+    grid.querySelectorAll("[data-view-dorm]").forEach((b) => {
+      b.addEventListener("click", () => viewDorm(b.dataset.viewDorm));
+    });
+    grid.querySelectorAll("[data-reserve-unit]").forEach((b) => {
+      b.addEventListener("click", () => promptReserve(b.dataset.reserveUnit, b.dataset.unitType, b.dataset.unitName));
+    });
+  }
+
+  function wireCottageActions() {
+    grid.querySelectorAll("[data-view-cottage]").forEach((b) => {
+      b.addEventListener("click", () => viewCottage(b.dataset.viewCottage));
+    });
+    grid.querySelectorAll("[data-reserve-unit]").forEach((b) => {
+      b.addEventListener("click", () => promptReserve(b.dataset.reserveUnit, b.dataset.unitType, b.dataset.unitName));
+    });
+  }
+
+  function wireKubotelActions() {
+    grid.querySelectorAll("[data-view-kubotel]").forEach((b) => {
+      b.addEventListener("click", () => viewKubotel(b.dataset.viewKubotel));
+    });
+    grid.querySelectorAll("[data-reserve-unit]").forEach((b) => {
+      b.addEventListener("click", () => promptReserve(b.dataset.reserveUnit, b.dataset.unitType, b.dataset.unitName));
+    });
   }
 
   function viewDorm(id) {
@@ -335,12 +427,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isAvail = d.status === "Available";
     const body = document.getElementById("unit-detail-body");
+
     body.innerHTML = `
       <div class="row g-3">
-        <div class="col-md-5">
-          <img src="${resolveAsset(d.image)}" class="w-100 rounded shadow-sm" style="max-height: 240px; object-fit: cover;">
+        <div class="col-md-6">
+          ${renderGalleryCarousel(d.images, `guest-dorm-carousel-${d.id}`, d.image)}
         </div>
-        <div class="col-md-7">
+        <div class="col-md-6">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <h5 class="fw-bold mb-0">${escapeHtml(d.roomNumber)}</h5>
             <span class="badge ${badgeClass(d.status)}">${d.status}</span>
@@ -350,6 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <li class="mb-1"><i class="fa-solid fa-users text-primary me-2"></i><strong>Capacity:</strong> ${d.capacity} pax</li>
             <li class="mb-1"><i class="fa-solid fa-venus-mars text-primary me-2"></i><strong>Gender:</strong> ${escapeHtml(d.gender || "Any")}</li>
             <li class="mb-1"><i class="fa-solid fa-building text-primary me-2"></i><strong>Type:</strong> Student Dormitory</li>
+            ${d.ownerName ? `<li class="mb-1"><i class="fa-solid fa-user-tie text-primary me-2"></i><strong>Landlord:</strong> ${escapeHtml(d.ownerName)}</li>` : ""}
           </ul>
           <h6 class="fw-semibold small text-uppercase text-muted">Description &amp; Amenities</h6>
           <p class="small text-secondary mb-0">${escapeHtml(d.description || "No specific details provided.")}</p>
@@ -370,7 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         ctaBtn.className = "btn btn-secondary";
         ctaBtn.disabled = true;
-        ctaBtn.innerHTML = `<i class="fa-solid fa-ban me-1"></i>${d.status}`;
+        ctaBtn.innerHTML = `<i class="fa-solid fa-ban me-1"></i>${escapeHtml(d.status)}`;
       }
     }
 
@@ -411,10 +505,10 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
 
       <div class="row g-3">
-        <div class="col-md-5">
-          <img src="${resolveAsset(c.image)}" class="w-100 rounded shadow-sm" style="max-height: 240px; object-fit: cover;">
+        <div class="col-md-6">
+          ${renderGalleryCarousel(c.images, `guest-cottage-carousel-${c.id}`, c.image)}
         </div>
-        <div class="col-md-7">
+        <div class="col-md-6">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <h5 class="fw-bold mb-0">${escapeHtml(c.name)}</h5>
             <span class="badge ${badgeClass(c.availability)}">${c.availability}</span>
@@ -444,7 +538,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         ctaBtn.className = "btn btn-secondary";
         ctaBtn.disabled = true;
-        ctaBtn.innerHTML = `<i class="fa-solid fa-ban me-1"></i>${c.availability}`;
+        ctaBtn.innerHTML = `<i class="fa-solid fa-ban me-1"></i>${escapeHtml(c.availability)}`;
       }
     }
 
@@ -485,10 +579,10 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
 
       <div class="row g-3">
-        <div class="col-md-5">
-          <img src="${resolveAsset(k.image)}" class="w-100 rounded shadow-sm" style="max-height: 240px; object-fit: cover;">
+        <div class="col-md-6">
+          ${renderGalleryCarousel(k.images, `guest-kubotel-carousel-${k.id}`, k.image)}
         </div>
-        <div class="col-md-7">
+        <div class="col-md-6">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <h5 class="fw-bold mb-0">${escapeHtml(k.name)}</h5>
             <span class="badge ${badgeClass(k.availability)}">${k.availability}</span>
@@ -518,7 +612,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         ctaBtn.className = "btn btn-secondary";
         ctaBtn.disabled = true;
-        ctaBtn.innerHTML = `<i class="fa-solid fa-ban me-1"></i>${k.availability}`;
+        ctaBtn.innerHTML = `<i class="fa-solid fa-ban me-1"></i>${escapeHtml(k.availability)}`;
       }
     }
 

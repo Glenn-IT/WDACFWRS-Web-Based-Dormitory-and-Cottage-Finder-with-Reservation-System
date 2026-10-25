@@ -56,13 +56,38 @@
               <div class="col-md-4"><label class="form-label">Capacity</label><input type="number" min="1" class="form-control" id="dorm-capacity" required></div>
               <div class="col-md-4"><label class="form-label">Price (monthly)</label><input type="number" min="0" class="form-control" id="dorm-price" required></div>
               <div class="col-md-4"><label class="form-label">Status</label>
-                <select class="form-select" id="dorm-status" required><option>Available</option><option>Occupied</option><option>Full</option></select>
+                <select class="form-select" id="dorm-status" required><option>Available</option><option>Occupied</option><option>Full</option><option>Not Available</option></select>
               </div>
               <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" id="dorm-description" rows="3" required></textarea></div>
-              <div class="col-12">
-                <label class="form-label">Dormitory Image</label>
-                <input type="file" accept="image/*" class="form-control" id="dorm-image-input">
-                <img id="dorm-image-preview" class="mt-2 rounded" style="max-height:140px;display:none;">
+                            <div class="col-12">
+                <label class="form-label fw-semibold"><i class="fa-solid fa-images me-1 text-primary"></i>Dormitory Photos (5 Pictures)</label>
+                <div class="row g-2">
+                  <div class="col-md-4 col-6">
+                    <label class="form-label small text-muted mb-1">Photo 1 (Cover / Main)</label>
+                    <input type="file" accept="image/*" class="form-control form-control-sm" id="dorm-image-input">
+                    <img id="dorm-image-preview" class="mt-1 rounded border w-100" style="height:90px;object-fit:cover;display:none;">
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="form-label small text-muted mb-1">Photo 2</label>
+                    <input type="file" accept="image/*" class="form-control form-control-sm" id="dorm-image-1">
+                    <img id="dorm-image-preview-1" class="mt-1 rounded border w-100" style="height:90px;object-fit:cover;display:none;">
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="form-label small text-muted mb-1">Photo 3</label>
+                    <input type="file" accept="image/*" class="form-control form-control-sm" id="dorm-image-2">
+                    <img id="dorm-image-preview-2" class="mt-1 rounded border w-100" style="height:90px;object-fit:cover;display:none;">
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="form-label small text-muted mb-1">Photo 4</label>
+                    <input type="file" accept="image/*" class="form-control form-control-sm" id="dorm-image-3">
+                    <img id="dorm-image-preview-3" class="mt-1 rounded border w-100" style="height:90px;object-fit:cover;display:none;">
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="form-label small text-muted mb-1">Photo 5</label>
+                    <input type="file" accept="image/*" class="form-control form-control-sm" id="dorm-image-4">
+                    <img id="dorm-image-preview-4" class="mt-1 rounded border w-100" style="height:90px;object-fit:cover;display:none;">
+                  </div>
+                </div>
               </div>
 
               <!-- Owner Profile & Online Payment QR Section -->

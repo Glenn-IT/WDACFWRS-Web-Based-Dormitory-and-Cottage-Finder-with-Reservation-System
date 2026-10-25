@@ -35,7 +35,23 @@ if ((int)$checkStmt->fetchColumn() > 0) {
     fail('A cottage with this name already exists.');
 }
 
-$imagePath = isset($_FILES['image']) ? save_uploaded_image($_FILES['image'], 'cottages') : null;
+$stmtOld = $pdo->prepare('SELECT * FROM cottages WHERE id = ?');
+$stmtOld->execute([$id]);
+$existing = $stmtOld->fetch();
+if (!$existing) {
+    fail('Cottage not found.');
+}
+
+$existingImages = [];
+if (!empty($existing['images'])) {
+    $existingImages = json_decode($existing['images'], true) ?: [];
+}
+if (empty($existingImages) && !empty($existing['image_path'])) {
+    $existingImages = [$existing['image_path']];
+}
+
+$images = handle_gallery_uploads('cottages', $existingImages);
+
 $ownerPhoto = null;
 if (isset($_FILES['ownerPhoto'])) {
     $ownerPhoto = save_uploaded_image($_FILES['ownerPhoto'], 'owners');
@@ -64,9 +80,11 @@ $fields = [
 ];
 $params = [$name, $owner, $ownerPhone, $ownerEmail, $ownerBio, $rooms, $price, $description, $paymentAccountName, $paymentAccountNumber];
 
-if ($imagePath) {
+if (!empty($images)) {
     $fields[] = 'image_path = ?';
-    $params[] = $imagePath;
+    $params[] = $images[0];
+    $fields[] = 'images = ?';
+    $params[] = json_encode($images);
 }
 if ($ownerPhoto) {
     $fields[] = 'owner_photo = ?';
@@ -85,9 +103,5 @@ $stmt->execute($params);
 $stmt = $pdo->prepare('SELECT * FROM cottages WHERE id = ?');
 $stmt->execute([$id]);
 $row = $stmt->fetch();
-
-if (!$row) {
-    fail('Cottage not found.', 404);
-}
 
 respond(['ok' => true, 'cottage' => map_cottage($row)]);
