@@ -66,6 +66,16 @@ document.addEventListener("DOMContentLoaded", async () => {
           ${r.referenceNumber ? `<p class="mb-1"><strong>Payment Ref #:</strong> <span class="badge bg-secondary-subtle text-dark border font-monospace">${escapeHtml(r.referenceNumber)}</span></p>` : ""}
           <p class="mb-1"><strong>Amount:</strong> ₱${r.amount.toLocaleString()}</p>
           <p class="mb-0"><strong>Payment Status:</strong> <span class="badge ${badgeClass(r.paymentStatus)}">${r.paymentStatus}</span></p>
+          ${r.receiptImage ? `
+            <div class="mt-3 p-2 border border-success-subtle rounded bg-success-subtle bg-opacity-10">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="small fw-semibold text-success"><i class="fa-solid fa-receipt me-1"></i>Uploaded Payment Receipt</span>
+                <a href="${resolveAsset(r.receiptImage)}" target="_blank" class="small btn btn-xs btn-outline-success py-0 px-2" style="font-size:0.75rem;">View Full</a>
+              </div>
+              <div class="text-center">
+                <img src="${resolveAsset(r.receiptImage)}" alt="Payment Receipt" class="img-fluid rounded border bg-white" style="max-height:140px;object-fit:contain;cursor:pointer;" onclick="window.open('${resolveAsset(r.receiptImage)}', '_blank')">
+              </div>
+            </div>` : ""}
         </div>
       </div>
       <hr>

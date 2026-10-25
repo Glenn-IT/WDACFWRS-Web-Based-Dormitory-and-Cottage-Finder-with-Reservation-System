@@ -93,6 +93,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     referenceNumber: "",
   };
 
+  let selectedReceiptFile = null;
+  let receiptPreviewDataUrl = "";
+
   function goToStep(n) {
     for (let i = 1; i <= 3; i++) {
       const stepEl = document.getElementById(`step-${i}`);
@@ -234,6 +237,64 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // Receipt upload handling
+  const receiptFileInput = document.getElementById("payment-receipt-file");
+  const receiptPreviewContainer = document.getElementById("receipt-preview-container");
+  const receiptPreviewImg = document.getElementById("receipt-preview-img");
+  const receiptFilenameEl = document.getElementById("receipt-filename");
+  const receiptFilesizeEl = document.getElementById("receipt-filesize");
+  const removeReceiptBtn = document.getElementById("remove-receipt-file-btn");
+
+  if (receiptFileInput) {
+    receiptFileInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) {
+        selectedReceiptFile = null;
+        receiptPreviewDataUrl = "";
+        if (receiptPreviewContainer) receiptPreviewContainer.classList.add("d-none");
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        showToast("Please select a valid image file (JPG, PNG, WEBP, GIF).", "warning");
+        receiptFileInput.value = "";
+        selectedReceiptFile = null;
+        receiptPreviewDataUrl = "";
+        if (receiptPreviewContainer) receiptPreviewContainer.classList.add("d-none");
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast("Receipt image must be smaller than 5MB.", "warning");
+        receiptFileInput.value = "";
+        selectedReceiptFile = null;
+        receiptPreviewDataUrl = "";
+        if (receiptPreviewContainer) receiptPreviewContainer.classList.add("d-none");
+        return;
+      }
+
+      selectedReceiptFile = file;
+      const reader = new FileReader();
+      reader.onload = (loadEvt) => {
+        receiptPreviewDataUrl = loadEvt.target.result;
+        if (receiptPreviewImg) receiptPreviewImg.src = receiptPreviewDataUrl;
+        if (receiptFilenameEl) receiptFilenameEl.textContent = file.name;
+        if (receiptFilesizeEl) receiptFilesizeEl.textContent = `${Math.round(file.size / 1024)} KB`;
+        if (receiptPreviewContainer) receiptPreviewContainer.classList.remove("d-none");
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (removeReceiptBtn) {
+    removeReceiptBtn.addEventListener("click", () => {
+      if (receiptFileInput) receiptFileInput.value = "";
+      selectedReceiptFile = null;
+      receiptPreviewDataUrl = "";
+      if (receiptPreviewContainer) receiptPreviewContainer.classList.add("d-none");
+    });
+  }
+
   document.getElementById("step2-to-step1-btn").addEventListener("click", () => goToStep(1));
 
   document.getElementById("to-step-3-btn").addEventListener("click", () => {
@@ -243,6 +304,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!refVal) {
         showToast("Please enter your Payment Reference / Transaction Number from your payment app.", "warning");
         if (refInput) refInput.focus();
+        return;
+      }
+      if (!selectedReceiptFile) {
+        showToast("Please upload a photo or screenshot of your payment receipt.", "warning");
+        if (receiptFileInput) receiptFileInput.focus();
         return;
       }
       wizardState.referenceNumber = refVal;
@@ -276,9 +342,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
         <span class="text-muted">Reservation Date</span><strong>${today}</strong>
       </div>
-      <div class="d-flex justify-content-between">
+      <div class="d-flex justify-content-between ${selectedReceiptFile ? 'border-bottom pb-2 mb-2' : ''}">
         <span class="text-muted">Payment Status</span><span class="badge ${badgeClass(paymentStatus)}">${paymentStatus}</span>
-      </div>`;
+      </div>
+      ${selectedReceiptFile && receiptPreviewDataUrl ? `
+      <div class="pt-2">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-muted small fw-semibold"><i class="fa-solid fa-receipt me-1 text-primary"></i>Uploaded Payment Proof Receipt:</span>
+          <span class="small text-muted font-monospace">${Math.round(selectedReceiptFile.size / 1024)} KB</span>
+        </div>
+        <div class="p-2 border rounded bg-light text-center">
+          <img src="${receiptPreviewDataUrl}" alt="Payment Receipt" class="img-fluid rounded border bg-white shadow-sm" style="max-height: 160px; object-fit: contain;">
+          <div class="small text-truncate text-muted mt-1">${escapeHtml(selectedReceiptFile.name)}</div>
+        </div>
+      </div>` : ""}`;
   }
 
   document.getElementById("step3-to-step2-btn").addEventListener("click", () => goToStep(2));
@@ -303,12 +380,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     withLoading(async () => {
       try {
-        await DataAPI.createReservation({
-          type: type === "dorm" ? "Dormitory" : (type === "cottage" ? "Cottage" : "Kubotel"),
-          assetId: asset.id,
-          paymentMethod: wizardState.paymentMethod,
-          referenceNumber: wizardState.referenceNumber,
-        });
+        const fd = new FormData();
+        fd.append("type", type === "dorm" ? "Dormitory" : (type === "cottage" ? "Cottage" : "Kubotel"));
+        fd.append("assetId", asset.id);
+        fd.append("paymentMethod", wizardState.paymentMethod);
+        fd.append("referenceNumber", wizardState.referenceNumber || "");
+        if (selectedReceiptFile) {
+          fd.append("receiptImage", selectedReceiptFile);
+        }
+        await DataAPI.createReservation(fd);
         showToast("Reservation submitted successfully!", "success");
         setTimeout(() => (window.location.href = "my-reservations.html"), 900);
       } catch (err) {

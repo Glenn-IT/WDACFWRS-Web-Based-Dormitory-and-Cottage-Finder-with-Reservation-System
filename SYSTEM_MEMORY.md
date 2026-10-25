@@ -35,10 +35,10 @@ The database consists of **12 tables** with explicit foreign keys and check cons
 | `dormitories` | `id INT AUTO_INCREMENT` | — | Dorm rooms (shared dorm names permitted, capacity, gender, price, status) |
 | `cottages` | `id INT AUTO_INCREMENT` | `name UNIQUE` | Cottages (unique name enforced, owner profile, rooms, price, availability) |
 | `kubotels` | `id INT AUTO_INCREMENT` | `name UNIQUE` | Kubotels / KUBO-HOTEL units (unique unit name enforced, host profile, rooms, price, availability) |
-| `reservations` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE)<br>`dorm_id -> dormitories(id)` (SET NULL)<br>`cottage_id -> cottages(id)` (SET NULL)<br>`kubotel_id -> kubotels(id)` (SET NULL)<br>`chk_res_asset`: Exactly one asset ID per type | Core reservation records, payment status, approval status |
+| `reservations` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE)<br>`dorm_id -> dormitories(id)` (SET NULL)<br>`cottage_id -> cottages(id)` (SET NULL)<br>`kubotel_id -> kubotels(id)` (SET NULL)<br>`chk_res_asset`: Exactly one asset ID per type | Core reservation records, payment status, approval status, reference_number, receipt_image |
 | `reservation_parent_info` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Parent/guardian background on specific reservation snapshot |
 | `reservation_backgrounds` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE, UNIQUE) | Student background on specific reservation snapshot |
-| `payments` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE) | Payment records tied to reservations |
+| `payments` | `id INT AUTO_INCREMENT` | `reservation_id -> reservations(id)` (CASCADE) | Payment records tied to reservations, reference_number, receipt_image |
 | `notifications` | `id INT AUTO_INCREMENT` | `student_id -> students(id)` (CASCADE) | In-app student alerts with `is_read` status |
 
 ---
@@ -130,6 +130,7 @@ Helper modules in `api/<module>/_helpers.php` normalize these transformations:
 | `r.payment_status` | `paymentStatus` | 'Pending', 'Paid' |
 | `r.approval_status` | `approvalStatus` | 'Pending', 'Approved', 'Declined', 'Cancelled' |
 | `r.reference_number` | `referenceNumber` | Student's GCash/Maya/Bank transaction reference code |
+| `r.receipt_image` | `receiptImage` | Uploaded payment proof slip / receipt image path (assets/uploads/receipts/...) |
 | `pi.*` (9 columns) | `parentInfo: { ... }` | View modal & printable slip |
 | `bg.*` (11 columns) | `studentBackground: { ... }` | View modal student details |
 

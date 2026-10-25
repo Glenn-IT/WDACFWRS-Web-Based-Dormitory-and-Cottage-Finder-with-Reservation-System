@@ -152,6 +152,29 @@
               <input type="text" class="form-control font-monospace" id="payment-reference-input" placeholder="e.g. 100293841928 (from GCash / Maya SMS or receipt)" required>
               <div class="form-text small">Enter the reference number generated after completing your online transfer so the administrator can verify your payment.</div>
             </div>
+
+            <!-- Upload Proof of Payment / Receipt Picture -->
+            <div class="mt-3">
+              <label class="form-label small fw-semibold" for="payment-receipt-file">
+                <i class="fa-solid fa-file-invoice-dollar me-1 text-primary"></i>Upload Proof of Payment / Receipt Picture <span class="text-danger">*</span>
+              </label>
+              <input type="file" class="form-control" id="payment-receipt-file" accept="image/jpeg,image/png,image/webp,image/gif" required>
+              <div class="form-text small">Upload a clear photo or screenshot of your payment receipt / SMS confirmation slip (Max 5MB).</div>
+
+              <!-- Preview Card -->
+              <div id="receipt-preview-container" class="mt-2 d-none">
+                <div class="d-flex align-items-center gap-3 p-2 border rounded bg-white">
+                  <img id="receipt-preview-img" src="" alt="Receipt Preview" style="width: 70px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid #dee2e6;">
+                  <div class="flex-grow-1 overflow-hidden">
+                    <div id="receipt-filename" class="small fw-semibold text-truncate">receipt.png</div>
+                    <div id="receipt-filesize" class="text-muted" style="font-size: 0.75rem;">0 KB</div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-danger" id="remove-receipt-file-btn" title="Remove picture">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

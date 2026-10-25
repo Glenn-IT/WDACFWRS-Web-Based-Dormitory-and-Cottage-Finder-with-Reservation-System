@@ -132,12 +132,40 @@
                 <input type="text" class="form-control font-monospace" id="edit-res-reference" placeholder="e.g. 100293841928">
               </div>
             </div>
+            <div id="edit-res-receipt-container" class="mt-2 p-2 border rounded bg-light d-none">
+              <span class="small fw-semibold d-block text-muted mb-1"><i class="fa-solid fa-receipt me-1 text-primary"></i>Submitted Receipt:</span>
+              <div class="d-flex align-items-center gap-2">
+                <img id="edit-res-receipt-img" src="" alt="Receipt" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">
+                <a id="edit-res-receipt-link" href="#" target="_blank" class="small btn btn-xs btn-outline-primary py-0 px-2">View Full Receipt</a>
+              </div>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i>Save Changes</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Preview Modal -->
+  <div class="modal fade" id="receipt-preview-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="receipt-modal-title"><i class="fa-solid fa-receipt me-2 text-primary"></i>Proof of Payment Receipt</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center bg-light p-4">
+          <img id="receipt-modal-img" src="" alt="Proof of Payment" class="img-fluid rounded border shadow-sm" style="max-height: 520px; object-fit: contain;">
+          <div id="receipt-modal-meta" class="mt-3 text-muted small"></div>
+        </div>
+        <div class="modal-footer">
+          <a id="receipt-modal-open-link" href="#" target="_blank" class="btn btn-outline-primary"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Open Full Size</a>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
       </div>
     </div>
   </div>

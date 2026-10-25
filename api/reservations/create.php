@@ -3,12 +3,22 @@ declare(strict_types=1);
 require_once __DIR__ . '/../_bootstrap.php';
 require_once __DIR__ . '/_helpers.php';
 require_once __DIR__ . '/../users/_helpers.php';
+require_once __DIR__ . '/../_uploads.php';
 
 $session = require_role('student');
 $studentId = (int)$session['id'];
 
 require_post();
 $in = json_input();
+if (empty($in)) {
+    $in = $_POST;
+    if (isset($in['parentInfo']) && is_string($in['parentInfo'])) {
+        $in['parentInfo'] = json_decode($in['parentInfo'], true) ?: [];
+    }
+    if (isset($in['background']) && is_string($in['background'])) {
+        $in['background'] = json_decode($in['background'], true) ?: [];
+    }
+}
 
 $rawType = trim((string)($in['type'] ?? ''));
 if ($rawType === 'Cottage') {
@@ -94,6 +104,29 @@ if ($emergencyNumber !== '' && !is_valid_ph_phone($emergencyNumber)) {
     fail('Please enter a valid emergency contact number (e.g. 09123456789).');
 }
 
+$receiptImage = null;
+if (isset($_FILES['receiptImage'])) {
+    $receiptImage = save_uploaded_image($_FILES['receiptImage'], 'receipts');
+} elseif (isset($_FILES['receipt_image'])) {
+    $receiptImage = save_uploaded_image($_FILES['receipt_image'], 'receipts');
+} elseif (isset($_FILES['receipt'])) {
+    $receiptImage = save_uploaded_image($_FILES['receipt'], 'receipts');
+}
+
+if (!$receiptImage && !empty($in['receiptImage']) && is_string($in['receiptImage'])) {
+    $receiptImage = trim($in['receiptImage']);
+}
+
+$referenceNumber = trim((string)($in['referenceNumber'] ?? $in['reference_number'] ?? ''));
+if ($paymentMethod !== 'Cash') {
+    if ($referenceNumber === '') {
+        fail('Payment reference / transaction number is required for online payments.');
+    }
+    if (!$receiptImage) {
+        fail('Please upload a screenshot or photo of your payment receipt.');
+    }
+}
+
 $pdo->beginTransaction();
 
 try {
@@ -140,14 +173,13 @@ try {
         }
     }
 
-    $referenceNumber = trim((string)($in['referenceNumber'] ?? $in['reference_number'] ?? ''));
     $amount = (float)$asset['price'];
     $paymentStatus = $paymentMethod === 'Cash' ? 'Pending' : 'Paid';
     $today = date('Y-m-d');
 
     $stmt = $pdo->prepare('INSERT INTO reservations
-        (student_id, type, dorm_id, cottage_id, kubotel_id, payment_method, amount, reservation_date, payment_status, approval_status, reference_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?)');
+        (student_id, type, dorm_id, cottage_id, kubotel_id, payment_method, amount, reservation_date, payment_status, approval_status, reference_number, receipt_image)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, \'Pending\', ?, ?)');
     $stmt->execute([
         $studentId,
         $type,
@@ -159,6 +191,7 @@ try {
         $today,
         $paymentStatus,
         $referenceNumber,
+        $receiptImage,
     ]);
     $reservationId = (int)$pdo->lastInsertId();
 
@@ -198,8 +231,8 @@ try {
         trim((string)($background['leisure'] ?? '')),
     ]);
 
-    $stmt = $pdo->prepare('INSERT INTO payments (reservation_id, method, amount, status, date, reference_number) VALUES (?, ?, ?, ?, ?, ?)');
-    $stmt->execute([$reservationId, $paymentMethod, $amount, $paymentStatus, $today, $referenceNumber]);
+    $stmt = $pdo->prepare('INSERT INTO payments (reservation_id, method, amount, status, date, reference_number, receipt_image) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$reservationId, $paymentMethod, $amount, $paymentStatus, $today, $referenceNumber, $receiptImage]);
 
     if ($type === 'Dormitory') {
         $stmt = $pdo->prepare('UPDATE dormitories SET status = \'Occupied\' WHERE id = ?');

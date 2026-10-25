@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 const RESERVATION_SELECT = '
   r.id, r.type, r.dorm_id, r.cottage_id, r.kubotel_id, r.payment_method, r.amount, r.reservation_date,
-  r.payment_status, r.approval_status, r.reference_number, r.created_at,
+  r.payment_status, r.approval_status, r.reference_number, r.receipt_image, r.created_at,
   r.student_id, s.first_name, s.last_name,
   d.room_no, d.gender AS dorm_gender, d.capacity AS dorm_capacity, d.image_path AS dorm_image,
   d.owner_name AS dorm_owner, d.owner_phone AS dorm_owner_phone, d.payment_qr AS dorm_payment_qr,
@@ -64,6 +64,7 @@ function map_reservation(array $r): array {
         'paymentAccountName' => $paymentAccountName,
         'paymentAccountNumber' => $paymentAccountNumber,
         'referenceNumber' => $r['reference_number'] ?? '',
+        'receiptImage' => $r['receipt_image'] ?: '',
         'image' => $image,
         'paymentMethod' => $r['payment_method'],
         'amount' => (float)$r['amount'],

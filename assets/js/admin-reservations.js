@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.getElementById("reservations-table-body");
   const viewModal = new bootstrap.Modal(document.getElementById("reservation-view-modal"));
   const editModal = new bootstrap.Modal(document.getElementById("reservation-edit-modal"));
+  const receiptModalEl = document.getElementById("receipt-preview-modal");
+  const receiptModal = receiptModalEl ? new bootstrap.Modal(receiptModalEl) : null;
   let reservations = [];
 
   ["filter-type", "filter-approval", "filter-payment", "filter-search"].forEach((id) => {
@@ -30,6 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <td><span class="badge ${badgeClass(r.paymentStatus)}">${r.paymentStatus}</span></td>
         <td><span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></td>
         <td class="text-end text-nowrap">
+          ${r.receiptImage ? `
+            <button class="btn btn-sm btn-outline-success me-1" data-receipt="${r.id}" title="View Payment Proof Receipt">
+              <i class="fa-solid fa-receipt me-1"></i>Receipt
+            </button>` : ""}
           <button class="btn btn-sm btn-outline-primary me-1" data-view="${r.id}">
             <i class="fa-solid fa-eye me-1"></i>View
           </button>
@@ -49,10 +55,25 @@ document.addEventListener("DOMContentLoaded", () => {
           .join("")
       : `<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-clipboard"></i>No reservations match your filters.</div></td></tr>`;
 
+    tbody.querySelectorAll("[data-receipt]").forEach((b) => b.addEventListener("click", () => openReceiptModal(b.dataset.receipt)));
     tbody.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => viewReservation(b.dataset.view)));
     tbody.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => openEditModal(b.dataset.edit)));
     tbody.querySelectorAll("[data-approve]").forEach((b) => b.addEventListener("click", () => setApproval(b.dataset.approve, "Approved")));
     tbody.querySelectorAll("[data-decline]").forEach((b) => b.addEventListener("click", () => setApproval(b.dataset.decline, "Declined")));
+  }
+
+  function openReceiptModal(id) {
+    const r = reservations.find((x) => String(x.id) === String(id));
+    if (!r || !r.receiptImage || !receiptModal) return;
+    const imgUrl = resolveAsset(r.receiptImage);
+    document.getElementById("receipt-modal-title").innerHTML = `<i class="fa-solid fa-receipt me-2 text-primary"></i>Proof of Payment — Reservation #${r.id}`;
+    document.getElementById("receipt-modal-img").src = imgUrl;
+    document.getElementById("receipt-modal-open-link").href = imgUrl;
+    document.getElementById("receipt-modal-meta").innerHTML = `
+      <div><strong>Student:</strong> ${escapeHtml(r.studentName)} &nbsp;|&nbsp; <strong>Method:</strong> ${escapeHtml(r.paymentMethod)} &nbsp;|&nbsp; <strong>Amount:</strong> ₱${r.amount.toLocaleString()}</div>
+      ${r.referenceNumber ? `<div class="mt-1 font-monospace"><strong>Ref / Trans #:</strong> ${escapeHtml(r.referenceNumber)}</div>` : ""}
+    `;
+    receiptModal.show();
   }
 
   function viewReservation(id) {
@@ -67,6 +88,19 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="small fw-semibold d-block text-primary mb-1"><i class="fa-solid fa-qrcode me-1"></i>Accommodation QR Code</span>
               <img src="${resolveAsset(r.paymentQr)}" class="border rounded bg-white p-1" style="max-height:100px;max-width:100px;object-fit:contain;">
             </div>` : ""}
+          ${r.receiptImage ? `
+            <div class="mt-2 text-center p-2 border border-success-subtle rounded bg-success-subtle bg-opacity-10">
+              <span class="small fw-semibold d-block text-success mb-1"><i class="fa-solid fa-receipt me-1"></i>Uploaded Payment Receipt</span>
+              <img src="${resolveAsset(r.receiptImage)}" class="border rounded bg-white p-1 shadow-sm" style="max-height:110px;max-width:140px;object-fit:contain;cursor:pointer;" title="Click to open preview" onclick="window.open('${resolveAsset(r.receiptImage)}', '_blank')">
+              <div class="mt-1">
+                <button type="button" class="btn btn-xs btn-outline-success py-0 px-2" style="font-size:0.75rem;" onclick="document.querySelector('[data-receipt=\x22${r.id}\x22]') ? document.querySelector('[data-receipt=\x22${r.id}\x22]').click() : window.open('${resolveAsset(r.receiptImage)}', '_blank')">
+                  <i class="fa-solid fa-expand me-1"></i>Enlarge Receipt
+                </button>
+              </div>
+            </div>` : (r.paymentMethod !== "Cash" ? `
+            <div class="alert alert-warning py-1 px-2 small mt-2 mb-0">
+              <i class="fa-solid fa-circle-exclamation me-1"></i>No payment receipt uploaded.
+            </div>` : "")}
         </div>
         <div class="col-md-7">
           <h5 class="fw-bold">${escapeHtml(r.assetLabel)} <span class="badge ${badgeClass(r.approvalStatus)}">${r.approvalStatus}</span></h5>
@@ -116,6 +150,20 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("edit-res-payment-status").value = r.paymentStatus;
     document.getElementById("edit-res-approval-status").value = r.approvalStatus;
     document.getElementById("edit-res-reference").value = r.referenceNumber || "";
+
+    const receiptBox = document.getElementById("edit-res-receipt-container");
+    const receiptImg = document.getElementById("edit-res-receipt-img");
+    const receiptLink = document.getElementById("edit-res-receipt-link");
+    if (receiptBox) {
+      if (r.receiptImage) {
+        receiptBox.classList.remove("d-none");
+        if (receiptImg) receiptImg.src = resolveAsset(r.receiptImage);
+        if (receiptLink) receiptLink.href = resolveAsset(r.receiptImage);
+      } else {
+        receiptBox.classList.add("d-none");
+      }
+    }
+
     editModal.show();
   }
 

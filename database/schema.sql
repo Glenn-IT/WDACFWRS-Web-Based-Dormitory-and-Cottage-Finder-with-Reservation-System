@@ -173,6 +173,7 @@ CREATE TABLE IF NOT EXISTS reservations (
   payment_status ENUM('Pending','Paid') NOT NULL DEFAULT 'Pending',
   approval_status ENUM('Pending','Approved','Declined','Cancelled') NOT NULL DEFAULT 'Pending',
   reference_number VARCHAR(100) DEFAULT '',
+  receipt_image VARCHAR(255) DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_res_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
   CONSTRAINT fk_res_dorm FOREIGN KEY (dorm_id) REFERENCES dormitories(id) ON DELETE SET NULL,
@@ -182,8 +183,6 @@ CREATE TABLE IF NOT EXISTS reservations (
     (type = 'Dormitory' AND dorm_id IS NOT NULL AND cottage_id IS NULL AND kubotel_id IS NULL) OR
     (type = 'Cottage' AND cottage_id IS NOT NULL AND dorm_id IS NULL AND kubotel_id IS NULL) OR
     (type = 'Kubotel' AND kubotel_id IS NOT NULL AND dorm_id IS NULL AND cottage_id IS NULL)
-  ) OR
-    (type = 'Cottage' AND cottage_id IS NOT NULL AND dorm_id IS NULL)
   )
 ) ENGINE=InnoDB;
 
@@ -236,6 +235,7 @@ CREATE TABLE IF NOT EXISTS payments (
   status ENUM('Pending','Paid') NOT NULL DEFAULT 'Pending',
   date DATE NOT NULL,
   reference_number VARCHAR(100) DEFAULT '',
+  receipt_image VARCHAR(255) DEFAULT NULL,
   CONSTRAINT fk_pay_res FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
